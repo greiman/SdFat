@@ -1,0 +1,8 @@
+Features have been added to support an unmodified Adafruit GPS Shield
+or Datalogging Shield on an Arduino Mega or Leonardo.
+
+Define MEGA_SOFT_SPI to be non-zero in SdFatConfig.h to use software SPI 
+on Mega Arduinos.  Pins used are SS 10, MOSI 11, MISO 12, and SCK 13.
+
+For Leonardo define LEONARDO_SOFT_SPI non-zero.
+Hardware SPI will still be used on 328 Arduinos.

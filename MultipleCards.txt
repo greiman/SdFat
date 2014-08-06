@@ -1,0 +1,13 @@
+SdFat has support for multiple SD cards.  This requires multiple instances
+of SdFat objects.
+
+You must edit SdFatConfig.h to enable multiple instances of SdFat. Set
+USE_MULTIPLE_CARDS nonzero like this:
+
+#define USE_MULTIPLE_CARDS 1
+
+Look at TwoCards.pde in the SdFat/examples folder. This example demonstrates
+use of two SD cards.
+
+Read WorkingDirectory.txt for more information on volume working
+directories and the current working directory.
