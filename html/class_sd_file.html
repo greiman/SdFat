@@ -1262,7 +1262,7 @@ Public Attributes</h2></td></tr>
 <p>O_EXCL - If O_CREAT and O_EXCL are set, <a class="el" href="class_sd_base_file.html#a6ff5b48f672515ec20831583de74407f">open()</a> shall fail if the file exists.</p>
 <p>O_SYNC - Call <a class="el" href="class_sd_base_file.html#a292247972772be832f2c6ea166f4049a">sync()</a> after each write. This flag should not be used with write(uint8_t), write_P(PGM_P), writeln_P(PGM_P), or the Arduino Print class. These functions do character at a time writes so <a class="el" href="class_sd_base_file.html#a292247972772be832f2c6ea166f4049a">sync()</a> will be called after each byte.</p>
 <p>O_TRUNC - If the file exists and is a regular file, and the file is successfully opened and is not read only, its length shall be truncated to 0.</p>
-<p>WARNING: A given file must not be opened by more than one <a class="el" href="class_sd_base_file.html" title="Base class for SdFile with Print and C++ streams. ">SdBaseFile</a> object of file corruption may occur.</p>
+<p>WARNING: A given file must not be opened by more than one <a class="el" href="class_sd_base_file.html" title="Base class for SdFile with Print and C++ streams. ">SdBaseFile</a> object or file corruption may occur.</p>
 <dl class="section note"><dt>Note</dt><dd>Directory files must be opened read only. Write and truncation is not allowed for directory files.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The value one, true, is returned for success and the value zero, false, is returned for failure. Reasons for failure include this file is already open, <em>dirFile</em> is not a directory, <em>path</em> is invalid, the file does not exist or can't be opened in the access mode specified by oflag. </dd></dl>
 
