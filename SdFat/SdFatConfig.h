@@ -24,34 +24,17 @@
 #ifndef SdFatConfig_h
 #define SdFatConfig_h
 #include <stdint.h>
+#ifdef __AVR__
+#include <avr/io.h>
+#endif  // __AVR__
 //------------------------------------------------------------------------------
 /**
- * Set USE_SEPARATE_FAT_CACHE nonzero to use a second 512 byte cache
- * for FAT table entries.  Improves performance for large writes that
- * are not a multiple of 512 bytes.
+ * Set SD_FILE_USES_STREAM nonzero to use Stream instead of Print for SdFile.
+ * Using Stream will use more flash and may cause compatibility problems
+ * with code written for older versions of SdFat. 
  */
-#ifdef __arm__
-#define USE_SEPARATE_FAT_CACHE 1
-#else  // __arm__
-#define USE_SEPARATE_FAT_CACHE 0
-#endif  // __arm__
-//------------------------------------------------------------------------------
-/**
- * Set USE_MULTI_BLOCK_SD_IO nonzero to use multi-block SD read/write.
- *
- * Don't use mult-block read/write on small AVR boards.
- */
-#if defined(RAMEND) && RAMEND < 3000
-#define USE_MULTI_BLOCK_SD_IO 0
-#else
-#define USE_MULTI_BLOCK_SD_IO 1
-#endif
-//------------------------------------------------------------------------------
-/**
- * Force use of Arduino Standard SPI library if USE_ARDUINO_SPI_LIBRARY
- * is nonzero.
- */
-#define USE_ARDUINO_SPI_LIBRARY 0
+#define SD_FILE_USES_STREAM 0
+
 //------------------------------------------------------------------------------
 /**
  * To enable SD card CRC checking set USE_SD_CRC nonzero.
@@ -94,6 +77,82 @@
 #define USE_SERIAL_FOR_STD_OUT 0
 //------------------------------------------------------------------------------
 /**
+ * Set FAT12_SUPPORT nonzero to enable use if FAT12 volumes.
+ * FAT12 has not been well tested and requires additional flash.
+ */
+#define FAT12_SUPPORT 0
+//------------------------------------------------------------------------------
+/**
+ * Set ENABLE_SPI_TRANSACTION nonzero to enable the SPI transaction feature
+ * of the standard Arduino SPI library.  You must include SPI.h in your
+ * sketches when ENABLE_SPI_TRANSACTION is nonzero.
+ */
+#define ENABLE_SPI_TRANSACTION 0
+//------------------------------------------------------------------------------
+/**
+ * Set ENABLE_SPI_YIELD nonzero to enable release of the SPI bus during
+ * SD card busy waits.  
+ *
+ * This will allow interrupt routines to access the SPI bus if 
+ * ENABLE_SPI_TRANSACTION is nonzero.
+ * 
+ * Setting ENABLE_SPI_YIELD will introduce some extra overhead and will
+ * slightly slow transfer rates.  A few older SD cards may fail when 
+ * ENABLE_SPI_YIELD is nonzero.
+ */
+#define ENABLE_SPI_YIELD 0
+//------------------------------------------------------------------------------
+/**
+ * Set USE_ARDUINO_SPI_LIBRARY nonzero to force use of Arduino Standard
+ * SPI library. This will override native and software SPI for all boards.
+ */
+#define USE_ARDUINO_SPI_LIBRARY 0
+//------------------------------------------------------------------------------
+/**
+ * Set AVR_SOFT_SPI nonzero to use software SPI on all AVR Arduinos.
+ */
+#define AVR_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Set DUE_SOFT_SPI nonzero to use software SPI on Due Arduinos.
+ */
+#define DUE_SOFT_SPI 0
+//------------------------------------------------------------------------------
+
+/**
+ * Set LEONARDO_SOFT_SPI nonzero to use software SPI on Leonardo Arduinos.
+ * LEONARDO_SOFT_SPI allows an unmodified 328 Shield to be used
+ * on Leonardo Arduinos.
+ */
+#define LEONARDO_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Set MEGA_SOFT_SPI nonzero to use software SPI on Mega Arduinos.
+ * MEGA_SOFT_SPI allows an unmodified 328 Shield to be used
+ * on Mega Arduinos.
+ */
+#define MEGA_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Set TEENSY3_SOFT_SPI nonzero to use software SPI on Teensy 3.x boards.
+ */
+#define TEENSY3_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/** 
+ * Define software SPI pins.  Default allows Uno shields to be used on other 
+ * boards.
+ */
+// define software SPI pins
+/** Default Software SPI chip select pin */
+uint8_t const SOFT_SPI_CS_PIN = 10;
+/** Software SPI Master Out Slave In pin */
+uint8_t const SOFT_SPI_MOSI_PIN = 11;
+/** Software SPI Master In Slave Out pin */
+uint8_t const SOFT_SPI_MISO_PIN = 12;
+/** Software SPI Clock pin */
+uint8_t const SOFT_SPI_SCK_PIN = 13;
+//------------------------------------------------------------------------------
+/**
  * Call flush for endl if ENDL_CALLS_FLUSH is nonzero
  *
  * The standard for iostreams is to call flush.  This is very costly for
@@ -113,12 +172,6 @@
 #define ENDL_CALLS_FLUSH 0
 //------------------------------------------------------------------------------
 /**
- * Allow FAT12 volumes if FAT12_SUPPORT is nonzero.
- * FAT12 has not been well tested.
- */
-#define FAT12_SUPPORT 0
-//------------------------------------------------------------------------------
-/**
  * SPI SCK divisor for SD initialization commands.
  * or greater
  */
@@ -129,36 +182,24 @@ const uint8_t SPI_SCK_INIT_DIVISOR = 128;
 #endif
 //------------------------------------------------------------------------------
 /**
- * Define MEGA_SOFT_SPI nonzero to use software SPI on Mega Arduinos.
- * Default pins used are SS 10, MOSI 11, MISO 12, and SCK 13.
- * Edit Software Spi pins to change pin numbers.
- *
- * MEGA_SOFT_SPI allows an unmodified 328 Shield to be used
- * on Mega Arduinos.
+ * Set USE_SEPARATE_FAT_CACHE nonzero to use a second 512 byte cache
+ * for FAT table entries.  Improves performance for large writes that
+ * are not a multiple of 512 bytes.
  */
-#define MEGA_SOFT_SPI 0
+#ifdef __arm__
+#define USE_SEPARATE_FAT_CACHE 1
+#else  // __arm__
+#define USE_SEPARATE_FAT_CACHE 0
+#endif  // __arm__
 //------------------------------------------------------------------------------
 /**
- * Define LEONARDO_SOFT_SPI nonzero to use software SPI on Leonardo Arduinos.
- * Default pins used are SS 10, MOSI 11, MISO 12, and SCK 13.
- * Edit Software Spi pins to change pin numbers.
+ * Set USE_MULTI_BLOCK_SD_IO nonzero to use multi-block SD read/write.
  *
- * LEONARDO_SOFT_SPI allows an unmodified 328 Shield to be used
- * on Leonardo Arduinos.
+ * Don't use mult-block read/write on small AVR boards.
  */
-#define LEONARDO_SOFT_SPI 0
-//------------------------------------------------------------------------------
-/**
- * Set USE_SOFTWARE_SPI nonzero to always use software SPI on AVR.
- */
-#define USE_SOFTWARE_SPI 0
-// define software SPI pins so Mega can use unmodified 168/328 shields
-/** Default Software SPI chip select pin */
-uint8_t const SOFT_SPI_CS_PIN = 10;
-/** Software SPI Master Out Slave In pin */
-uint8_t const SOFT_SPI_MOSI_PIN = 11;
-/** Software SPI Master In Slave Out pin */
-uint8_t const SOFT_SPI_MISO_PIN = 12;
-/** Software SPI Clock pin */
-uint8_t const SOFT_SPI_SCK_PIN = 13;
+#if defined(RAMEND) && RAMEND < 3000
+#define USE_MULTI_BLOCK_SD_IO 0
+#else  // RAMEND
+#define USE_MULTI_BLOCK_SD_IO 1
+#endif  // RAMEND
 #endif  // SdFatConfig_h

@@ -17,10 +17,6 @@
  * along with the Arduino RamDisk Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
- /**
- * \file
- * StdioStream implementation
- */
 #include <Arduino.h>
 #include <StdioStream.h>
 #include <utility/FmtNumber.h>

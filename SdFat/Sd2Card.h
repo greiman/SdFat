@@ -158,6 +158,7 @@ class Sd2Card {
     return readRegister(CMD9, csd);
   }
   bool readData(uint8_t *dst);
+  bool readOCR(uint32_t* ocr);
   bool readStart(uint32_t blockNumber);
   bool readStop();
   /** Return SCK divisor.
@@ -186,6 +187,7 @@ class Sd2Card {
   bool readRegister(uint8_t cmd, void* buf);
   void chipSelectHigh();
   void chipSelectLow();
+  void spiYield();
   void type(uint8_t value) {m_type = value;}
   bool waitNotBusy(uint16_t timeoutMillis);
   bool writeData(uint8_t token, const uint8_t* src);

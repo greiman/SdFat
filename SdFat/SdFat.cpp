@@ -148,7 +148,7 @@ void SdFat::ls(const char* path, uint8_t flags) {
 //------------------------------------------------------------------------------
 /** List the directory contents of the volume working directory.
  *
- * \param[in] pr Print stream for list.
+ * \param[in] pr Print stream for the list.
  *
  * \param[in] flags The inclusive OR of
  *
@@ -162,6 +162,20 @@ void SdFat::ls(Print* pr, uint8_t flags) {
   m_vwd.ls(pr, flags);
 }
 //------------------------------------------------------------------------------
+/** List the directory contents of the volume working directory to stdOut.
+ *
+ * \param[in] pr Print stream for the list.
+ *
+ * \param[in] path directory to list.
+ *
+ * \param[in] flags The inclusive OR of
+ *
+ * LS_DATE - %Print file modification date
+ *
+ * LS_SIZE - %Print file size.
+ *
+ * LS_R - Recursive list of subdirectories.
+ */
 void SdFat::ls(Print* pr, const char* path, uint8_t flags) {
   SdBaseFile dir(path, O_READ);
   dir.ls(pr, flags);

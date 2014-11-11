@@ -566,7 +566,7 @@ bool SdBaseFile::mkdir(SdBaseFile* parent, const uint8_t dname[11]) {
  * successfully opened and is not read only, its length shall be truncated to 0.
  *
  * WARNING: A given file must not be opened by more than one SdBaseFile object
- * of file corruption may occur.
+ * or file corruption may occur.
  *
  * \note Directory files must be opened read only.  Write and truncation is
  * not allowed for directory files.

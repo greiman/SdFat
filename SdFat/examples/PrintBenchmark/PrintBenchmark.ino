@@ -50,15 +50,19 @@ void loop() {
 
   cout << pstr("Type is FAT") << int(sd.vol()->fatType()) << endl;
 
-  // open or create file - truncate existing file.
-  if (!file.open("BENCH.TXT", O_CREAT | O_TRUNC | O_RDWR)) {
-    error("open failed");
-  }
   cout << pstr("Starting print test.  Please wait.\n\n");
 
   // do write test
-  for (int test = 0; test < 3; test++) {
-
+  for (int test = 0; test < 6; test++) {
+    char fileName[13] = "BENCH0.TXT";
+    fileName[5] = '0' + test;
+    // open or create file - truncate existing file.
+    if (!file.open(fileName, O_CREAT | O_TRUNC | O_RDWR)) {
+      error("open failed");
+    }
+    maxLatency = 0;
+    minLatency = 999999;
+    totalLatency = 0;
     switch(test) {
     case 0:
       cout << pstr("Test of println(uint16_t)\n");
@@ -69,13 +73,21 @@ void loop() {
       break;
 
     case 2:
-      cout << pstr("Test of println(double)\n");
+      cout << pstr("Test of println(uint32_t)\n");
       break;
+      
+    case 3:
+      cout << pstr("Test of printField(uint32_t, char)\n");
+      break;      
+    case 4:
+      cout << pstr("Test of println(float)\n");
+      break;     
+    
+    case 5:
+      cout << pstr("Test of printField(float, char)\n");
+      break;         
     }
-    file.truncate(0);
-    maxLatency = 0;
-    minLatency = 999999;
-    totalLatency = 0;
+    
     uint32_t t = millis();
     for (uint16_t i = 0; i < N_PRINT; i++) {
       uint32_t m = micros();
@@ -90,10 +102,21 @@ void loop() {
         break;
 
       case 2:
-        file.println((double)0.01*i);
+        file.println(12345678UL + i);
+        break;     
+      
+      case 3:
+        file.printField(12345678UL + i, '\n');
+        break;        
+        
+      case 4:
+        file.println((float)0.01*i);
+        break;
+      
+      case 5:
+        file.printField((float)0.01*i, '\n');
         break;
       }
-
       if (file.writeError) {
         error("write failed");
       }
@@ -102,7 +125,7 @@ void loop() {
       if (minLatency > m) minLatency = m;
       totalLatency += m;
     }
-    file.sync();
+    file.close();
     t = millis() - t;
     double s = file.fileSize();
     cout << pstr("Time ") << 0.001*t << pstr(" sec\n");
@@ -113,7 +136,5 @@ void loop() {
     cout << pstr(" usec, Avg Latency: ");
     cout << totalLatency/N_PRINT << pstr(" usec\n\n");
   }
-  file.close();
   cout << pstr("Done!\n\n");
 }
-

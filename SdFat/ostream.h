@@ -175,7 +175,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<< (long arg) {  // NOLINT
-    putNum(arg);
+    putNum((int32_t)arg);
     return *this;
   }
   /** Output unsigned long
@@ -183,7 +183,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<< (unsigned long arg) {  // NOLINT
-    putNum(arg);
+    putNum((uint32_t)arg);
     return *this;
   }
   /** Output pointer

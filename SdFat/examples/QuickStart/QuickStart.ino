@@ -37,7 +37,7 @@ void cardOrSpeed() {
 void reformatMsg() {
   cout << pstr("Try reformatting the card.  For best results use\n");
   cout << pstr("the SdFormatter sketch in SdFat/examples or download\n");
-  cout << pstr("and use SDFormatter from www.sdcard.org/consumer.\n");
+  cout << pstr("and use SDFormatter from www.sdcard.org/downloads.\n");
 }
 
 void setup() {

@@ -19,6 +19,9 @@
  */
 #include <Sd2Card.h>
 #include <SdSpi.h>
+#if !USE_SOFTWARE_SPI && ENABLE_SPI_TRANSACTION
+#include <SPI.h>
+#endif  // !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
 // debug trace macro
 #define SD_TRACE(m, b)
 // #define SD_TRACE(m, b) Serial.print(m);Serial.println(b);
@@ -264,13 +267,26 @@ uint32_t Sd2Card::cardSize() {
   }
 }
 //------------------------------------------------------------------------------
+void Sd2Card::spiYield() {
+#if ENABLE_SPI_YIELD && !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
+  chipSelectHigh();
+  chipSelectLow();
+#endif  // ENABLE_SPI_YIELD && !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
+}
+//------------------------------------------------------------------------------
 void Sd2Card::chipSelectHigh() {
   digitalWrite(m_chipSelectPin, HIGH);
   // insure MISO goes high impedance
   m_spi.send(0XFF);
+#if !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
+  SPI.endTransaction();
+#endif  // !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
 }
 //------------------------------------------------------------------------------
 void Sd2Card::chipSelectLow() {
+#if !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
+  SPI.beginTransaction(SPISettings());
+#endif  // !USE_SOFTWARE_SPI && defined(SPI_HAS_TRANSACTION)
   m_spi.init(m_sckDivisor);
   digitalWrite(m_chipSelectPin, LOW);
 }
@@ -396,6 +412,7 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
       error(SD_CARD_ERROR_READ_TIMEOUT);
       goto fail;
     }
+    spiYield();
   }
   if (m_status != DATA_START_BLOCK) {
     error(SD_CARD_ERROR_READ);
@@ -419,6 +436,26 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
   m_spi.receive();
   m_spi.receive();
 #endif  // USE_SD_CRC
+  chipSelectHigh();
+  return true;
+
+ fail:
+  chipSelectHigh();
+  return false;
+}
+//------------------------------------------------------------------------------
+/** Read OCR register.
+ *
+ * \param[out] ocr Value of OCR register.
+ * \return true for success else false.
+ */
+bool Sd2Card::readOCR(uint32_t* ocr) {
+  uint8_t *p = reinterpret_cast<uint8_t*>(ocr);
+  if (cardCommand(CMD58, 0)) {
+    error(SD_CARD_ERROR_CMD58);
+    goto fail;
+  }
+  for (uint8_t i = 0; i < 4; i++) p[3-i] = m_spi.receive();
 
   chipSelectHigh();
   return true;
@@ -490,6 +527,7 @@ bool Sd2Card::waitNotBusy(uint16_t timeoutMillis) {
   uint16_t t0 = millis();
   while (m_spi.receive() != 0XFF) {
     if (((uint16_t)millis() - t0) >= timeoutMillis) goto fail;
+    spiYield();
   }
   return true;
 
@@ -563,7 +601,6 @@ bool Sd2Card::writeData(uint8_t token, const uint8_t* src) {
 #else  // USE_SD_CRC
   uint16_t crc = 0XFFFF;
 #endif  // USE_SD_CRC
-
   m_spi.send(token);
   m_spi.send(src, 512);
   m_spi.send(crc >> 8);

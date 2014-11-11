@@ -29,38 +29,56 @@
 #if !USE_ARDUINO_SPI_LIBRARY
 // AVR Arduinos
 #ifdef __AVR__
-#if USE_SOFTWARE_SPI
-#define USE_AVR_SOFTWARE_SPI 1
+#if AVR_SOFT_SPI
+#define USE_SOFTWARE_SPI 1
 #elif LEONARDO_SOFT_SPI && defined(__AVR_ATmega32U4__) && !defined(CORE_TEENSY)
-#define USE_AVR_SOFTWARE_SPI 1
-#elif MEGA_SOFT_SPI&&(defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__))
-#define USE_AVR_SOFTWARE_SPI 1
+#define USE_SOFTWARE_SPI 1
+#elif MEGA_SOFT_SPI && (defined(__AVR_ATmega1280__)\
+      ||defined(__AVR_ATmega2560__))
+#define USE_SOFTWARE_SPI 1
 #else  // USE_SOFTWARE_SPI
-#define USE_AVR_S0FTWARE_SPI 0
 #define USE_NATIVE_AVR_SPI 1
 #endif  // USE_SOFTWARE_SPI
 #endif  // __AVR__
 // Due
 #if defined(__arm__) && !defined(CORE_TEENSY)
+#if DUE_SOFT_SPI
+#define USE_SOFTWARE_SPI 1
+#else  // DUE_SOFT_SPI
 /** Nonzero - use native SAM3X SPI */
 #define USE_NATIVE_SAM3X_SPI 1
-#else  //  USE_NATIVE_SAM3X_SPI
-/** Zero - don't use native SAM3X SPI */
-#define USE_NATIVE_SAM3X_SPI 0
-#endif  // USE_NATIVE_SAM3X_SPI
+#endif  // DUE_SOFT_SPI
+#endif  // defined(__arm__) && !defined(CORE_TEENSY)
 // Teensy 3.0
 #if defined(__arm__) && defined(CORE_TEENSY)
+#if TEENSY3_SOFT_SPI
+#define USE_SOFTWARE_SPI 1
+#else  // TEENSY3_SOFT_SPI
 /** Nonzero - use native MK20DX128 SPI */
-#define USE_NATIVE_MK20DX128_SPI 1
-#else  // USE_NATIVE_MK20DX128_SPI
-/** Zero - don't use native MK20DX128 SPI */
-#define USE_NATIVE_MK20DX128_SPI 0
-#endif  // USE_NATIVE_MK20DX128_SPI
-#endif  // USE_ARDUINO_SPI_LIBRARY
+#define USE_NATIVE_TEENSY3_SPI 1
+#endif  // TEENSY3_SOFT_SPI
+#endif  // defined(__arm__) && defined(CORE_TEENSY)
+#endif  // !USE_ARDUINO_SPI_LIBRARY
+
+#ifndef USE_SOFTWARE_SPI
+#define USE_SOFTWARE_SPI 0
+#endif  //  USE_SOFTWARE_SPI
+
+#ifndef USE_NATIVE_AVR_SPI
+#define USE_NATIVE_AVR_SPI 0
+#endif
+
+#ifndef USE_NATIVE_SAM3X_SPI
+#define USE_NATIVE_SAM3X_SPI 0
+#endif  // USE_NATIVE_SAM3X_SPI
+
+#ifndef USE_NATIVE_TEENSY3_SPI
+#define USE_NATIVE_TEENSY3_SPI 0
+#endif  // USE_NATIVE_TEENSY3_SPI
 //------------------------------------------------------------------------------
 // define default chip select pin
 //
-#if !USE_AVR_SOFTWARE_SPI
+#if !USE_SOFTWARE_SPI
 /** The default chip select pin for the SD card is SS. */
 uint8_t const  SD_CHIP_SELECT_PIN = SS;
 #else  // USE_AVR_SOFTWARE_SPI

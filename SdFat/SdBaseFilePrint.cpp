@@ -49,7 +49,6 @@ void SdBaseFile::ls(uint8_t flags) {
  * \param[in] indent Amount of space before file name. Used for recursive
  * list to indicate subdirectory level.
  */
-//------------------------------------------------------------------------------
 void SdBaseFile::ls(Print* pr, uint8_t flags, uint8_t indent) {
   if (!isDir()) {
     pr->println(F("bad dir"));
@@ -207,15 +206,38 @@ static int printFieldT(SdBaseFile* file, char sign, Type value, char term) {
       *--str = '\r';
     }
   }
+#ifdef OLD_FMT
   do {
     Type m = value;
     value /= 10;
     *--str = '0' + m - 10*value;
   } while (value);
+#else  // OLD_FMT
+  str = fmtDec(value, str);
+#endif  // OLD_FMT
   if (sign) {
     *--str = sign;
   }
   return file->write(str, &buf[sizeof(buf)] - str);
+}
+//------------------------------------------------------------------------------
+/** Print a number followed by a field terminator.
+ * \param[in] value The number to be printed.
+ * \param[in] term The field terminator.  Use '\\n' for CR LF.
+ * \param[in] prec Number of digits after decimal point.
+ * \return The number of bytes written or -1 if an error occurs.
+ */
+int SdBaseFile::printField(float value, char term, uint8_t prec) {
+  char buf[24];
+  char* str = &buf[sizeof(buf)];
+  if (term) {
+    *--str = term;
+    if (term == '\n') {
+      *--str = '\r';
+    }
+  }
+  str = fmtFloat(value, str, prec);
+  return write(str, buf + sizeof(buf) - str);
 }
 //------------------------------------------------------------------------------
 /** Print a number followed by a field terminator.
@@ -314,6 +336,13 @@ size_t SdBaseFile::printName() {
   return printName(SdFat::stdOut());
 }
 //------------------------------------------------------------------------------
+/** Print a file's size.
+ *
+ * \param[in] pr Print stream for output.
+ *
+ * \return The value one, true, is returned for success and
+ * the value zero, false, is returned for failure. 
+ */
 size_t SdBaseFile::printFileSize(Print* pr) {
   char buf[10];
   char *ptr = fmtDec(fileSize(), buf + sizeof(buf));

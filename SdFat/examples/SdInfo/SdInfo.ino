@@ -101,6 +101,13 @@ uint8_t partDmp() {
       sdErrorMsg("read MBR failed");
       return false;
   }
+  for (uint8_t ip = 1; ip < 5; ip++) {
+    part_t *pt = &p->mbr.part[ip - 1];
+    if ((pt->boot & 0X7F) != 0 || pt->firstSector > cardSize) {
+      cout << pstr("\nNo MBR. Assuming Super Floppy format.\n");
+      return true;
+    }
+  }
   cout << pstr("\nSD Partition Table\n");
   cout << pstr("part,boot,type,start,length\n");
   for (uint8_t ip = 1; ip < 5; ip++) {
@@ -188,6 +195,12 @@ void loop() {
   }
   if (!cidDmp()) return;
   if (!csdDmp()) return;
+  uint32_t ocr;
+  if (!card.readOCR(&ocr)) {
+    sdErrorMsg("\nreadOCR failed");
+    return;    
+  }
+  cout << pstr("OCR: ") << hex << ocr << dec << endl;
   if (!partDmp()) return;
   if (!vol.init(&card)) {
     sdErrorMsg("\nvol.init failed");

@@ -21,7 +21,7 @@
 #define StdioStream_h
 /**
  * \file
- * StdioStream class
+ * \brief StdioStream class
  */
 #include <limits.h>
 #include <Arduino.h>

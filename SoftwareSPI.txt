@@ -1,8 +1,49 @@
-Features have been added to support an unmodified Adafruit GPS Shield
-or Datalogging Shield on an Arduino Mega or Leonardo.
+Software SPI is now supported on AVR, Due, and Teensy 3.x boards.
 
-Define MEGA_SOFT_SPI to be non-zero in SdFatConfig.h to use software SPI 
-on Mega Arduinos.  Pins used are SS 10, MOSI 11, MISO 12, and SCK 13.
+Edit these variables in SdFatConfig.h to enable Software SPI.
 
-For Leonardo define LEONARDO_SOFT_SPI non-zero.
-Hardware SPI will still be used on 328 Arduinos.
+//------------------------------------------------------------------------------
+/**
+ * Define AVR_SOF_SPI nonzero to use software SPI on all AVR Arduinos.
+ */
+#define AVR_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Define DUE_SOFT_SPI nonzero to use software SPI on Due Arduinos.
+ */
+#define DUE_SOFT_SPI 0
+//------------------------------------------------------------------------------
+
+/**
+ * Define LEONARDO_SOFT_SPI nonzero to use software SPI on Leonardo Arduinos.
+ * LEONARDO_SOFT_SPI allows an unmodified 328 Shield to be used
+ * on Leonardo Arduinos.
+ */
+#define LEONARDO_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Define MEGA_SOFT_SPI nonzero to use software SPI on Mega Arduinos.
+ * MEGA_SOFT_SPI allows an unmodified 328 Shield to be used
+ * on Mega Arduinos.
+ */
+#define MEGA_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/**
+ * Set TEENSY3_SOFT_SPI nonzero to use software SPI on Teensy 3.x boards.
+ */
+#define TEENSY3_SOFT_SPI 0
+//------------------------------------------------------------------------------
+/** 
+ * Define software SPI pins.  Default allows Uno shields to be used on other 
+ * boards.
+ */
+// define software SPI pins
+/** Default Software SPI chip select pin */
+uint8_t const SOFT_SPI_CS_PIN = 10;
+/** Software SPI Master Out Slave In pin */
+uint8_t const SOFT_SPI_MOSI_PIN = 11;
+/** Software SPI Master In Slave Out pin */
+uint8_t const SOFT_SPI_MISO_PIN = 12;
+/** Software SPI Clock pin */
+uint8_t const SOFT_SPI_SCK_PIN = 13;
+

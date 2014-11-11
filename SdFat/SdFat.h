@@ -28,7 +28,7 @@
 #define DBG_FAIL_MACRO  // Serial.print(__FILE__);Serial.println(__LINE__)
 //------------------------------------------------------------------------------
 /** SdFat version YYYYMMDD */
-#define SD_FAT_VERSION 20140806
+#define SD_FAT_VERSION 20141111
 //------------------------------------------------------------------------------
 /** error if old IDE */
 #if !defined(ARDUINO) || ARDUINO < 100
@@ -37,6 +37,7 @@
 //------------------------------------------------------------------------------
 #include <SdFile.h>
 #include <SdStream.h>
+#include <StdioStream.h>
 #include <ArduinoStream.h>
 #include <MinimumSerial.h>
 //------------------------------------------------------------------------------
@@ -89,6 +90,18 @@ class SdFat {
   static void setStdOut(Print* stream) {m_stdOut = stream;}
   /** \return Print stream for messages. */
   static Print* stdOut() {return m_stdOut;}
+  //----------------------------------------------------------------------------
+  /** open a file 
+   *
+   * \param[in] path location of file to be opened.
+   * \param[in] mode open mode flags.
+   * \return a File object.
+   */  
+  File open(const char *path, uint8_t mode = FILE_READ) {
+    File tmpFile;
+    tmpFile.open(&m_vwd, path, mode);
+    return tmpFile;
+  }
 
  private:
   Sd2Card m_card;

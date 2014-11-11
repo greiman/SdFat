@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 #include <SdSpi.h>
-#if USE_NATIVE_MK20DX128_SPI
+#if USE_NATIVE_TEENSY3_SPI
 // Teensy 3.0 functions
 #include <mk20dx128.h>
 // use 16-bit frame if SPI_USE_8BIT_FRAME is zero
@@ -220,4 +220,4 @@ void SdSpi::send(const uint8_t* buf , size_t n) {
   }
 #endif  // SPI_USE_8BIT_FRAME
 }
-#endif  // USE_NATIVE_MK20DX128_SPI
+#endif  // USE_NATIVE_TEENSY3_SPI

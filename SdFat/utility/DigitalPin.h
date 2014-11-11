@@ -27,6 +27,62 @@
  */
 #ifndef DigitalPin_h
 #define DigitalPin_h
+#include <Arduino.h>
+#ifdef __arm__
+#ifdef CORE_TEENSY
+//------------------------------------------------------------------------------
+/** read pin value
+ * @param[in] pin Arduino pin number
+ * @return value read
+ */
+static inline __attribute__((always_inline))
+bool fastDigitalRead(uint8_t pin) {
+  return *portInputRegister(pin);
+}
+//------------------------------------------------------------------------------
+/** Set pin value
+ * @param[in] pin Arduino pin number
+ * @param[in] level value to write
+ */
+static inline __attribute__((always_inline))
+void fastDigitalWrite(uint8_t pin, bool value) {
+	if (value) {
+		*portSetRegister(pin) = 1;
+	} else {
+		*portClearRegister(pin) = 1;
+	}
+}
+#else  // CORE_TEENSY
+//------------------------------------------------------------------------------
+/** read pin value
+ * @param[in] pin Arduino pin number
+ * @return value read
+ */
+static inline __attribute__((always_inline))
+bool fastDigitalRead(uint8_t pin){
+  return g_APinDescription[pin].pPort->PIO_PDSR & g_APinDescription[pin].ulPin;
+}
+//------------------------------------------------------------------------------
+/** Set pin value
+ * @param[in] pin Arduino pin number
+ * @param[in] level value to write
+ */
+static inline __attribute__((always_inline))
+void fastDigitalWrite(uint8_t pin, bool value){
+  if(value) {
+    g_APinDescription[pin].pPort->PIO_SODR = g_APinDescription[pin].ulPin;
+  } else {
+    g_APinDescription[pin].pPort->PIO_CODR = g_APinDescription[pin].ulPin;
+  }
+}
+#endif  // CORE_TEENSY
+//------------------------------------------------------------------------------
+inline void fastDigitalToggle(uint8_t pin) {
+ fastDigitalWrite(pin, !fastDigitalRead(pin));
+ }
+//------------------------------------------------------------------------------
+inline void fastPinMode(uint8_t pin, bool mode) {pinMode(pin, mode);}
+#else  // __arm__
 #include <avr/io.h>
 #include <util/atomic.h>
 //------------------------------------------------------------------------------
@@ -152,6 +208,8 @@ static const pin_map_t pinMap[] = {
 || defined(__AVR_ATmega32__)\
 || defined(__AVR_ATmega324__)\
 || defined(__AVR_ATmega16__)
+
+#ifdef defined(VARIANT_MIGHTY)
 // Mighty Layout
 static const pin_map_t pinMap[] = {
   {&DDRB, &PINB, &PORTB, 0},  // B0  0
@@ -187,6 +245,81 @@ static const pin_map_t pinMap[] = {
   {&DDRA, &PINA, &PORTA, 6},  // A6 30
   {&DDRA, &PINA, &PORTA, 7}   // A7 31
 };
+#elif defined(VARIANT_BOBUINO)
+// Bobuino Layout
+static const pin_map_t pinMap[] = {
+  {&DDRD, &PIND, &PORTD, 0},  // D0  0
+  {&DDRD, &PIND, &PORTD, 1},  // D1  1
+  {&DDRD, &PIND, &PORTD, 2},  // D2  2
+  {&DDRD, &PIND, &PORTD, 3},  // D3  3
+  {&DDRB, &PINB, &PORTB, 0},  // B0  4
+  {&DDRB, &PINB, &PORTB, 1},  // B1  5
+  {&DDRB, &PINB, &PORTB, 2},  // B2  6
+  {&DDRB, &PINB, &PORTB, 3},  // B3  7
+  {&DDRD, &PIND, &PORTD, 5},  // D5  8
+  {&DDRD, &PIND, &PORTD, 6},  // D6  9
+  {&DDRB, &PINB, &PORTB, 4},  // B4 10
+  {&DDRB, &PINB, &PORTB, 5},  // B5 11
+  {&DDRB, &PINB, &PORTB, 6},  // B6 12
+  {&DDRB, &PINB, &PORTB, 7},  // B7 13
+  {&DDRA, &PINA, &PORTA, 7},  // A7 14
+  {&DDRA, &PINA, &PORTA, 6},  // A6 15
+  {&DDRA, &PINA, &PORTA, 5},  // A5 16
+  {&DDRA, &PINA, &PORTA, 4},  // A4 17
+  {&DDRA, &PINA, &PORTA, 3},  // A3 18
+  {&DDRA, &PINA, &PORTA, 2},  // A2 19
+  {&DDRA, &PINA, &PORTA, 1},  // A1 20
+  {&DDRA, &PINA, &PORTA, 0},  // A0 21
+  {&DDRC, &PINC, &PORTC, 0},  // C0 22
+  {&DDRC, &PINC, &PORTC, 1},  // C1 23
+  {&DDRC, &PINC, &PORTC, 2},  // C2 24
+  {&DDRC, &PINC, &PORTC, 3},  // C3 25
+  {&DDRC, &PINC, &PORTC, 4},  // C4 26
+  {&DDRC, &PINC, &PORTC, 5},  // C5 27
+  {&DDRC, &PINC, &PORTC, 6},  // C6 28
+  {&DDRC, &PINC, &PORTC, 7},  // C7 29
+  {&DDRD, &PIND, &PORTD, 4},  // D4 30
+  {&DDRD, &PIND, &PORTD, 7}   // D7 31
+};
+#elif defined(VARIANT_STANDARD)
+// Standard Layout
+static const pin_map_t pinMap[] = {
+  {&DDRB, &PINB, &PORTB, 0},  // B0  0
+  {&DDRB, &PINB, &PORTB, 1},  // B1  1
+  {&DDRB, &PINB, &PORTB, 2},  // B2  2
+  {&DDRB, &PINB, &PORTB, 3},  // B3  3
+  {&DDRB, &PINB, &PORTB, 4},  // B4  4
+  {&DDRB, &PINB, &PORTB, 5},  // B5  5
+  {&DDRB, &PINB, &PORTB, 6},  // B6  6
+  {&DDRB, &PINB, &PORTB, 7},  // B7  7
+  {&DDRD, &PIND, &PORTD, 0},  // D0  8
+  {&DDRD, &PIND, &PORTD, 1},  // D1  9
+  {&DDRD, &PIND, &PORTD, 2},  // D2 10
+  {&DDRD, &PIND, &PORTD, 3},  // D3 11
+  {&DDRD, &PIND, &PORTD, 4},  // D4 12
+  {&DDRD, &PIND, &PORTD, 5},  // D5 13
+  {&DDRD, &PIND, &PORTD, 6},  // D6 14
+  {&DDRD, &PIND, &PORTD, 7},  // D7 15
+  {&DDRC, &PINC, &PORTC, 0},  // C0 16
+  {&DDRC, &PINC, &PORTC, 1},  // C1 17
+  {&DDRC, &PINC, &PORTC, 2},  // C2 18
+  {&DDRC, &PINC, &PORTC, 3},  // C3 19
+  {&DDRC, &PINC, &PORTC, 4},  // C4 20
+  {&DDRC, &PINC, &PORTC, 5},  // C5 21
+  {&DDRC, &PINC, &PORTC, 6},  // C6 22
+  {&DDRC, &PINC, &PORTC, 7},  // C7 23
+  {&DDRA, &PINA, &PORTA, 7},  // A7 24
+  {&DDRA, &PINA, &PORTA, 6},  // A6 25
+  {&DDRA, &PINA, &PORTA, 5},  // A5 26
+  {&DDRA, &PINA, &PORTA, 4},  // A4 27
+  {&DDRA, &PINA, &PORTA, 3},  // A3 28
+  {&DDRA, &PINA, &PORTA, 2},  // A2 29
+  {&DDRA, &PINA, &PORTA, 1},  // A1 30
+  {&DDRA, &PINA, &PORTA, 0}   // A0 31
+};
+#else  // VARIANT_MIGHTY
+#error Undefined variant 1284, 644, 324, 64, 32
+#endif  // VARIANT_MIGHTY
 //------------------------------------------------------------------------------
 #elif defined(__AVR_ATmega32U4__)
 #ifdef CORE_TEENSY
@@ -310,6 +443,7 @@ static const pin_map_t pinMap[] = {
 #else  // CPU type
 #error unknown CPU type
 #endif  // CPU type
+//------------------------------------------------------------------------------
 /** count of pins */
 static const uint8_t digitalPinCount = sizeof(pinMap)/sizeof(pin_map_t);
 //==============================================================================
@@ -398,6 +532,8 @@ void fastPinMode(uint8_t pin, bool mode) {
   badPinCheck(pin);
   fastBitWriteSafe(pinMap[pin].ddr, pinMap[pin].bit, mode);
 }
+
+#endif  // __arm__
 //------------------------------------------------------------------------------
 /** set pin configuration
  * @param[in] pin Arduino pin number
@@ -413,7 +549,7 @@ void fastPinConfig(uint8_t pin, bool mode, bool level) {
 //==============================================================================
 /**
  * @class DigitalPin
- * @brief Fast AVR digital port I/O
+ * @brief Fast digital port I/O
  */
 template<uint8_t PinNumber>
 class DigitalPin {

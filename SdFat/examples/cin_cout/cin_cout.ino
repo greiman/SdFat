@@ -6,7 +6,7 @@
 // create serial output stream
 ArduinoOutStream cout(Serial);
 
-// input buffer for line
+// input line buffer
 char cinBuf[40];
 
 // create serial input stream

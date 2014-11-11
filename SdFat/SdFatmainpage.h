@@ -33,15 +33,22 @@ nonzero in SdFatConfig.h.
 
 The %SdFat library only supports short 8.3 names.
 
-The main classes in %SdFat are SdFat, SdFile, StdioStream, \ref fstream,
-\ref ifstream, and \ref ofstream.
+The main classes in %SdFat are SdFat, SdBaseFile, SdFile, File, StdioStream,
+\ref fstream, \ref ifstream, and \ref ofstream.
 
-The SdFat class maintains a volume working directories, a current working
-directory, and simplifies initialization of other classes.
+The SdFat class maintains a FAT volume, a current working directory, 
+and simplifies initialization of other classes.
 
-The SdFile class provides binary file access functions such as open(), read(),
-remove(), write(), close() and sync(). This class supports access to the root
-directory and subdirectories.
+The SdBaseFile class provides basic file access functions such as open(),
+binary read(), binary write(), close(), remove(), and sync(). SdBaseFile
+is the smallest file class.
+
+The SdFile class has all the SdBaseFile class functions plus the Arduino
+Print class functions.
+
+The File class has all the SdBaseFile functions plus the functions in
+the Arduino SD.h File class. This provides compatibility with the 
+Arduino SD.h library.
 
 The StdioStream class implements functions similar to Linux/Unix standard
 buffered input/output. 
@@ -49,9 +56,9 @@ buffered input/output.
 The \ref fstream class implements C++ iostreams for both reading and writing
 text files.
 
-The \ref ifstream class implements the C++ iostreams for reading text files.
+The \ref ifstream class implements C++ iostreams for reading text files.
 
-The \ref ofstream class implements the C++ iostreams for writing text files.
+The \ref ofstream class implements C++ iostreams for writing text files.
 
 The classes \ref ibufstream and \ref obufstream format and parse character
  strings in memory buffers.
@@ -59,21 +66,46 @@ The classes \ref ibufstream and \ref obufstream format and parse character
 the classes ArduinoInStream and ArduinoOutStream provide iostream functions
 for Serial, LiquidCrystal, and other devices.
 
-The SdVolume class supports FAT16 and FAT32 partitions.  Most applications
-will not need to call SdVolume member function.
-
-The Sd2Card class supports access to standard SD cards and SDHC cards.  Most
-applications will not need to call Sd2Card functions.  The Sd2Card class can
-be used for raw access to the SD card.
-
 A number of example are provided in the %SdFat/examples folder.  These were
 developed to test %SdFat and illustrate its use.
 
-%SdFat was developed for high speed data recording.  %SdFat was used to
-implement an audio record/play class, WaveRP, for the Adafruit Wave Shield.
-This application uses special Sd2Card calls to write to contiguous files in
-raw mode.  These functions reduce write latency so that audio can be
-recorded with the small amount of RAM in the Arduino.
+\section Install Installation
+
+You must manually install SdFat by copying the SdFat folder from the download
+package to the Arduino libraries folder in you sketch book.
+
+See the Manual installation section of this guide.
+
+http://arduino.cc/en/Guide/Libraries
+
+\section SDconfig SdFat Configuration
+
+Several configuration options may be changed by editing the SdFatConfig.h
+file in the SdFat folder.
+
+Set SD_FILE_USES_STREAM nonzero to use Stream instead of Print for SdFile.
+Using Stream will use more flash.
+
+To enable SD card CRC checking set USE_SD_CRC nonzero.
+
+To use multiple SD cards set USE_MULTIPLE_CARDS nonzero.
+
+Set FAT12_SUPPORT nonzero to enable use of FAT12 volumes.
+FAT12 has not been well tested and requires additional flash.
+
+Set USE_ARDUINO_SPI_LIBRARY nonzero to force use of Arduino Standard
+SPI library. This will override native and software SPI for all boards.
+
+Use of software SPI can be enabled for selected boards by setting the symbols
+AVR_SOFT_SPI, DUE_SOFT_SPI, LEONARDO_SOFT_SPI, MEGA_SOFT_SPI,
+and TEENSY3_SOFT_SPI.
+
+Set ENABLE_SPI_TRANSACTION nonzero to enable the SPI transaction feature
+of the standard Arduino SPI library.  You must include SPI.h in your
+sketches when ENABLE_SPI_TRANSACTION is nonzero.
+
+Set ENABLE_SPI_YIELD nonzero to enable release of the SPI bus during
+SD card busy waits.  
 
 \section SDcard SD\SDHC Cards
 
@@ -118,10 +150,6 @@ If you wish to report bugs or have comments, send email to fat16lib@sbcglobal.ne
 \section SdFatClass SdFat Usage
 
 %SdFat uses a slightly restricted form of short names.
-Only printable ASCII characters are supported. No characters with code point
-values greater than 127 are allowed.  Space is not allowed even though space
-was allowed in the API of early versions of DOS.
-
 Short names are limited to 8 characters followed by an optional period (.)
 and extension of up to 3 characters.  The characters may be any combination
 of letters and digits.  The following special characters are also allowed:
@@ -131,89 +159,106 @@ $ % ' - _ @ ~ ` ! ( ) { } ^ # &
 Short names are always converted to upper case and their original case
 value is lost.
 
-\par
 An application which writes to a file using print(), println() or
 \link SdFile::write write() \endlink must call \link SdFile::sync() sync() \endlink
 at the appropriate time to force data and directory information to be written
 to the SD Card.  Data and directory information are also written to the SD card
 when \link SdFile::close() close() \endlink is called.
 
-\par
 Applications must use care calling \link SdFile::sync() sync() \endlink
 since 2048 bytes of I/O is required to update file and
 directory information.  This includes writing the current data block, reading
 the block that contains the directory entry for update, writing the directory
 block back and reading back the current data block.
 
-It is possible to open a file with two or more instances of SdFile.  A file may
-be corrupted if data is written to the file by more than one instance of SdFile.
+It is possible to open a file with two or more instances of a file object.
+A file may be corrupted if data is written to the file by more than one
+instance of a file object.
 
 \section HowTo How to format SD Cards as FAT Volumes
+
+The best way to restore an SD card's format on a PC or Mac is to use
+SDFormatter which can be downloaded from:
+
+http://www.sdcard.org/downloads
+
+A formatter sketch, SdFormatter.ino, is included in the
+%SdFat/examples/SdFormatter directory.  This sketch attempts to
+emulate SD Association's SDFormatter.
+
+SDFormatter aligns flash erase boundaries with file
+system structures which reduces write latency and file system overhead.
+
+The PC/Mac SDFormatter does not have an option for FAT type so it may format
+very small cards as FAT12.  Use the SdFat formatter to force FAT16
+formatting of small cards.
+
+Do not format the SD card with an OS utility, OS utilities do not format SD
+cards in conformance with the SD standard. 
 
 You should use a freshly formatted SD card for best performance.  FAT
 file systems become slower if many files have been created and deleted.
 This is because the directory entry for a deleted file is marked as deleted,
 but is not deleted.  When a new file is created, these entries must be scanned
-before creating the file, a flaw in the FAT design.  Also files can become
+before creating the file.  Also files can become
 fragmented which causes reads and writes to be slower.
 
-A formatter sketch, SdFormatter.pde, is included in the
-%SdFat/examples/SdFormatter directory.  This sketch attempts to
-emulate SD Association's SDFormatter.
+\section ExampleFilder Examples
 
-The best way to restore an SD card's format on a PC is to use SDFormatter
-which can be downloaded from:
+A number of examples are provided in the SdFat/examples folder.
+See the html documentation for a list.
 
-http://www.sdcard.org/consumers/formatter/
+To access these examples from the Arduino development environment
+go to:  %File -> Examples -> %SdFat -> \<Sketch Name\>
 
-SDFormatter aligns flash erase boundaries with file
-system structures which reduces write latency and file system overhead.
+Compile, upload to your Arduino and click on Serial Monitor to run
+the example.
 
-SDFormatter does not have an option for FAT type so it may format
-small cards as FAT12.
+Here is a list:
 
-After the MBR is restored by SDFormatter you may need to reformat small
-cards that have been formatted FAT12 to force the volume type to be FAT16.
+AnalogBinLogger - Fast AVR ADC logger - see the AnalogBinLoggerExtras folder.
 
-If you reformat the SD card with an OS utility, choose a cluster size that
-will result in:
+bench - A read/write benchmark.
 
-4084 < CountOfClusters && CountOfClusters < 65525
+cin_cout - Demo of ArduinoInStream and ArduinoOutStream.
 
-The volume will then be FAT16.
+dataLogger - A simple modifiable data logger.
 
-If you are formatting an SD card on OS X or Linux, be sure to use the first
-partition. Format this partition with a cluster count in above range for FAT16.
-SDHC cards should be formatted FAT32 with a cluster size of 32 KB.
+directoryFunctions - Demo of chdir(), ls(), mkdir(), and  rmdir().
 
-Microsoft operating systems support removable media formatted with a
-Master Boot Record, MBR, or formatted as a super floppy with a FAT Boot Sector
-in block zero.
+fgets - Demo of the fgets read line/string function.
 
-Microsoft operating systems expect MBR formatted removable media
-to have only one partition. The first partition should be used.
+formating - Print a table with various formatting options.
 
-Microsoft operating systems do not support partitioning SD flash cards.
-If you erase an SD card with a program like KillDisk, Most versions of
-Windows will format the card as a super floppy.
+getline - Example of getline from section 27.7.1.3 of the C++ standard.
 
-\section  References References
+LowLatencyLogger - A modifiable data logger for higher data rates.
 
-The Arduino site:
+OpenNext - Open all files in the root dir and print their filename.
 
-http://www.arduino.cc/
+PrintBenchmark - A simple benchmark for printing to a text file.
 
-For more information about FAT file systems see:
+QuickStart - A sketch to quickly test your SD card and SD shield/module.
 
-http://www.microsoft.com/whdc/system/platform/firmware/fatgen.mspx
+RawWrite - A test of raw write functions for contiguous files.
 
-For information about using SD cards as SPI devices see:
+readCSV - Read a comma-separated value file using iostream extractors.
 
-http://www.sdcard.org/developers/tech/sdcard/pls/Simplified_Physical_Layer_Spec.pdf
+ReadWriteSdFat - SdFat version of Arduino SD ReadWrite example.
 
-The ATmega328 datasheet:
+rename - A demo of SdFat::rename(old, new) and SdFile::rename(dirFile, newPath).
 
-http://www.atmel.com/dyn/resources/prod_documents/doc8161.pdf
- 
+SdFormatter - This sketch will format an SD or SDHC card.
 
+SdInfo - Initialize an SD card and analyze its structure for trouble shooting.
+
+StdioBench - Demo and test of stdio style stream.
+
+StreamParseInt - Simple demo of parseInt() Stream member function.
+
+StressTest - Create and write files until the SD is full.
+
+Timestamp - Sets file create, modify, and access timestamps.
+
+TwoCards - Example using two SD cards.
  */  

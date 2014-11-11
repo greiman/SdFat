@@ -49,8 +49,8 @@ const bool SCK_MODE   = true;
 template<uint8_t MisoPin, uint8_t MosiPin, uint8_t SckPin, uint8_t Mode = 0>
 class SoftSPI {
  public:
- //-----------------------------------------------------------------------------
- /** Initialize SoftSPI pins. */
+  //----------------------------------------------------------------------------
+  /** Initialize SoftSPI pins. */
   void begin() {
     fastPinConfig(MisoPin, MISO_MODE, MISO_LEVEL);
     fastPinConfig(MosiPin, MOSI_MODE, !MODE_CPHA(Mode));
@@ -106,6 +106,7 @@ class SoftSPI {
     transferBit(0, &rxData, txData);
     return rxData;
   }
+
  private:
   //----------------------------------------------------------------------------
   inline __attribute__((always_inline))
@@ -117,7 +118,8 @@ class SoftSPI {
     if (MODE_CPHA(Mode)) {
       fastDigitalWrite(SckPin, !MODE_CPOL(Mode));
     }
-    nop;nop;
+    nop;
+    nop;
     fastDigitalWrite(SckPin,
       MODE_CPHA(Mode) ? MODE_CPOL(Mode) : !MODE_CPOL(Mode));
     if (fastDigitalRead(MisoPin)) *data |= 1 << bit;
@@ -134,7 +136,8 @@ class SoftSPI {
     fastDigitalWrite(MosiPin, data & (1 << bit));
     fastDigitalWrite(SckPin,
       MODE_CPHA(Mode) ? MODE_CPOL(Mode) : !MODE_CPOL(Mode));
-    nop;nop;
+    nop;
+    nop;
     if (!MODE_CPHA(Mode)) {
       fastDigitalWrite(SckPin, MODE_CPOL(Mode));
     }

@@ -197,6 +197,7 @@ class SdBaseFile {
   static void printFatDate(Print* pr, uint16_t fatDate);
   static void printFatTime(uint16_t fatTime);
   static void printFatTime(Print* pr, uint16_t fatTime);
+  int printField(float value, char term, uint8_t prec = 2);
   int printField(int16_t value, char term);
   int printField(uint16_t value, char term);
   int printField(int32_t value, char term);

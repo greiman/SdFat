@@ -1,3 +1,27 @@
+25 Oct 2014
+
+Added File class for compatibility with the Arduino SD.h library 
+
+Added StreamParseInt example.
+
+23 Oct 2014
+
+Added Read SD OCR register.
+
+SdInfo example now prints OCR register.
+
+05 Sep 2014
+
+Faster SdBaseFile::printField();
+
+Added SdBaseFile::printField(float value, char term, uint8_t prec);
+
+24 Aug 2014
+
+Added support for Software SPI on Due and Teensy 3.1
+
+Added support for SPI transactions.
+
 05 Aug 2014
 
 New examples.
