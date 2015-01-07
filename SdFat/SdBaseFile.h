@@ -113,7 +113,7 @@ class SdBaseFile {
    */
   void setpos(FatPos_t* pos);
   //----------------------------------------------------------------------------
-  /** \return number of bytes available from yhe current position to EOF */
+  /** \return number of bytes available from the current position to EOF */
   uint32_t available() {return fileSize() - curPosition();}
   bool close();
   bool contiguousRange(uint32_t* bgnBlock, uint32_t* endBlock);
