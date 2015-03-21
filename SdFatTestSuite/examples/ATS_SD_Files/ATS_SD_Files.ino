@@ -1,4 +1,5 @@
 // modified from ArduinoTestSuite 0022 by William Greiman
+#include <SPI.h>
 #include <SdFat.h>
 #include <SdFatTestSuite.h>
 SdFat SD;

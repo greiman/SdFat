@@ -2,6 +2,7 @@
 // Tests writing to and reading from a file, in particular the
 // the Stream implementation (e.g. read() and peek()).
 
+#include <SPI.h>
 #include <SdFat.h>
 #include <SdFatTestSuite.h>
 SdFat SD;

@@ -6,6 +6,7 @@
  * Note: This example is meant to demonstrate subtleties the standard and
  * may not the best way to read a file.
  */
+#include <SPI.h>
 #include <SdFat.h>
 
 // SD chip select pin
@@ -18,14 +19,14 @@ SdFat sd;
 ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
 void makeTestFile() {
-  ofstream sdout("GETLINE.TXT");
+  ofstream sdout("getline.txt");
   // use flash for text to save RAM
-  sdout << pstr(
-    "short line\n"
-    "\n"
-    "17 character line\n"
-    "too long for buffer\n"
-    "line with no nl");
+  sdout << F(
+          "short line\n"
+          "\n"
+          "17 character line\n"
+          "too long for buffer\n"
+          "line with no nl");
 
   sdout.close();
 }
@@ -33,7 +34,7 @@ void makeTestFile() {
 void testGetline() {
   const int line_buffer_size = 18;
   char buffer[line_buffer_size];
-  ifstream sdin("GETLINE.TXT");
+  ifstream sdin("getline.txt");
   int line_number = 0;
 
   while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
@@ -56,13 +57,15 @@ void setup(void) {
   while (!Serial) {}  // wait for Leonardo
 
   // pstr stores strings in flash to save RAM
-  cout << pstr("Type any character to start\n");
+  cout << F("Type any character to start\n");
   while (Serial.read() <= 0) {}
   delay(400);  // catch Due reset problem
 
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
-  if (!sd.begin(chipSelect, SPI_HALF_SPEED)) sd.initErrorHalt();
+  if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
+    sd.initErrorHalt();
+  }
 
   // make the test file
   makeTestFile();

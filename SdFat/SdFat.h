@@ -23,90 +23,319 @@
  * \file
  * \brief SdFat class
  */
-//------------------------------------------------------------------------------
-/** Macro for debug. */
-#define DBG_FAIL_MACRO  // Serial.print(__FILE__);Serial.println(__LINE__)
+#include "SdSpiCard.h"
+#include "utility/FatLib.h"
 //------------------------------------------------------------------------------
 /** SdFat version YYYYMMDD */
-#define SD_FAT_VERSION 20141111
-//------------------------------------------------------------------------------
-/** error if old IDE */
-#if !defined(ARDUINO) || ARDUINO < 100
-#error Arduino IDE must be 1.0 or greater
-#endif  // ARDUINO < 100
-//------------------------------------------------------------------------------
-#include <SdFile.h>
-#include <SdStream.h>
-#include <StdioStream.h>
-#include <ArduinoStream.h>
-#include <MinimumSerial.h>
-//------------------------------------------------------------------------------
+#define SD_FAT_VERSION 20150321
+//==============================================================================
+/**
+ * \class SdBaseFile
+ * \brief Class for backward compatibility.
+ */
+class SdBaseFile : public FatFile {
+ public:
+  SdBaseFile() {}
+  /**  Create a file object and open it in the current working directory.
+   *
+   * \param[in] path A path for a file to be opened.
+   *
+   * \param[in] oflag Values for \a oflag are constructed by a
+   * bitwise-inclusive OR of open flags. see
+   * FatFile::open(FatFile*, const char*, uint8_t).
+   */
+  SdBaseFile(const char* path, uint8_t oflag) : FatFile(path, oflag) {}
+};
+#if ENABLE_ARDUINO_FEATURES
+/**
+ * \class SdFile
+ * \brief Class for backward compatibility.
+ */
+
+class SdFile : public PrintFile {
+ public:
+  SdFile() {}
+  /**  Create a file object and open it in the current working directory.
+   *
+   * \param[in] path A path for a file to be opened.
+   *
+   * \param[in] oflag Values for \a oflag are constructed by a
+   * bitwise-inclusive OR of open flags. see
+   * FatFile::open(FatFile*, const char*, uint8_t).
+   */
+  SdFile(const char* path, uint8_t oflag) : PrintFile(path, oflag) {}
+};
+#endif  // #if ENABLE_ARDUINO_FEATURES
+/**
+ * \class SdFatBase
+ * \brief Virtual base class for %SdFat library.
+ */
+class SdFatBase : public FatFileSystem {
+ public:
+  /** Initialize SD card and file system.
+   * \param[in] spi SPI object for the card.
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool begin(SdSpiCard::m_spi_t* spi, uint8_t csPin = SS, uint8_t divisor = 2) {
+    return m_sdCard.begin(spi, csPin, divisor) &&
+           FatFileSystem::begin();
+  }
+  /** \return Pointer to SD card object */
+  SdSpiCard *card() {
+    return &m_sdCard;
+  }
+  /** %Print any SD error code to Serial and halt. */
+  void errorHalt() {
+    errorHalt(&Serial);
+  }
+  /** %Print any SD error code and halt.
+   *
+   * \param[in] pr Print destination.
+   */
+  void errorHalt(Print* pr);
+  /** %Print msg, any SD error code and halt.
+   *
+   * \param[in] msg Message to print.
+   */
+  void errorHalt(char const* msg) {
+    errorHalt(&Serial, msg);
+  }
+  /** %Print msg, any SD error code, and halt.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void errorHalt(Print* pr, char const* msg);
+  /** %Print msg, any SD error code, and halt.
+   *
+   * \param[in] msg Message to print.
+   */
+  void errorHalt(const __FlashStringHelper* msg) {
+    errorHalt(&Serial, msg);
+  }
+  /** %Print msg, any SD error code, and halt.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void errorHalt(Print* pr, const __FlashStringHelper* msg);
+  /** %Print any SD error code to Serial */
+  void errorPrint() {
+    errorPrint(&Serial);
+  }
+  /** %Print any SD error code.
+   * \param[in] pr Print device.
+   */
+  void errorPrint(Print* pr);
+  /** %Print msg, any SD error code.
+   *
+   * \param[in] msg Message to print.
+   */
+  void errorPrint(const char* msg) {
+    errorPrint(&Serial, msg);
+  }
+  /** %Print msg, any SD error code.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void errorPrint(Print* pr, char const* msg);
+  /** %Print msg, any SD error code.
+   *
+   * \param[in] msg Message to print.
+   */
+  void errorPrint(const __FlashStringHelper* msg) {
+    errorPrint(&Serial, msg);
+  }
+  /** %Print msg, any SD error code.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void errorPrint(Print* pr, const __FlashStringHelper* msg);
+  /** Diagnostic call to initialize FatFileSystem - use for
+   *  diagnostic purposes only.
+   *  \return true for success else false.
+   */
+  bool fsBegin() {
+    return FatFileSystem::begin();
+  }
+  /** %Print any SD error code and halt. */
+  void initErrorHalt() {
+    initErrorHalt(&Serial);
+  }
+  /** %Print error details and halt after begin fails.
+   *
+   * \param[in] pr Print destination.
+   */
+  void initErrorHalt(Print* pr);
+  /**Print message, error details, and halt after SdFat::init() fails.
+   *
+   * \param[in] msg Message to print.
+   */
+  void initErrorHalt(char const *msg) {
+    initErrorHalt(&Serial, msg);
+  }
+  /**Print message, error details, and halt after SdFatBase::init() fails.
+   * \param[in] pr Print device.
+   * \param[in] msg Message to print.
+   */
+  void initErrorHalt(Print* pr, char const *msg);
+  /**Print message, error details, and halt after SdFat::init() fails.
+    *
+    * \param[in] msg Message to print.
+    */
+  void initErrorHalt(const __FlashStringHelper* msg) {
+    initErrorHalt(&Serial, msg);
+  }
+  /**Print message, error details, and halt after SdFatBase::init() fails.
+   * \param[in] pr Print device for message.
+   * \param[in] msg Message to print.
+   */
+  void initErrorHalt(Print* pr, const __FlashStringHelper* msg);
+  /** Print error details after SdFat::init() fails. */
+  void initErrorPrint() {
+    initErrorPrint(&Serial);
+  }
+  /** Print error details after SdFatBase::init() fails.
+   *
+   * \param[in] pr Print destination.
+   */
+  void initErrorPrint(Print* pr);
+  /**Print message and error details and halt after SdFat::init() fails.
+   *
+   * \param[in] msg Message to print.
+   */
+  void initErrorPrint(char const *msg) {
+    initErrorPrint(&Serial, msg);
+  }
+  /**Print message and error details and halt after SdFatBase::init() fails.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void initErrorPrint(Print* pr, char const *msg);
+  /**Print message and error details and halt after SdFat::init() fails.
+   *
+   * \param[in] msg Message to print.
+   */
+  void initErrorPrint(const __FlashStringHelper* msg) {
+    initErrorPrint(&Serial, msg);
+  }
+  /**Print message and error details and halt after SdFatBase::init() fails.
+   *
+   * \param[in] pr Print destination.
+   * \param[in] msg Message to print.
+   */
+  void initErrorPrint(Print* pr, const __FlashStringHelper* msg);
+
+ private:
+  uint8_t cardErrorCode() {
+    return m_sdCard.errorCode();
+  }
+  uint8_t cardErrorData() {
+    return m_sdCard.errorData();
+  }
+  bool readBlock(uint32_t block, uint8_t* dst) {
+    return m_sdCard.readBlock(block, dst);
+  }
+  bool writeBlock(uint32_t block, const uint8_t* src) {
+    return m_sdCard.writeBlock(block, src);
+  }
+  bool readBlocks(uint32_t block, uint8_t* dst, size_t n) {
+    return m_sdCard.readBlocks(block, dst, n);
+  }
+  bool writeBlocks(uint32_t block, const uint8_t* src, size_t n) {
+    return m_sdCard.writeBlocks(block, src, n);
+  }
+  SdSpiCard m_sdCard;
+};
+//==============================================================================
 /**
  * \class SdFat
- * \brief Integration class for the %SdFat library.
+ * \brief Main file system class for %SdFat library.
  */
-class SdFat {
+class SdFat : public SdFatBase {
  public:
-  SdFat() {}
-  /** \return a pointer to the Sd2Card object. */
-  Sd2Card* card() {return &m_card;}
-  bool chdir(bool set_cwd = false);
-  bool chdir(const char* path, bool set_cwd = false);
-  void chvol();
-  void errorHalt();
-  void errorHalt(char const *msg);
-  void errorPrint();
-  void errorPrint(char const *msg);
-  bool exists(const char* name);
-  bool begin(uint8_t chipSelectPin = SD_CHIP_SELECT_PIN,
-    uint8_t sckDivisor = SPI_FULL_SPEED);
-  void initErrorHalt();
-  void initErrorHalt(char const *msg);
-  void initErrorPrint();
-  void initErrorPrint(char const *msg);
-  void ls(uint8_t flags = 0);
-  void ls(const char* path, uint8_t flags = 0);
-  void ls(Print* pr, uint8_t flags = 0);
-  void ls(Print* pr, const char* path, uint8_t flags = 0);
-  bool mkdir(const char* path, bool pFlag = true);
-  bool remove(const char* path);
-  bool rename(const char *oldPath, const char *newPath);
-  bool rmdir(const char* path);
-  bool truncate(const char* path, uint32_t length);
-  /** \return a pointer to the SdVolume object. */
-  SdVolume* vol() {return &m_vol;}
-  /** \return a pointer to the volume working directory. */
-  SdBaseFile* vwd() {return &m_vwd;}
-  //----------------------------------------------------------------------------
-  void errorHalt_P(PGM_P msg);
-  void errorPrint_P(PGM_P msg);
-  void initErrorHalt_P(PGM_P msg);
-  void initErrorPrint_P(PGM_P msg);
-  //----------------------------------------------------------------------------
-  /**
-   *  Set stdOut Print stream for messages.
-   * \param[in] stream The new Print stream.
-   */
-  static void setStdOut(Print* stream) {m_stdOut = stream;}
-  /** \return Print stream for messages. */
-  static Print* stdOut() {return m_stdOut;}
-  //----------------------------------------------------------------------------
-  /** open a file 
+  /** Initialize SD card and file system.
    *
-   * \param[in] path location of file to be opened.
-   * \param[in] mode open mode flags.
-   * \return a File object.
-   */  
-  File open(const char *path, uint8_t mode = FILE_READ) {
-    File tmpFile;
-    tmpFile.open(&m_vwd, path, mode);
-    return tmpFile;
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool begin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return SdFatBase::begin(&m_spi, csPin, divisor);
+  }
+  /** Diagnostic call to initialize SD card - use for diagnostic purposes only.
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool cardBegin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return card()->begin(&m_spi, csPin, divisor);
+  }
+ private:
+  SpiDefault_t m_spi;
+};
+//==============================================================================
+#if SD_SPI_CONFIGURATION >= 3 || defined(DOXYGEN)
+/**
+ * \class SdFatLibSpi
+ * \brief SdFat class using the standard Arduino SPI library.
+ */
+class SdFatLibSpi: public SdFatBase {
+ public:
+  /** Initialize SD card and file system.
+  *
+  * \param[in] csPin SD card chip select pin.
+  * \param[in] divisor SPI divisor.
+  * \return true for success else false.
+  */
+  bool begin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return SdFatBase::begin(&m_spi, csPin, divisor);
+  }
+  /** Diagnostic call to initialize SD card - use for diagnostic purposes only.
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool cardBegin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return card()->begin(&m_spi, csPin, divisor);
   }
 
  private:
-  Sd2Card m_card;
-  SdVolume m_vol;
-  SdBaseFile m_vwd;
-  static Print* m_stdOut;
+  SdSpiLib m_spi;
 };
+//==============================================================================
+/**
+ * \class SdFatSoftSpi
+ * \brief SdFat class using software SPI.
+ */
+template<uint8_t MisoPin, uint8_t MosiPin, uint8_t SckPin>
+class SdFatSoftSpi : public SdFatBase {
+ public:
+  /** Initialize SD card and file system.
+   *
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool begin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return SdFatBase::begin(&m_spi, csPin, divisor);
+  }
+  /** Diagnostic call to initialize SD card - use for diagnostic purposes only.
+   * \param[in] csPin SD card chip select pin.
+   * \param[in] divisor SPI divisor.
+   * \return true for success else false.
+   */
+  bool cardBegin(uint8_t csPin = SS, uint8_t divisor = 2) {
+    return card()->begin(&m_spi, csPin, divisor);
+  }
+
+ private:
+  SdSpiSoft<MisoPin, MosiPin, SckPin> m_spi;
+};
+#endif  /// SD_SPI_CONFIGURATION >= 3 || defined(DOXYGEN)
 #endif  // SdFat_h

@@ -1,3 +1,31 @@
+16 Mar 2015
+
+Minimal support for Teensy-LC.
+
+23 Feb 2015
+
+New 1284P software SPI macros.
+
+01 Feb 2015
+
+Code cleanup and re-factor.
+
+04 Dec 2014
+
+Added support for Long File Names.
+
+14 Nov 2014
+
+Replaced the core SdFat code with FatLib, a generic FAT12/FAT16/FAT32
+library.  This may result in bugs and backward compatibility problems.
+
+Added SdFatSoftSpi, software SPI template class.
+
+Allow simultaneous use of hardware and software SPI with multiple cards.
+See the ThreeCard example. 
+
+Added minimal Long File Name support.  See the LongFileName example.
+
 25 Oct 2014
 
 Added File class for compatibility with the Arduino SD.h library 

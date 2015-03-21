@@ -17,8 +17,8 @@
  * along with the Arduino SdSpi Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#include <SdSpi.h>
-#if USE_NATIVE_SAM3X_SPI
+#include "SdSpi.h"
+#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 /** Use SAM3X DMAC if nonzero */
 #define USE_SAM3X_DMAC 1
 /** Use extra Bus Matrix arbitration fix if nonzero */
@@ -59,20 +59,20 @@ static bool dmac_channel_transfer_done(uint32_t ul_num) {
 //------------------------------------------------------------------------------
 void SdSpi::begin() {
   PIO_Configure(
-      g_APinDescription[PIN_SPI_MOSI].pPort,
-      g_APinDescription[PIN_SPI_MOSI].ulPinType,
-      g_APinDescription[PIN_SPI_MOSI].ulPin,
-      g_APinDescription[PIN_SPI_MOSI].ulPinConfiguration);
+    g_APinDescription[PIN_SPI_MOSI].pPort,
+    g_APinDescription[PIN_SPI_MOSI].ulPinType,
+    g_APinDescription[PIN_SPI_MOSI].ulPin,
+    g_APinDescription[PIN_SPI_MOSI].ulPinConfiguration);
   PIO_Configure(
-      g_APinDescription[PIN_SPI_MISO].pPort,
-      g_APinDescription[PIN_SPI_MISO].ulPinType,
-      g_APinDescription[PIN_SPI_MISO].ulPin,
-      g_APinDescription[PIN_SPI_MISO].ulPinConfiguration);
+    g_APinDescription[PIN_SPI_MISO].pPort,
+    g_APinDescription[PIN_SPI_MISO].ulPinType,
+    g_APinDescription[PIN_SPI_MISO].ulPin,
+    g_APinDescription[PIN_SPI_MISO].ulPinConfiguration);
   PIO_Configure(
-      g_APinDescription[PIN_SPI_SCK].pPort,
-      g_APinDescription[PIN_SPI_SCK].ulPinType,
-      g_APinDescription[PIN_SPI_SCK].ulPin,
-      g_APinDescription[PIN_SPI_SCK].ulPinConfiguration);
+    g_APinDescription[PIN_SPI_SCK].pPort,
+    g_APinDescription[PIN_SPI_SCK].ulPinType,
+    g_APinDescription[PIN_SPI_SCK].ulPin,
+    g_APinDescription[PIN_SPI_SCK].ulPinConfiguration);
   pmc_enable_periph_clk(ID_SPI0);
 #if USE_SAM3X_DMAC
   pmc_enable_periph_clk(ID_DMAC);
@@ -97,12 +97,12 @@ static void spiDmaRX(uint8_t* dst, uint16_t count) {
   DMAC->DMAC_CH_NUM[SPI_DMAC_RX_CH].DMAC_DADDR = (uint32_t)dst;
   DMAC->DMAC_CH_NUM[SPI_DMAC_RX_CH].DMAC_DSCR =  0;
   DMAC->DMAC_CH_NUM[SPI_DMAC_RX_CH].DMAC_CTRLA = count |
-    DMAC_CTRLA_SRC_WIDTH_BYTE | DMAC_CTRLA_DST_WIDTH_BYTE;
+      DMAC_CTRLA_SRC_WIDTH_BYTE | DMAC_CTRLA_DST_WIDTH_BYTE;
   DMAC->DMAC_CH_NUM[SPI_DMAC_RX_CH].DMAC_CTRLB = DMAC_CTRLB_SRC_DSCR |
-    DMAC_CTRLB_DST_DSCR | DMAC_CTRLB_FC_PER2MEM_DMA_FC |
-    DMAC_CTRLB_SRC_INCR_FIXED | DMAC_CTRLB_DST_INCR_INCREMENTING;
+      DMAC_CTRLB_DST_DSCR | DMAC_CTRLB_FC_PER2MEM_DMA_FC |
+      DMAC_CTRLB_SRC_INCR_FIXED | DMAC_CTRLB_DST_INCR_INCREMENTING;
   DMAC->DMAC_CH_NUM[SPI_DMAC_RX_CH].DMAC_CFG = DMAC_CFG_SRC_PER(SPI_RX_IDX) |
-    DMAC_CFG_SRC_H2SEL | DMAC_CFG_SOD | DMAC_CFG_FIFOCFG_ASAP_CFG;
+      DMAC_CFG_SRC_H2SEL | DMAC_CFG_SOD | DMAC_CFG_FIFOCFG_ASAP_CFG;
   dmac_channel_enable(SPI_DMAC_RX_CH);
 }
 //------------------------------------------------------------------------------
@@ -119,11 +119,11 @@ static void spiDmaTX(const uint8_t* src, uint16_t count) {
   DMAC->DMAC_CH_NUM[SPI_DMAC_TX_CH].DMAC_DADDR = (uint32_t)&SPI0->SPI_TDR;
   DMAC->DMAC_CH_NUM[SPI_DMAC_TX_CH].DMAC_DSCR =  0;
   DMAC->DMAC_CH_NUM[SPI_DMAC_TX_CH].DMAC_CTRLA = count |
-    DMAC_CTRLA_SRC_WIDTH_BYTE | DMAC_CTRLA_DST_WIDTH_BYTE;
+      DMAC_CTRLA_SRC_WIDTH_BYTE | DMAC_CTRLA_DST_WIDTH_BYTE;
 
   DMAC->DMAC_CH_NUM[SPI_DMAC_TX_CH].DMAC_CTRLB =  DMAC_CTRLB_SRC_DSCR |
-    DMAC_CTRLB_DST_DSCR | DMAC_CTRLB_FC_MEM2PER_DMA_FC |
-    src_incr | DMAC_CTRLB_DST_INCR_FIXED;
+      DMAC_CTRLB_DST_DSCR | DMAC_CTRLB_FC_MEM2PER_DMA_FC |
+      src_incr | DMAC_CTRLB_DST_INCR_FIXED;
 
   DMAC->DMAC_CH_NUM[SPI_DMAC_TX_CH].DMAC_CFG = DMAC_CFG_DST_PER(SPI_TX_IDX) |
       DMAC_CFG_DST_H2SEL | DMAC_CFG_SOD | DMAC_CFG_FIFOCFG_ALAP_CFG;
@@ -181,7 +181,9 @@ uint8_t SdSpi::receive(uint8_t* buf, size_t n) {
       break;
     }
   }
-  if (pSpi->SPI_SR & SPI_SR_OVRES) rtn |= 1;
+  if (pSpi->SPI_SR & SPI_SR_OVRES) {
+    rtn |= 1;
+  }
 #else  // USE_SAM3X_DMAC
   for (size_t i = 0; i < n; i++) {
     pSpi->SPI_TDR = 0XFF;
@@ -213,4 +215,4 @@ void SdSpi::send(const uint8_t* buf , size_t n) {
   // leave RDR empty
   uint8_t b = pSpi->SPI_RDR;
 }
-#endif  // USE_NATIVE_SAM3X_SPI
+#endif  // defined(__SAM3X8E__) || defined(__SAM3X8H__)

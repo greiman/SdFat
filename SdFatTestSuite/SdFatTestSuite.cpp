@@ -36,7 +36,7 @@ void testBegin() {
   while (Serial.read() <= 0) {}
   delay(200); // Catch Due reset problem
 
-  print_P(testOut, PSTR("FreeRam: "));
+  testOut->print(F("FreeRam: "));
   testOut->println(FreeRam());
   testOut->println();
   failCount = 0;
@@ -45,21 +45,21 @@ void testBegin() {
 //------------------------------------------------------------------------------
 void testEnd() {
   testOut->println();
-  println_P(testOut, PSTR("Compiled: " __DATE__ " " __TIME__));
-  print_P(testOut, PSTR("FreeRam: "));
+  testOut->println(F("Compiled: " __DATE__ " " __TIME__));
+  testOut->print(F("FreeRam: "));
   testOut->println(FreeRam());
-  print_P(testOut, PSTR("Test count: "));
+  testOut->print(F("Test count: "));
   testOut->println(testCount);
-  print_P(testOut, PSTR("Fail count: "));
+  testOut->print(F("Fail count: "));
   testOut->println(failCount);
 }
 //------------------------------------------------------------------------------
 static void testResult(bool b, uint8_t n) {
  while (n++ < 60) testOut->write(' ');
   if (b) {
-    println_P(testOut, PSTR("..ok"));
+    testOut->println(F("..ok"));
   } else {
-    println_P(testOut, PSTR("FAIL"));
+    testOut->println(F("FAIL"));
     failCount++;
   }
   testCount++;
@@ -69,14 +69,14 @@ void testVerify_P(char* result, PGM_P expect) {
   testOut->write('"');
   testOut->print(result);
   testOut->print("\",\"");
-  print_P(testOut, expect);
+  testOut->print((const __FlashStringHelper*)expect);
   testOut->write('"');
   uint8_t n = strlen(result) + strlenPGM(expect) + 5;
   testResult(!strcmp_P(result, expect), n);
 }
 //------------------------------------------------------------------------------
 void testVerify_P(bool b, PGM_P msg) {
-  print_P(testOut, msg);
+  testOut->print((const __FlashStringHelper*)msg);
   uint8_t n = strlenPGM(msg);
   testResult(b, n);
 }

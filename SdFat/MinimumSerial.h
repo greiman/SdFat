@@ -19,18 +19,32 @@
  */
 #ifndef MinimumSerial_h
 #define MinimumSerial_h
+#include <Arduino.h>
+//==============================================================================
 /**
  * \class MinimumSerial
  * \brief mini serial class for the %SdFat library.
  */
 class MinimumSerial : public Print {
  public:
+  /**
+   * Set baud rate for serial port zero and enable in non interrupt mode.
+   * Do not call this function if you use another serial library.
+   * \param[in] baud rate
+   */
   void begin(uint32_t baud);
+  /**
+   *  Unbuffered read
+   *  \return -1 if no character is available or an available character.
+   */
   int read();
+  /**
+   * Unbuffered write
+   *
+   * \param[in] b byte to write.
+   * \return 1
+   */
   size_t write(uint8_t b);
   using Print::write;
 };
-#ifdef UDR0
-extern MinimumSerial MiniSerial;
-#endif  // UDR0
 #endif  // MinimumSerial_h

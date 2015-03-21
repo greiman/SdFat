@@ -1,6 +1,6 @@
 /**
  * This program logs data to a binary file.  Functions are included
- * to convert the binary file to a CSV text file.
+ * to convert the binary file to a csv text file.
  *
  * Samples are logged at regular intervals.  The maximum logging rate
  * depends on the quality of your SD card and the time required to
@@ -13,6 +13,7 @@
  *
  * Data is written to the file using a SD multiple block write command.
  */
+#include <SPI.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>
 //------------------------------------------------------------------------------
@@ -31,7 +32,7 @@ void acquireData(data_t* data) {
 void printData(Print* pr, data_t* data) {
   pr->print(data->time);
   for (int i = 0; i < ADC_DIM; i++) {
-    pr->write(',');  
+    pr->write(',');
     pr->print(data->adc[i]);
   }
   pr->println();
@@ -60,7 +61,7 @@ const uint8_t SD_CS_PIN = SS;
 // Digital pin to indicate an error, set to -1 if not used.
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
-const int8_t ERROR_LED_PIN = 3;
+const int8_t ERROR_LED_PIN = -1;
 //------------------------------------------------------------------------------
 // File definitions.
 //
@@ -71,11 +72,11 @@ const int8_t ERROR_LED_PIN = 3;
 const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
-#define FILE_BASE_NAME "DATA"
+#define FILE_BASE_NAME "data"
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
-// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional 
+// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional
 // buffers.
 //
 #ifndef RAMEND
@@ -101,7 +102,7 @@ const uint8_t BUFFER_BLOCK_COUNT = 12;
 // End of configuration constants.
 //==============================================================================
 // Temporary log file.  Will be deleted if a reset or power failure occurs.
-#define TMP_FILE_NAME "TMP_LOG.BIN"
+#define TMP_FILE_NAME "tmp_log.bin"
 
 // Size of file base name.  Must not be larger than six.
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
@@ -110,7 +111,7 @@ SdFat sd;
 
 SdBaseFile binFile;
 
-char binName[13] = FILE_BASE_NAME "00.BIN";
+char binName[13] = FILE_BASE_NAME "00.bin";
 
 // Number of data records in a block.
 const uint16_t DATA_DIM = (512 - 4)/sizeof(data_t);
@@ -136,13 +137,15 @@ uint8_t fullHead;
 uint8_t fullTail;
 
 // Advance queue index.
-inline uint8_t queueNext(uint8_t ht) {return ht < (QUEUE_DIM - 1) ? ht + 1 : 0;}
+inline uint8_t queueNext(uint8_t ht) {
+  return ht < (QUEUE_DIM - 1) ? ht + 1 : 0;
+}
 //==============================================================================
 // Error messages stored in flash.
-#define error(msg) error_P(PSTR(msg))
+#define error(msg) errorFlash(F(msg))
 //------------------------------------------------------------------------------
-void error_P(const char* msg) {
-  sd.errorPrint_P(msg);
+void errorFlash(const __FlashStringHelper* msg) {
+  sd.errorPrint(msg);
   fatalBlink();
 }
 //------------------------------------------------------------------------------
@@ -158,7 +161,7 @@ void fatalBlink() {
   }
 }
 //==============================================================================
-// Convert binary file to CSV file.
+// Convert binary file to csv file.
 void binaryToCsv() {
   uint8_t lastPct = 0;
   block_t block;
@@ -166,7 +169,7 @@ void binaryToCsv() {
   uint32_t syncCluster = 0;
   SdFile csvFile;
   char csvName[13];
-  
+
   if (!binFile.isOpen()) {
     Serial.println();
     Serial.println(F("No current binary file"));
@@ -175,10 +178,10 @@ void binaryToCsv() {
   binFile.rewind();
   // Create a new csvFile.
   strcpy(csvName, binName);
-  strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
+  strcpy(&csvName[BASE_NAME_SIZE + 3], "csv");
 
   if (!csvFile.open(csvName, O_WRITE | O_CREAT | O_TRUNC)) {
-    error("open csvFile failed");  
+    error("open csvFile failed");
   }
   Serial.println();
   Serial.print(F("Writing: "));
@@ -188,7 +191,9 @@ void binaryToCsv() {
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&block, 512) == 512) {
     uint16_t i;
-    if (block.count == 0) break;
+    if (block.count == 0) {
+      break;
+    }
     if (block.overrun) {
       csvFile.print(F("OVERRUN,"));
       csvFile.println(block.overrun);
@@ -209,7 +214,9 @@ void binaryToCsv() {
         Serial.println('%');
       }
     }
-    if (Serial.available()) break;
+    if (Serial.available()) {
+      break;
+    }
   }
   csvFile.close();
   Serial.print(F("Done: "));
@@ -223,7 +230,7 @@ void checkOverrun() {
   block_t block;
   uint32_t bgnBlock, endBlock;
   uint32_t bn = 0;
-  
+
   if (!binFile.isOpen()) {
     Serial.println();
     Serial.println(F("No current binary file"));
@@ -236,7 +243,9 @@ void checkOverrun() {
   Serial.println();
   Serial.println(F("Checking overrun errors - type any character to stop"));
   while (binFile.read(&block, 512) == 512) {
-    if (block.count == 0) break;
+    if (block.count == 0) {
+      break;
+    }
     if (block.overrun) {
       if (!headerPrinted) {
         Serial.println();
@@ -273,7 +282,9 @@ void dumpData() {
   delay(1000);
   printHeader(&Serial);
   while (!Serial.available() && binFile.read(&block , 512) == 512) {
-    if (block.count == 0) break;
+    if (block.count == 0) {
+      break;
+    }
     if (block.overrun) {
       Serial.print(F("OVERRUN,"));
       Serial.println(block.overrun);
@@ -290,12 +301,12 @@ void dumpData() {
 uint32_t const ERASE_SIZE = 262144L;
 void logData() {
   uint32_t bgnBlock, endBlock;
-  
+
   // Allocate extra buffer space.
   block_t block[BUFFER_BLOCK_COUNT];
   block_t* curBlock = 0;
   Serial.println();
-  
+
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) {
     error("FILE_BASE_NAME too long");
@@ -322,7 +333,7 @@ void logData() {
   Serial.println(F("Creating new file"));
   binFile.close();
   if (!binFile.createContiguous(sd.vwd(),
-    TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
+                                TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
     error("createContiguous failed");
   }
   // Get the address of the file on the SD.
@@ -331,15 +342,19 @@ void logData() {
   }
   // Use SdFat's internal buffer.
   uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
-  if (cache == 0) error("cacheClear failed"); 
- 
+  if (cache == 0) {
+    error("cacheClear failed");
+  }
+
   // Flash erase all data in the file.
   Serial.println(F("Erasing all data"));
   uint32_t bgnErase = bgnBlock;
   uint32_t endErase;
   while (bgnErase < endBlock) {
     endErase = bgnErase + ERASE_SIZE;
-    if (endErase > endBlock) endErase = endBlock;
+    if (endErase > endBlock) {
+      endErase = endBlock;
+    }
     if (!sd.card()->erase(bgnErase, endErase)) {
       error("erase failed");
     }
@@ -352,11 +367,11 @@ void logData() {
   // Initialize queues.
   emptyHead = emptyTail = 0;
   fullHead = fullTail = 0;
-  
+
   // Use SdFat buffer for one block.
   emptyQueue[emptyHead] = (block_t*)cache;
   emptyHead = queueNext(emptyHead);
-  
+
   // Put rest of buffers in the empty queue.
   for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) {
     emptyQueue[emptyHead] = &block[i];
@@ -381,15 +396,17 @@ void logData() {
   while (1) {
     // Time for next data record.
     logTime += LOG_INTERVAL_USEC;
-    if (Serial.available()) closeFile = true;
-    
+    if (Serial.available()) {
+      closeFile = true;
+    }
+
     if (closeFile) {
-       if (curBlock != 0 && curBlock->count >= 0) {
+      if (curBlock != 0 && curBlock->count >= 0) {
         // Put buffer in full queue.
         fullQueue[fullHead] = curBlock;
         fullHead = queueNext(fullHead);
         curBlock = 0;
-      }   
+      }
     } else {
       if (curBlock == 0 && emptyTail != emptyHead) {
         curBlock = emptyQueue[emptyTail];
@@ -401,26 +418,30 @@ void logData() {
       do {
         diff = logTime - micros();
       } while(diff > 0);
-      if (diff < -10) error("LOG_INTERVAL_USEC too small");
+      if (diff < -10) {
+        error("LOG_INTERVAL_USEC too small");
+      }
       if (curBlock == 0) {
         overrun++;
       } else {
         acquireData(&curBlock->data[curBlock->count++]);
         if (curBlock->count == DATA_DIM) {
           fullQueue[fullHead] = curBlock;
-          fullHead = queueNext(fullHead);        
+          fullHead = queueNext(fullHead);
           curBlock = 0;
         }
       }
     }
-    
+
     if (fullHead == fullTail) {
       // Exit loop if done.
-      if (closeFile) break;
+      if (closeFile) {
+        break;
+      }
     } else if (!sd.card()->isBusy()) {
       // Get address of block to write.
       block_t* pBlock = fullQueue[fullTail];
-      fullTail = queueNext(fullTail);     
+      fullTail = queueNext(fullTail);
       // Write block to SD.
       uint32_t usec = micros();
       if (!sd.card()->writeData((uint8_t*)pBlock)) {
@@ -428,10 +449,12 @@ void logData() {
       }
       usec = micros() - usec;
       t1 = millis();
-      if (usec > maxLatency) maxLatency = usec;
+      if (usec > maxLatency) {
+        maxLatency = usec;
+      }
       count += pBlock->count;
-      
-      // Add overruns and possibly light LED. 
+
+      // Add overruns and possibly light LED.
       if (pBlock->overrun) {
         overrunTotal += pBlock->overrun;
         if (ERROR_LED_PIN >= 0) {
@@ -452,15 +475,15 @@ void logData() {
     error("writeStop failed");
   }
   // Truncate file if recording stopped early.
-  if (bn != FILE_BLOCK_COUNT) {    
+  if (bn != FILE_BLOCK_COUNT) {
     Serial.println(F("Truncating file"));
     if (!binFile.truncate(512L * bn)) {
       error("Can't truncate file");
     }
   }
   if (!binFile.rename(sd.vwd(), binName)) {
-     error("Can't rename file");
-   }
+    error("Can't rename file");
+  }
   Serial.print(F("File renamed: "));
   Serial.println(binName);
   Serial.print(F("Max block write usec: "));
@@ -481,12 +504,15 @@ void setup(void) {
     pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-  
+  while (!Serial) {}
+
   Serial.print(F("FreeRam: "));
   Serial.println(FreeRam());
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
-  if (sizeof(block_t) != 512) error("Invalid block size");
+  if (sizeof(block_t) != 512) {
+    error("Invalid block size");
+  }
   // initialize file system.
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) {
     sd.initErrorPrint();
@@ -499,19 +525,19 @@ void loop(void) {
   while (Serial.read() >= 0) {}
   Serial.println();
   Serial.println(F("type:"));
-  Serial.println(F("c - convert file to CSV")); 
-  Serial.println(F("d - dump data to Serial"));  
+  Serial.println(F("c - convert file to csv"));
+  Serial.println(F("d - dump data to Serial"));
   Serial.println(F("e - overrun error details"));
   Serial.println(F("r - record data"));
 
   while(!Serial.available()) {}
   char c = tolower(Serial.read());
-  
+
   // Discard extra Serial data.
   do {
     delay(10);
   } while (Serial.read() >= 0);
-  
+
   if (ERROR_LED_PIN >= 0) {
     digitalWrite(ERROR_LED_PIN, LOW);
   }
@@ -519,7 +545,7 @@ void loop(void) {
     binaryToCsv();
   } else if (c == 'd') {
     dumpData();
-  } else if (c == 'e') {    
+  } else if (c == 'e') {
     checkOverrun();
   } else if (c == 'r') {
     logData();

@@ -1,6 +1,6 @@
 /*
- * Sketch to compare size of Arduino SD library with SdFat V2.
- * See SdFatSize.pde for SdFat sketch.
+ * Program to compare size of Arduino SD library with SdFat.
+ * See SdFatSize.ino for SdFat program.
  */
 #include <SPI.h>
 #include <SD.h>

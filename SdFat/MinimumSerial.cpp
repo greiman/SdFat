@@ -19,17 +19,13 @@
  */
 #include <Arduino.h>
 #if defined(UDR0) || defined(DOXYGEN)
-#include <MinimumSerial.h>
+#include "MinimumSerial.h"
+const uint16_t MIN_2X_BAUD = F_CPU/(4*(2*0XFFF + 1)) + 1;
 //------------------------------------------------------------------------------
-/**
- * Set baud rate for serial port zero and enable in non interrupt mode.
- * Do not call this function if you use another serial library.
- * \param[in] baud rate
- */
 void MinimumSerial::begin(uint32_t baud) {
   uint16_t baud_setting;
   // don't worry, the compiler will squeeze out F_CPU != 16000000UL
-  if (F_CPU != 16000000UL || baud != 57600) {
+  if ((F_CPU != 16000000UL || baud != 57600) && baud > MIN_2X_BAUD) {
     // Double the USART Transmission Speed
     UCSR0A = 1 << U2X0;
     baud_setting = (F_CPU / 4 / baud - 1) / 2;
@@ -47,25 +43,16 @@ void MinimumSerial::begin(uint32_t baud) {
   UCSR0B |= (1 << TXEN0) | (1 << RXEN0);
 }
 //------------------------------------------------------------------------------
-/**
- *  Unbuffered read
- *  \return -1 if no character is available or an available character.
- */
 int MinimumSerial::read() {
-  if (UCSR0A & (1 << RXC0)) return UDR0;
+  if (UCSR0A & (1 << RXC0)) {
+    return UDR0;
+  }
   return -1;
 }
 //------------------------------------------------------------------------------
-/**
- * Unbuffered write
- *
- * \param[in] b byte to write.
- * \return 1
- */
 size_t MinimumSerial::write(uint8_t b) {
   while (((1 << UDRIE0) & UCSR0B) || !(UCSR0A & (1 << UDRE0))) {}
   UDR0 = b;
   return 1;
 }
-MinimumSerial MiniSerial;
 #endif  //  defined(UDR0) || defined(DOXYGEN)

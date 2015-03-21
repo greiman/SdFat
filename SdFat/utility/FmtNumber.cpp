@@ -17,10 +17,10 @@
  * along with the FatLib Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#include <avr/pgmspace.h>
-#include <FmtNumber.h>
+#include "FmtNumber.h"
 // Use Stimmer div/mod 10 on avr
 #ifdef __AVR__
+#include <avr/pgmspace.h>
 #define USE_STIMMER
 #endif  // __AVR__
 //------------------------------------------------------------------------------
@@ -149,9 +149,15 @@ unsigned divu10(unsigned n) {
 }
 */
 //------------------------------------------------------------------------------
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifdef __AVR__
 static const float m[] PROGMEM = {1e-1, 1e-2, 1e-4, 1e-8, 1e-16, 1e-32};
 static const float p[] PROGMEM = {1e+1, 1e+2, 1e+4, 1e+8, 1e+16, 1e+32};
+#else  // __AVR__
+static const float m[] = {1e-1, 1e-2, 1e-4, 1e-8, 1e-16, 1e-32};
+static const float p[] = {1e+1, 1e+2, 1e+4, 1e+8, 1e+16, 1e+32};
+#endif  // __AVR__
+#endif  // DOXYGEN_SHOULD_SKIP_THIS
 // scale float v by power of ten. return v*10^n
 float scale10(float v, int8_t n) {
   const float *s;
@@ -163,7 +169,15 @@ float scale10(float v, int8_t n) {
   }
   n &= 63;
   for (uint8_t i = 0; n; n >>= 1, i++) {
-    if (n & 1) v *= pgm_read_float(&s[i]);
+#ifdef __AVR__
+    if (n & 1) {
+      v *= pgm_read_float(&s[i]);
+    }
+#else  // __AVR__
+    if (n & 1) {
+      v *= s[i];
+    }
+#endif  // __AVR__
   }
   return v;
 }
@@ -219,7 +233,9 @@ char* fmtDec(uint32_t n, char* p) {
 //------------------------------------------------------------------------------
 char* fmtFloat(float value, char* p, uint8_t prec) {
   char sign = value < 0 ? '-' : 0;
-  if (sign) value = -value;
+  if (sign) {
+    value = -value;
+  }
 
   if (isnan(value)) {
     *--p = 'n';
@@ -239,7 +255,9 @@ char* fmtFloat(float value, char* p, uint8_t prec) {
     *--p = 'o';
     return p;
   }
-  if (prec > 9) prec = 9;
+  if (prec > 9) {
+    prec = 9;
+  }
   value += scale10(0.5, -prec);
 
   uint32_t whole = value;
@@ -247,11 +265,15 @@ char* fmtFloat(float value, char* p, uint8_t prec) {
     char* tmp = p - prec;
     uint32_t fraction = scale10(value - whole, prec);
     p = fmtDec(fraction, p);
-    while (p > tmp) *--p = '0';
+    while (p > tmp) {
+      *--p = '0';
+    }
     *--p = '.';
   }
   p = fmtDec(whole, p);
-  if (sign) *--p = sign;
+  if (sign) {
+    *--p = sign;
+  }
   return p;
 }
 //------------------------------------------------------------------------------
@@ -264,7 +286,9 @@ char* fmtFloat(float value, char* p, uint8_t prec) {
  */
 char* fmtFloat(float value, char* ptr, uint8_t prec, char expChar) {
   bool neg = value < 0;
-  if (neg) value = -value;
+  if (neg) {
+    value = -value;
+  }
 
   // check for nan inf ovf
   if (isnan(value)) {
@@ -285,7 +309,9 @@ char* fmtFloat(float value, char* ptr, uint8_t prec, char expChar) {
     *--ptr = 'o';
     return ptr;
   }
-  if (prec > 9) prec = 9;
+  if (prec > 9) {
+    prec = 9;
+  }
   float round = scale10(0.5, -prec);
   if (expChar) {
     int8_t exp = 0;
@@ -305,10 +331,14 @@ char* fmtFloat(float value, char* ptr, uint8_t prec, char expChar) {
         exp++;
       }
       expNeg = exp < 0;
-      if (expNeg) exp = -exp;
+      if (expNeg) {
+        exp = -exp;
+      }
     }
     ptr = fmtDec((uint16_t)exp, ptr);
-    if (exp < 10) *--ptr = '0';
+    if (exp < 10) {
+      *--ptr = '0';
+    }
     *--ptr = expNeg ? '-' : '+';
     *--ptr = expChar;
   } else {
@@ -320,11 +350,15 @@ char* fmtFloat(float value, char* ptr, uint8_t prec, char expChar) {
     char* tmp = ptr - prec;
     uint32_t fraction = scale10(value - whole, prec);
     ptr = fmtDec(fraction, ptr);
-    while (ptr > tmp) *--ptr = '0';
+    while (ptr > tmp) {
+      *--ptr = '0';
+    }
     *--ptr = '.';
   }
   ptr = fmtDec(whole, ptr);
-  if (neg) *--ptr = '-';
+  if (neg) {
+    *--ptr = '-';
+  }
   return ptr;
 }
 //------------------------------------------------------------------------------
@@ -347,33 +381,45 @@ float scanFloat(const char* str, char** ptr) {
   bool neg;
   int c;
   float v;
-  const char* successPtr;
+  const char* successPtr = str;
 
-  if (ptr) *ptr = const_cast<char*>(str);
+  if (ptr) {
+    *ptr = const_cast<char*>(str);
+  }
 
-  while (isspace((c = *str++))) {}
+  while (isSpace((c = *str++))) {}
   neg = c == '-';
-  if (c == '-' || c == '+') c = *str++;
+  if (c == '-' || c == '+') {
+    c = *str++;
+  }
   // Skip leading zeros
   while (c == '0') {
     c = *str++;
     digit = true;
   }
   for (;;) {
-    if (isdigit(c)) {
+    if (isDigit(c)) {
       digit = true;
       if (nd < 9) {
         fract = 10*fract + c - '0';
         nd++;
-        if (dot) fracExp--;
+        if (dot) {
+          fracExp--;
+        }
       } else {
-        if (!dot) fracExp++;
+        if (!dot) {
+          fracExp++;
+        }
       }
     } else if (c == '.') {
-      if (dot) goto fail;
+      if (dot) {
+        goto fail;
+      }
       dot = true;
     } else {
-      if (!digit) goto fail;
+      if (!digit) {
+        goto fail;
+      }
       break;
     }
     successPtr = str;
@@ -386,19 +432,23 @@ float scanFloat(const char* str, char** ptr) {
     if (c == '-' || c == '+') {
       c = *str++;
     }
-    while (isdigit(c)) {
-      if (exp > EXP_LIMIT) goto fail;
+    while (isDigit(c)) {
+      if (exp > EXP_LIMIT) {
+        goto fail;
+      }
       exp = 10*exp + c - '0';
       successPtr = str;
       c = *str++;
     }
     fracExp += expNeg ? -exp : exp;
   }
-  if (ptr) *ptr = const_cast<char*>(successPtr);
+  if (ptr) {
+    *ptr = const_cast<char*>(successPtr);
+  }
   v = scale10(static_cast<float>(fract), fracExp);
-  return neg ? -v: v;
+  return neg ? -v : v;
 
- fail:
+fail:
   return 0;
 }
 

@@ -1,6 +1,7 @@
 /*
  * Use of ibufsteam to parse a line and obufstream to format a line
  */
+#include <SPI.h>
 #include <SdFat.h>
 
 // create a serial output stream
@@ -13,7 +14,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) {}  // wait for Leonardo
   delay(2000);
-  
+
   // initialize input string
   ibufstream bin("123 456 789");
 

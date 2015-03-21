@@ -4,7 +4,7 @@
  * Samples are logged at regular intervals. Each Sample consists of the ADC
  * values for the analog pins defined in the PIN_LIST array.  The pins numbers
  * may be in any order.
- * 
+ *
  * Edit the configuration constants below to set the sample pins, sample rate,
  * and other configuration values.
  *
@@ -19,9 +19,10 @@
  *
  * Data is written to the file using a SD multiple block write command.
  */
+#ifdef __AVR__
+#include <SPI.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>
-#include <StdioStream.h>
 #include "AnalogBinLogger.h"
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
@@ -49,7 +50,7 @@ const float SAMPLE_INTERVAL = 1.0/SAMPLE_RATE;
 //
 // You can select an ADC clock rate by defining the symbol ADC_PRESCALER to
 // one of these values.  You must choose an appropriate ADC clock rate for
-// your sample interval. 
+// your sample interval.
 // #define ADC_PRESCALER 7 // F_CPU/128 125 kHz on an Uno
 // #define ADC_PRESCALER 6 // F_CPU/64  250 kHz on an Uno
 // #define ADC_PRESCALER 5 // F_CPU/32  500 kHz on an Uno
@@ -71,7 +72,7 @@ uint8_t const ADC_REF = (1 << REFS0);  // Vcc Reference.
 const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
-#define FILE_BASE_NAME "ANALOG"
+#define FILE_BASE_NAME "analog"
 
 // Set RECORD_EIGHT_BITS non-zero to record only the high 8-bits of the ADC.
 #define RECORD_EIGHT_BITS 0
@@ -88,7 +89,7 @@ const uint8_t SD_CS_PIN = SS;
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
-// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional 
+// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional
 // buffers.  QUEUE_DIM must be a power of two larger than
 //(BUFFER_BLOCK_COUNT + 1).
 //
@@ -123,7 +124,7 @@ const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
 // End of configuration constants.
 //==============================================================================
 // Temporary log file.  Will be deleted if a reset or power failure occurs.
-#define TMP_FILE_NAME "TMP_LOG.BIN"
+#define TMP_FILE_NAME "tmp_log.bin"
 
 // Size of file base name.  Must not be larger than six.
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
@@ -144,7 +145,7 @@ SdFat sd;
 
 SdBaseFile binFile;
 
-char binName[13] = FILE_BASE_NAME "00.BIN";
+char binName[13] = FILE_BASE_NAME "00.bin";
 
 #if RECORD_EIGHT_BITS
 const size_t SAMPLES_PER_BLOCK = DATA_DIM8/PIN_COUNT;
@@ -163,7 +164,9 @@ volatile uint8_t fullHead;  // volatile insures non-interrupt code sees changes.
 uint8_t fullTail;
 
 // queueNext assumes QUEUE_DIM is a power of two
-inline uint8_t queueNext(uint8_t ht) {return (ht + 1) & (QUEUE_DIM -1);}
+inline uint8_t queueNext(uint8_t ht) {
+  return (ht + 1) & (QUEUE_DIM -1);
+}
 //==============================================================================
 // Interrupt Service Routines
 
@@ -192,14 +195,16 @@ ISR(ADC_vect) {
 #if RECORD_EIGHT_BITS
   uint8_t d = ADCH;
 #else  // RECORD_EIGHT_BITS
-  // This will access ADCL first. 
+  // This will access ADCL first.
   uint16_t d = ADC;
 #endif  // RECORD_EIGHT_BITS
 
   if (isrBufNeeded && emptyHead == emptyTail) {
     // no buffers - count overrun
-    if (isrOver < 0XFFFF) isrOver++;
-    
+    if (isrOver < 0XFFFF) {
+      isrOver++;
+    }
+
     // Avoid missed timer error.
     timerFlag = false;
     return;
@@ -209,30 +214,32 @@ ISR(ADC_vect) {
     ADMUX = adcmux[adcindex];
     ADCSRB = adcsrb[adcindex];
     ADCSRA = adcsra[adcindex];
-    if (adcindex == 0) timerFlag = false;
+    if (adcindex == 0) {
+      timerFlag = false;
+    }
     adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
   } else {
     timerFlag = false;
   }
   // Check for buffer needed.
-  if (isrBufNeeded) {   
+  if (isrBufNeeded) {
     // Remove buffer from empty queue.
     isrBuf = emptyQueue[emptyTail];
     emptyTail = queueNext(emptyTail);
     isrBuf->count = 0;
     isrBuf->overrun = isrOver;
-    isrBufNeeded = false;    
+    isrBufNeeded = false;
   }
   // Store ADC data.
   isrBuf->data[isrBuf->count++] = d;
 
   // Check for buffer full.
   if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) {
-    // Put buffer isrIn full queue.  
+    // Put buffer isrIn full queue.
     uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
     fullQueue[tmp] = (block_t*)isrBuf;
     fullHead = queueNext(tmp);
-   
+
     // Set buffer needed and clear overruns.
     isrBufNeeded = true;
     isrOver = 0;
@@ -242,15 +249,17 @@ ISR(ADC_vect) {
 // timer1 interrupt to clear OCF1B
 ISR(TIMER1_COMPB_vect) {
   // Make sure ADC ISR responded to timer event.
-  if (timerFlag) timerError = true;
+  if (timerFlag) {
+    timerError = true;
+  }
   timerFlag = true;
 }
 //==============================================================================
 // Error messages stored in flash.
-#define error(msg) error_P(PSTR(msg))
+#define error(msg) errorFlash(F(msg))
 //------------------------------------------------------------------------------
-void error_P(const char* msg) {
-  sd.errorPrint_P(msg);
+void errorFlash(const __FlashStringHelper* msg) {
+  sd.errorPrint(msg);
   fatalBlink();
 }
 //------------------------------------------------------------------------------
@@ -272,7 +281,7 @@ void fatalBlink() {
 //------------------------------------------------------------------------------
 // initialize ADC and timer1
 void adcInit(metadata_t* meta) {
-  uint8_t adps;  // prescaler bits for ADCSRA 
+  uint8_t adps;  // prescaler bits for ADCSRA
   uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
 
   if (ADC_REF & ~((1 << REFS0) | (1 << REFS1))) {
@@ -286,10 +295,12 @@ void adcInit(metadata_t* meta) {
 #else  // ADC_PRESCALER
   // Allow extra cpu cycles to change ADC settings if more than one pin.
   int32_t adcCycles = (ticks - ISR_TIMER0)/PIN_COUNT;
-                      - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
-                      
+  - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
+
   for (adps = 7; adps > 0; adps--) {
-     if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
+    if (adcCycles >= (MIN_ADC_CYCLES << adps)) {
+      break;
+    }
   }
 #endif  // ADC_PRESCALER
   meta->adcFrequency = F_CPU >> adps;
@@ -308,20 +319,26 @@ void adcInit(metadata_t* meta) {
   }
   meta->pinCount = PIN_COUNT;
   meta->recordEightBits = RECORD_EIGHT_BITS;
-  
+
   for (int i = 0; i < PIN_COUNT; i++) {
     uint8_t pin = PIN_LIST[i];
-    if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
+    if (pin >= NUM_ANALOG_INPUTS) {
+      error("Invalid Analog pin number");
+    }
     meta->pinNumber[i] = pin;
-    
-   // Set ADC reference and low three bits of analog pin number.   
+
+    // Set ADC reference and low three bits of analog pin number.
     adcmux[i] = (pin & 7) | ADC_REF;
-    if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
-    
+    if (RECORD_EIGHT_BITS) {
+      adcmux[i] |= 1 << ADLAR;
+    }
+
     // If this is the first pin, trigger on timer/counter 1 compare match B.
     adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
 #ifdef MUX5
-    if (pin > 7) adcsrb[i] |= (1 << MUX5);
+    if (pin > 7) {
+      adcsrb[i] |= (1 << MUX5);
+    }
 #endif  // MUX5
     adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
     adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
@@ -359,10 +376,10 @@ void adcInit(metadata_t* meta) {
   ICR1 = ticks - 1;
   // compare for ADC start
   OCR1B = 0;
-  
+
   // multiply by prescaler
   ticks <<= tshift;
-  
+
   // Sample interval in CPU clock ticks.
   meta->sampleInterval = ticks;
   meta->cpuFrequency = F_CPU;
@@ -372,15 +389,15 @@ void adcInit(metadata_t* meta) {
     Serial.print(' ');
     Serial.print(meta->pinNumber[i], DEC);
   }
-  Serial.println(); 
+  Serial.println();
   Serial.print(F("ADC bits: "));
   Serial.println(meta->recordEightBits ? 8 : 10);
   Serial.print(F("ADC clock kHz: "));
   Serial.println(meta->adcFrequency/1000);
   Serial.print(F("Sample Rate: "));
-  Serial.println(sampleRate);  
+  Serial.println(sampleRate);
   Serial.print(F("Sample interval usec: "));
-  Serial.println(1000000.0/sampleRate, 4); 
+  Serial.println(1000000.0/sampleRate, 4);
 }
 //------------------------------------------------------------------------------
 // enable ADC and timer1 interrupts
@@ -392,7 +409,7 @@ void adcStart() {
 
   // Clear any pending interrupt.
   ADCSRA |= 1 << ADIF;
-  
+
   // Setup for first pin.
   ADMUX = adcmux[0];
   ADCSRB = adcsrb[0];
@@ -411,7 +428,7 @@ void adcStop() {
   ADCSRA = 0;
 }
 //------------------------------------------------------------------------------
-// Convert binary file to CSV file.
+// Convert binary file to csv file.
 void binaryToCsv() {
   uint8_t lastPct = 0;
   block_t buf;
@@ -419,19 +436,21 @@ void binaryToCsv() {
   uint32_t t0 = millis();
   char csvName[13];
   StdioStream csvStream;
-  
+
   if (!binFile.isOpen()) {
     Serial.println(F("No current binary file"));
     return;
   }
   binFile.rewind();
-  if (!binFile.read(&buf , 512) == 512) error("Read metadata failed");
-  // Create a new CSV file.
+  if (!binFile.read(&buf , 512) == 512) {
+    error("Read metadata failed");
+  }
+  // Create a new csv file.
   strcpy(csvName, binName);
-  strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
+  strcpy(&csvName[BASE_NAME_SIZE + 3], "csv");
 
   if (!csvStream.fopen(csvName, "w")) {
-    error("open csvStream failed");  
+    error("open csvStream failed");
   }
   Serial.println();
   Serial.print(F("Writing: "));
@@ -443,23 +462,29 @@ void binaryToCsv() {
   csvStream.print(intervalMicros, 4);
   csvStream.println(F(",usec"));
   for (uint8_t i = 0; i < pm->pinCount; i++) {
-    if (i) csvStream.putc(',');
+    if (i) {
+      csvStream.putc(',');
+    }
     csvStream.print(F("pin"));
     csvStream.print(pm->pinNumber[i]);
   }
-  csvStream.println(); 
+  csvStream.println();
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) {
     uint16_t i;
-    if (buf.count == 0) break;
+    if (buf.count == 0) {
+      break;
+    }
     if (buf.overrun) {
       csvStream.print(F("OVERRUN,"));
-      csvStream.println(buf.overrun);     
+      csvStream.println(buf.overrun);
     }
     for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) {
       for (uint16_t i = 0; i < PIN_COUNT; i++) {
-        if (i) csvStream.putc(',');
-        csvStream.print(buf.data[i + j]);     
+        if (i) {
+          csvStream.putc(',');
+        }
+        csvStream.print(buf.data[i + j]);
       }
       csvStream.println();
     }
@@ -472,9 +497,11 @@ void binaryToCsv() {
         Serial.println('%');
       }
     }
-    if (Serial.available()) break;
+    if (Serial.available()) {
+      break;
+    }
   }
-  csvStream.fclose();  
+  csvStream.fclose();
   Serial.print(F("Done: "));
   Serial.print(0.001*(millis() - t0));
   Serial.println(F(" Seconds"));
@@ -486,7 +513,7 @@ void checkOverrun() {
   block_t buf;
   uint32_t bgnBlock, endBlock;
   uint32_t bn = 0;
-  
+
   if (!binFile.isOpen()) {
     Serial.println(F("No current binary file"));
     return;
@@ -502,7 +529,9 @@ void checkOverrun() {
   }
   bn++;
   while (binFile.read(&buf, 512) == 512) {
-    if (buf.count == 0) break;
+    if (buf.count == 0) {
+      break;
+    }
     if (buf.overrun) {
       if (!headerPrinted) {
         Serial.println();
@@ -540,7 +569,9 @@ void dumpData() {
   Serial.println(F("Type any character to stop"));
   delay(1000);
   while (!Serial.available() && binFile.read(&buf , 512) == 512) {
-    if (buf.count == 0) break;
+    if (buf.count == 0) {
+      break;
+    }
     if (buf.overrun) {
       Serial.print(F("OVERRUN,"));
       Serial.println(buf.overrun);
@@ -562,15 +593,15 @@ void dumpData() {
 uint32_t const ERASE_SIZE = 262144L;
 void logData() {
   uint32_t bgnBlock, endBlock;
-  
+
   // Allocate extra buffer space.
   block_t block[BUFFER_BLOCK_COUNT];
-  
+
   Serial.println();
-  
+
   // Initialize ADC and timer1.
   adcInit((metadata_t*) &block[0]);
-  
+
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) {
     error("FILE_BASE_NAME too long");
@@ -597,7 +628,7 @@ void logData() {
   Serial.println(F("Creating new file"));
   binFile.close();
   if (!binFile.createContiguous(sd.vwd(),
-    TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
+                                TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
     error("createContiguous failed");
   }
   // Get the address of the file on the SD.
@@ -606,15 +637,19 @@ void logData() {
   }
   // Use SdFat's internal buffer.
   uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
-  if (cache == 0) error("cacheClear failed"); 
- 
+  if (cache == 0) {
+    error("cacheClear failed");
+  }
+
   // Flash erase all data in the file.
   Serial.println(F("Erasing all data"));
   uint32_t bgnErase = bgnBlock;
   uint32_t endErase;
   while (bgnErase < endBlock) {
     endErase = bgnErase + ERASE_SIZE;
-    if (endErase > endBlock) endErase = endBlock;
+    if (endErase > endBlock) {
+      endErase = endBlock;
+    }
     if (!sd.card()->erase(bgnErase, endErase)) {
       error("erase failed");
     }
@@ -627,15 +662,15 @@ void logData() {
   // Write metadata.
   if (!sd.card()->writeData((uint8_t*)&block[0])) {
     error("Write metadata failed");
-  } 
+  }
   // Initialize queues.
   emptyHead = emptyTail = 0;
   fullHead = fullTail = 0;
-  
+
   // Use SdFat buffer for one block.
   emptyQueue[emptyHead] = (block_t*)cache;
   emptyHead = queueNext(emptyHead);
-  
+
   // Put rest of buffers in the empty queue.
   for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) {
     emptyQueue[emptyHead] = &block[i];
@@ -660,7 +695,7 @@ void logData() {
     if (fullHead != fullTail) {
       // Get address of block to write.
       block_t* pBlock = fullQueue[fullTail];
-      
+
       // Write block to SD.
       uint32_t usec = micros();
       if (!sd.card()->writeData((uint8_t*)pBlock)) {
@@ -668,10 +703,12 @@ void logData() {
       }
       usec = micros() - usec;
       t1 = millis();
-      if (usec > maxLatency) maxLatency = usec;
+      if (usec > maxLatency) {
+        maxLatency = usec;
+      }
       count += pBlock->count;
-      
-      // Add overruns and possibly light LED. 
+
+      // Add overruns and possibly light LED.
       if (pBlock->overrun) {
         overruns += pBlock->overrun;
         if (ERROR_LED_PIN >= 0) {
@@ -703,22 +740,24 @@ void logData() {
         fullHead = queueNext(fullHead);
         isrBuf = 0;
       }
-      if (fullHead == fullTail) break;
+      if (fullHead == fullTail) {
+        break;
+      }
     }
   }
   if (!sd.card()->writeStop()) {
     error("writeStop failed");
   }
   // Truncate file if recording stopped early.
-  if (bn != FILE_BLOCK_COUNT) {    
+  if (bn != FILE_BLOCK_COUNT) {
     Serial.println(F("Truncating file"));
     if (!binFile.truncate(512L * bn)) {
       error("Can't truncate file");
     }
   }
   if (!binFile.rename(sd.vwd(), binName)) {
-     error("Can't rename file");
-   }
+    error("Can't rename file");
+  }
   Serial.print(F("File renamed: "));
   Serial.println(binName);
   Serial.print(F("Max block write usec: "));
@@ -739,10 +778,10 @@ void setup(void) {
     pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-  
+
   // Read the first sample pin to init the ADC.
   analogRead(PIN_LIST[0]);
-  
+
   Serial.print(F("FreeRam: "));
   Serial.println(FreeRam());
 
@@ -758,8 +797,8 @@ void loop(void) {
   while (Serial.read() >= 0) {}
   Serial.println();
   Serial.println(F("type:"));
-  Serial.println(F("c - convert file to CSV")); 
-  Serial.println(F("d - dump data to Serial"));  
+  Serial.println(F("c - convert file to csv"));
+  Serial.println(F("d - dump data to Serial"));
   Serial.println(F("e - overrun error details"));
   Serial.println(F("r - record ADC data"));
 
@@ -772,12 +811,12 @@ void loop(void) {
   do {
     delay(10);
   } while (Serial.read() >= 0);
-  
+
   if (c == 'c') {
     binaryToCsv();
   } else if (c == 'd') {
     dumpData();
-  } else if (c == 'e') {    
+  } else if (c == 'e') {
     checkOverrun();
   } else if (c == 'r') {
     logData();
@@ -785,3 +824,6 @@ void loop(void) {
     Serial.println(F("Invalid entry"));
   }
 }
+#else  // __AVR__
+#error This program is only for AVR.
+#endif  // __AVR__

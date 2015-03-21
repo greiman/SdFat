@@ -1,5 +1,6 @@
 // A simple data logger for the Arduino analog pins with optional DS1307
 // uses RTClib from https://github.com/adafruit/RTClib
+#include <SPI.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>  // define FreeRam()
 
@@ -28,7 +29,7 @@ char buf[80];
 #endif  // SENSOR_COUNT
 //------------------------------------------------------------------------------
 // store error strings in flash to save RAM
-#define error(s) sd.errorHalt_P(PSTR(s))
+#define error(s) sd.errorHalt(F(s))
 //------------------------------------------------------------------------------
 #if USE_DS1307
 // use RTClib from Adafruit
@@ -44,7 +45,7 @@ RTC_DS1307 RTC;  // define the Real Time Clock object
 //------------------------------------------------------------------------------
 // call back for file timestamps
 void dateTime(uint16_t* date, uint16_t* time) {
-    DateTime now = RTC.now();
+  DateTime now = RTC.now();
 
   // return date using FAT_DATE macro to format fields
   *date = FAT_DATE(now.year(), now.month(), now.day());
@@ -64,21 +65,24 @@ ostream& operator << (ostream& os, DateTime& dt) {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial){}  // wait for Leonardo
-  
-  // pstr stores strings in flash to save RAM
-  cout << endl << pstr("FreeRam: ") << FreeRam() << endl;
+  while (!Serial) {} // wait for Leonardo
+
+  // F() stores strings in flash to save RAM
+  cout << endl << F("FreeRam: ") << FreeRam() << endl;
 
 #if WAIT_TO_START
-  cout << pstr("Type any character to start\n");
+  cout << F("Type any character to start\n");
   while (Serial.read() <= 0) {}
   delay(400);  // catch Due reset problem
+  while (Serial.read() >= 0) {}
 #endif  // WAIT_TO_START
 
 #if USE_DS1307
   // connect to RTC
   Wire.begin();
-  if (!RTC.begin()) error("RTC failed");
+  if (!RTC.begin()) {
+    error("RTC failed");
+  }
 
   // set date time callback function
   SdFile::dateTimeCallback(dateTime);
@@ -87,34 +91,40 @@ void setup() {
 #endif  // USE_DS1307
 
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
-  if (!sd.begin(SD_CHIP_SELECT, SPI_HALF_SPEED)) sd.initErrorHalt();
+  if (!sd.begin(SD_CHIP_SELECT, SPI_HALF_SPEED)) {
+    sd.initErrorHalt();
+  }
 
   // create a new file in root, the current working directory
-  char name[] = "LOGGER00.CSV";
+  char name[] = "logger00.csv";
 
   for (uint8_t i = 0; i < 100; i++) {
     name[6] = i/10 + '0';
     name[7] = i%10 + '0';
-    if (sd.exists(name)) continue;
+    if (sd.exists(name)) {
+      continue;
+    }
     logfile.open(name);
     break;
   }
-  if (!logfile.is_open()) error("file.open");
+  if (!logfile.is_open()) {
+    error("file.open");
+  }
 
-  cout << pstr("Logging to: ") << name << endl;
-  cout << pstr("Type any character to stop\n\n");
-  
+  cout << F("Logging to: ") << name << endl;
+  cout << F("Type any character to stop\n\n");
+
   // format header in buffer
   obufstream bout(buf, sizeof(buf));
 
-  bout << pstr("millis");
+  bout << F("millis");
 
 #if USE_DS1307
-  bout << pstr(",date,time");
+  bout << F(",date,time");
 #endif  // USE_DS1307
 
   for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
-    bout << pstr(",sens") << int(i);
+    bout << F(",sens") << int(i);
   }
   logfile << buf << endl;
 
@@ -156,17 +166,23 @@ void loop() {
   logfile << buf << flush;
 
   // check for error
-  if (!logfile) error("write data failed");
+  if (!logfile) {
+    error("write data failed");
+  }
 
 #if ECHO_TO_SERIAL
   cout << buf;
 #endif  // ECHO_TO_SERIAL
 
   // don't log two points in the same millis
-  if (m == millis()) delay(1);
-  
-  if (!Serial.available()) return;
+  if (m == millis()) {
+    delay(1);
+  }
+
+  if (!Serial.available()) {
+    return;
+  }
   logfile.close();
-  cout << pstr("Done!");
+  cout << F("Done!");
   while (1);
 }

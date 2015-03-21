@@ -1,19 +1,20 @@
 /*
  * Simple data logger.
  */
+#include <SPI.h>
 #include <SdFat.h>
 
 // SD chip select pin.  Be sure to disable any other SPI devices such as Enet.
 const uint8_t chipSelect = SS;
 
-// Interval between data records in milliseconds. 
+// Interval between data records in milliseconds.
 // The interval must be greater than the maximum SD write latency plus the
 // time to acquire and write data to the SD to avoid overrun errors.
 // Run the bench example to check the quality of your SD card.
 const uint32_t SAMPLE_INTERVAL_MS = 200;
 
 // Log file base name.  Must be six characters or less.
-#define FILE_BASE_NAME "DATA"
+#define FILE_BASE_NAME "Data"
 //------------------------------------------------------------------------------
 // File system object.
 SdFat sd;
@@ -42,14 +43,14 @@ void writeHeader() {
 // Log a data record.
 void logData() {
   uint16_t data[ANALOG_COUNT];
-  
+
   // Read all channels to avoid SD write latency between readings.
   for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
     data[i] = analogRead(i);
   }
   // Write data to file.  Start with log time in micros.
   file.print(logTime);
-  
+
   // Write ADC data to CSV record.
   for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
     file.write(',');
@@ -59,27 +60,25 @@ void logData() {
 }
 //==============================================================================
 // Error messages stored in flash.
-#define error(msg) error_P(PSTR(msg))
-//------------------------------------------------------------------------------
-void error_P(const char* msg) {
-  sd.errorHalt_P(msg);
-}
+#define error(msg) sd.errorHalt(F(msg))
 //------------------------------------------------------------------------------
 void setup() {
   const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
-  char fileName[13] = FILE_BASE_NAME "00.CSV";
-  
+  char fileName[13] = FILE_BASE_NAME "00.csv";
+
   Serial.begin(9600);
   while (!Serial) {} // wait for Leonardo
   delay(1000);
-  
+
   Serial.println(F("Type any character to start"));
   while (!Serial.available()) {}
-  
+
   // Initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
-  if (!sd.begin(chipSelect, SPI_HALF_SPEED)) sd.initErrorHalt();
-  
+  if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
+    sd.initErrorHalt();
+  }
+
   // Find an unused file name.
   if (BASE_NAME_SIZE > 6) {
     error("FILE_BASE_NAME too long");
@@ -94,18 +93,20 @@ void setup() {
       error("Can't create file name");
     }
   }
-  if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) error("file.open");
+  if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) {
+    error("file.open");
+  }
   do {
     delay(10);
   } while (Serial.read() >= 0);
-  
+
   Serial.print(F("Logging to: "));
   Serial.println(fileName);
   Serial.println(F("Type any character to stop"));
-  
+
   // Write data header.
   writeHeader();
-  
+
   // Start on a multiple of the sample interval.
   logTime = micros()/(1000UL*SAMPLE_INTERVAL_MS) + 1;
   logTime *= 1000UL*SAMPLE_INTERVAL_MS;
@@ -114,21 +115,25 @@ void setup() {
 void loop() {
   // Time for next record.
   logTime += 1000UL*SAMPLE_INTERVAL_MS;
-  
+
   // Wait for log time.
   int32_t diff;
   do {
     diff = micros() - logTime;
   } while (diff < 0);
-  
-  // Check for data rate too high. 
-  if (diff > 10) error("Missed data record");
-  
+
+  // Check for data rate too high.
+  if (diff > 10) {
+    error("Missed data record");
+  }
+
   logData();
-  
+
   // Force data to SD and update the directory entry to avoid data loss.
-  if (!file.sync() || file.getWriteError()) error("write error"); 
-  
+  if (!file.sync() || file.getWriteError()) {
+    error("write error");
+  }
+
   if (Serial.available()) {
     // Close file and stop.
     file.close();

@@ -1,8 +1,9 @@
 /*
- * Sketch to compare size of SdFat V2 with Arduino SD library.
- * See SD_Size.pde for Arduino SD sketch.
+ * Program to compare size of SdFat with Arduino SD library.
+ * See SD_Size.ino for Arduino SD program.
  *
  */
+#include <SPI.h>
 #include <SdFat.h>
 
 SdFat sd;
@@ -17,7 +18,7 @@ void setup() {
     Serial.println("begin failed");
     return;
   }
-  file.open("SIZE_TST.TXT", O_RDWR | O_CREAT | O_AT_END);
+  file.open("SizeTest.txt", O_RDWR | O_CREAT | O_AT_END);
 
   file.println("Hello");
 

@@ -46,14 +46,16 @@ uint8_t const O_CREAT = 0X40;
 /** If O_CREAT and O_EXCL are set, open() shall fail if the file exists */
 uint8_t const O_EXCL = 0X80;
 
-// SdBaseFile class static and const definitions
+// FatFile class static and const definitions
 // flags for ls()
-/** ls() flag to print modify date */
-uint8_t const LS_DATE = 1;
-/** ls() flag to print file size */
-uint8_t const LS_SIZE = 2;
+/** ls() flag for list all files including hidden. */
+uint8_t const LS_A = 1;
+/** ls() flag to print modify. date */
+uint8_t const LS_DATE = 2;
+/** ls() flag to print file size. */
+uint8_t const LS_SIZE = 4;
 /** ls() flag for recursive list of subdirectories */
-uint8_t const LS_R = 4;
+uint8_t const LS_R = 8;
 
 // flags for timestamp
 /** set the file's last access date */

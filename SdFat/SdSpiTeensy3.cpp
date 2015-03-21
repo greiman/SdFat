@@ -17,10 +17,11 @@
  * along with the Arduino SdSpi Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#include <SdSpi.h>
-#if USE_NATIVE_TEENSY3_SPI
-// Teensy 3.0 functions
-#include <mk20dx128.h>
+#include "SdSpi.h"
+#if defined(__arm__) && defined(CORE_TEENSY)
+// SPI definitions
+#include "kinetis.h"
+#ifdef KINETISK
 // use 16-bit frame if SPI_USE_8BIT_FRAME is zero
 #define SPI_USE_8BIT_FRAME 0
 // Limit initial fifo to three entries to avoid fifo overrun
@@ -220,4 +221,81 @@ void SdSpi::send(const uint8_t* buf , size_t n) {
   }
 #endif  // SPI_USE_8BIT_FRAME
 }
-#endif  // USE_NATIVE_TEENSY3_SPI
+#else  // KINETISK
+//==============================================================================
+// Use standard SPI library if not KINETISK
+#include "SPI.h"
+/**
+ * Initialize SPI pins.
+ */
+void SdSpi::begin() {
+  SPI.begin();
+}
+/** Set SPI options for access to SD/SDHC cards.
+ *
+ * \param[in] divisor SCK clock divider relative to the system clock.
+ */
+void SdSpi::init(uint8_t divisor) {
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+#ifndef SPI_CLOCK_DIV128
+  SPI.setClockDivider(divisor);
+#else  // SPI_CLOCK_DIV128
+  int v;
+  if (divisor <= 2) {
+    v = SPI_CLOCK_DIV2;
+  } else  if (divisor <= 4) {
+    v = SPI_CLOCK_DIV4;
+  } else  if (divisor <= 8) {
+    v = SPI_CLOCK_DIV8;
+  } else  if (divisor <= 16) {
+    v = SPI_CLOCK_DIV16;
+  } else  if (divisor <= 32) {
+    v = SPI_CLOCK_DIV32;
+  } else  if (divisor <= 64) {
+    v = SPI_CLOCK_DIV64;
+  } else {
+    v = SPI_CLOCK_DIV128;
+  }
+  SPI.setClockDivider(v);
+#endif  // SPI_CLOCK_DIV128
+}
+/** Receive a byte.
+ *
+ * \return The byte.
+ */
+uint8_t SdSpi::receive() {
+  return SPI.transfer(0XFF);
+}
+/** Receive multiple bytes.
+ *
+ * \param[out] buf Buffer to receive the data.
+ * \param[in] n Number of bytes to receive.
+ *
+ * \return Zero for no error or nonzero error code.
+ */
+uint8_t SdSpi::receive(uint8_t* buf, size_t n) {
+  for (size_t i = 0; i < n; i++) {
+    buf[i] = SPI.transfer(0XFF);
+  }
+  return 0;
+}
+/** Send a byte.
+ *
+ * \param[in] b Byte to send
+ */
+void SdSpi::send(uint8_t b) {
+  SPI.transfer(b);
+}
+/** Send multiple bytes.
+ *
+ * \param[in] buf Buffer for data to be sent.
+ * \param[in] n Number of bytes to send.
+ */
+void SdSpi::send(const uint8_t* buf , size_t n) {
+  for (size_t i = 0; i < n; i++) {
+    SPI.transfer(buf[i]);
+  }
+}
+#endif  // KINETISK
+#endif  // defined(__arm__) && defined(CORE_TEENSY)
