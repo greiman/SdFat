@@ -27,7 +27,7 @@
 #include "utility/FatLib.h"
 //------------------------------------------------------------------------------
 /** SdFat version YYYYMMDD */
-#define SD_FAT_VERSION 20150321
+#define SD_FAT_VERSION 20150324
 //==============================================================================
 /**
  * \class SdBaseFile
