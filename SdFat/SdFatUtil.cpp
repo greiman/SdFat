@@ -21,7 +21,7 @@
 #include "SdFat.h"
 #include "SdFatUtil.h"
 //------------------------------------------------------------------------------
-#ifdef __arm__
+#if defined __arm__ || defined __PIC32MX__
 extern "C" char* sbrk(int incr);
 int SdFatUtil::FreeRam() {
   char top;

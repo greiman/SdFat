@@ -160,6 +160,8 @@ uint8_t const SOFT_SPI_SCK_PIN = 13;
  */
 #ifdef __AVR__
 const uint8_t SPI_SCK_INIT_DIVISOR = 64;
+#elif __PIC32MX__
+const uint8_t SPI_SCK_INIT_DIVISOR = 199;
 #else
 const uint8_t SPI_SCK_INIT_DIVISOR = 128;
 #endif

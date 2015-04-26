@@ -194,10 +194,13 @@ bool SdSpiCard::begin(m_spi_t* spi, uint8_t chipSelectPin, uint8_t sckDivisor) {
   }
   chipSelectHigh();
   m_sckDivisor = sckDivisor;
+  spiInit(m_sckDivisor);
   return true;
 
 fail:
   chipSelectHigh();
+  m_sckDivisor = sckDivisor;
+  spiInit(m_sckDivisor);
   return false;
 }
 //------------------------------------------------------------------------------
@@ -278,7 +281,8 @@ void SdSpiCard::spiYield() {
 void SdSpiCard::chipSelectHigh() {
   digitalWrite(m_chipSelectPin, HIGH);
   // insure MISO goes high impedance
-  spiSend(0XFF);
+  //spiSend(0XFF);
+
 #if ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
   if (useSpiTransactions()) {
     SPI.endTransaction();
@@ -292,7 +296,7 @@ void SdSpiCard::chipSelectLow() {
     SPI.beginTransaction(SPISettings());
   }
 #endif  // ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
-  spiInit(m_sckDivisor);
+//  spiInit(m_sckDivisor);
   digitalWrite(m_chipSelectPin, LOW);
 }
 //------------------------------------------------------------------------------
