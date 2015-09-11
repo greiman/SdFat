@@ -78,7 +78,7 @@
  * template parameters define the software SPI pins.  See the ThreeCard
  * example for simultaneous use of all three classes.
  */
-#define SD_SPI_CONFIGURATION 0
+#define SD_SPI_CONFIGURATION 1
 //------------------------------------------------------------------------------
 /**
  * If SD_SPI_CONFIGURATION is defined to be two, these definitions
