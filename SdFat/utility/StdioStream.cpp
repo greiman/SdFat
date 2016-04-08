@@ -19,6 +19,15 @@
  */
 #include "StdioStream.h"
 #include "FmtNumber.h"
+
+uint8_t *memchr2(uint8_t *ptr, uint8_t ch, size_t size)
+{
+  for (int i = 0; i < size; i++)
+    if (*ptr++ == ch)
+      return ptr;
+  return NULL;
+}
+
 //------------------------------------------------------------------------------
 int StdioStream::fclose() {
   int rtn = 0;
@@ -67,7 +76,7 @@ char* StdioStream::fgets(char* str, size_t num, size_t* len) {
     if (n > num) {
       n = num;
     }
-    uint8_t* end = reinterpret_cast<uint8_t*>(memchr(m_p, '\n', n));
+    uint8_t* end = reinterpret_cast<uint8_t*>(memchr2(m_p, '\n', n));
     if (end != 0) {
       n = ++end - m_p;
       memcpy(s, m_p, n);

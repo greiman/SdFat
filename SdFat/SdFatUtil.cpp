@@ -28,6 +28,8 @@ int SdFatUtil::FreeRam() {
   return &top - reinterpret_cast<char*>(sbrk(0));
 }
 #else  // __arm__
+#ifdef ESP8266
+#else
 extern char *__brkval;
 extern char __bss_end;
 /** Amount of free RAM
@@ -37,7 +39,8 @@ int SdFatUtil::FreeRam() {
   char top;
   return __brkval ? &top - __brkval : &top - &__bss_end;
 }
-#endif  // __arm
+#endif  // ESP8266
+#endif  // __arm__
 //------------------------------------------------------------------------------
 void SdFatUtil::print_P(Print* pr, PGM_P str) {
   for (uint8_t c; (c = pgm_read_byte(str)); str++) {
