@@ -1,7 +1,16 @@
 var searchData=
 [
-  ['headcount',['headCount',['../structfat__boot.html#ae31da876cd9f48de5268a129218df2c2',1,'fat_boot::headCount()'],['../structfat32__boot.html#a1a5298db692526bc64243766d6b54181',1,'fat32_boot::headCount()']]],
-  ['hex',['hex',['../classios__base.html#a3608e51eb0a80ea94ddadd5b713a3750',1,'ios_base::hex()'],['../ios_8h.html#ace2036d970905192360d622140bfe336',1,'hex():&#160;ios.h']]],
-  ['hidddensectors',['hidddenSectors',['../structfat__boot.html#a18f1b4c245fe7bd09f5a9430c005e23a',1,'fat_boot::hidddenSectors()'],['../structfat32__boot.html#ab10224aa4bba42b262fcd3479e279e1f',1,'fat32_boot::hidddenSectors()']]],
-  ['high',['high',['../class_digital_pin.html#add1677ecf4c7dc3c12effd39c1db34ed',1,'DigitalPin']]]
+  ['gcount',['gcount',['../classistream.html#ad2b705d2f363ed59db6ac4046f78b4bb',1,'istream']]],
+  ['get',['get',['../classistream.html#a36573c9b7fc522e6c85a73221019fd11',1,'istream::get()'],['../classistream.html#a9c7313d6f21f1f7ac9b0e759e74b4db2',1,'istream::get(char &amp;ch)'],['../classistream.html#a4247f47e388598c69ef3bd39ea4c056f',1,'istream::get(char *str, streamsize n, char delim= &apos;\n&apos;)']]],
+  ['getc',['getc',['../class_stdio_stream.html#a28ba31e7b526607744bfa41844ffce31',1,'StdioStream']]],
+  ['geterror',['getError',['../class_fat_file.html#ad0dbbd083180f44c7a3ce7124d4ce19c',1,'FatFile']]],
+  ['getline',['getline',['../classistream.html#a7d86035d178e526283e5c7555ab7b243',1,'istream']]],
+  ['getname',['getName',['../class_fat_file.html#aafa565e286440aab612cdb430fc01da5',1,'FatFile']]],
+  ['getpos',['getpos',['../class_fat_file.html#aaa4f9886887947815a61eaf015996932',1,'FatFile']]],
+  ['getsfn',['getSFN',['../class_fat_file.html#aba30e92a66f8e0d2f815c85662772a58',1,'FatFile']]],
+  ['getwriteerror',['getWriteError',['../class_fat_file.html#a8062c0d3a118e8d77d0310418703d5f5',1,'FatFile']]],
+  ['good',['good',['../classios.html#a5fdf9247f642a7a5c5a21323ffd45366',1,'ios']]],
+  ['goodbit',['goodbit',['../classios__base.html#a07a00996a6e525b88bdfe7935d5ead05',1,'ios_base']]],
+  ['gpio_5fpin',['GPIO_PIN',['../group__digital_pin.html#gacf92f370944e233db04f7423bde1c164',1,'DigitalPin.h']]],
+  ['gpiopinmap_5ft',['GpioPinMap_t',['../struct_gpio_pin_map__t.html',1,'']]]
 ];

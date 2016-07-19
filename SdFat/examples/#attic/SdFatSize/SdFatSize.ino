@@ -4,7 +4,7 @@
  *
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 SdFat sd;
 
@@ -12,8 +12,12 @@ SdFile file;
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
-
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
+  
   if (!sd.begin()) {
     Serial.println("begin failed");
     return;

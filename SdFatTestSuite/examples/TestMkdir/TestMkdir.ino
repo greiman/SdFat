@@ -83,7 +83,7 @@ void dirAllocTest(FatFile* dir) {
     uint32_t t2 = millis();
     
     // check file content
-    if (strlen(name) != nr || strncmp(name, buf, nr)) {
+    if (strlen(name) != (size_t)nr || strncmp(name, buf, nr)) {
       error("content compare failed");
     }
     if (!file.close()) error("close read failed");

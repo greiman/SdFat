@@ -3,11 +3,7 @@
  * can be used for high speed data logging.
  *
  * This program simulates logging from a source that produces
- * data at a constant rate of one block every MICROS_PER_BLOCK.
- *
- * If a high quality SanDisk card is used with this program
- * no overruns occur and the maximum block write time is
- * under 2000 micros.
+ * data at a constant rate of RATE_KB_PER_SEC.
  *
  * Note: Apps should create a very large file then truncates it
  * to the length that is used for a logging. It only takes
@@ -15,17 +11,21 @@
  * marks the blocks as erased; no data transfer is required.
  */
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
 
 // SD chip select pin
 const uint8_t chipSelect = SS;
 
-// number of blocks in the contiguous file
-const uint32_t BLOCK_COUNT = 10000UL;
+const uint32_t RATE_KB_PER_SEC = 100;
 
-// time to produce a block of data
-const uint32_t MICROS_PER_BLOCK = 10000;
+const uint32_t TEST_TIME_SEC = 100;
+
+// Time between printing progress dots
+const uint32_t DOT_TIME_MS = 5000UL;
+
+// number of blocks in the contiguous file
+const uint32_t BLOCK_COUNT = (1000*RATE_KB_PER_SEC*TEST_TIME_SEC + 511)/512;
 
 // file system
 SdFat sd;
@@ -42,26 +42,27 @@ ArduinoOutStream cout(Serial);
 // store error strings in flash to save RAM
 #define error(s) sd.errorHalt(F(s))
 //------------------------------------------------------------------------------
-// log of first overruns
-#define OVER_DIM 20
-struct {
-  uint32_t block;
-  uint32_t micros;
-} over[OVER_DIM];
-//------------------------------------------------------------------------------
 void setup(void) {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
 }
 //------------------------------------------------------------------------------
 void loop(void) {
-  while (Serial.read() >= 0) {}
-  // pstr stores strings in flash to save RAM
+  // Read any extra Serial data.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
+  // F stores strings in flash to save RAM
   cout << F("Type any character to start\n");
-  while (Serial.read() <= 0) {}
-  delay(400);  // catch Due reset problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
-  cout << F("Free RAM: ") << FreeRam() << endl;
+  cout << F("FreeStack: ") << FreeStack() << endl;
 
   // initialize the SD card at SPI_FULL_SPEED for best performance.
   // try SPI_HALF_SPEED if bus errors occur.
@@ -96,28 +97,48 @@ void loop(void) {
     pCache[i + 63] = '\n';
   }
 
-  cout << F("Start raw write of ") << file.fileSize() << F(" bytes at\n");
-  cout << 512000000UL/MICROS_PER_BLOCK << F(" bytes per second\n");
-  cout << F("Please wait ") << (BLOCK_COUNT*MICROS_PER_BLOCK)/1000000UL;
-  cout << F(" seconds\n");
-
+  cout << F("Start raw write of ") << file.fileSize()/1000UL << F(" KB\n");
+  cout << F("Target rate: ") << RATE_KB_PER_SEC << F(" KB/sec\n");
+  cout << F("Target time: ") << TEST_TIME_SEC << F(" seconds\n");
+  
   // tell card to setup for multiple block write with pre-erase
   if (!sd.card()->writeStart(bgnBlock, BLOCK_COUNT)) {
     error("writeStart failed");
   }
   // init stats
-  uint16_t overruns = 0;
+
+  delay(1000);
+  uint32_t dotCount = 0;
+  uint32_t maxQueuePrint = 0;
   uint32_t maxWriteTime = 0;
-  uint32_t t = micros();
-  uint32_t tNext = t;
+  uint32_t minWriteTime = 9999999;
+  uint32_t totalWriteTime = 0;
+  uint32_t maxQueueSize = 0;
+  uint32_t nWrite = 0;
+  uint32_t b = 0;
 
   // write data
-  for (uint32_t b = 0; b < BLOCK_COUNT; b++) {
-    // write must be done by this time
-    tNext += MICROS_PER_BLOCK;
-
+    uint32_t startTime = millis();
+  while (nWrite < BLOCK_COUNT) {
+    uint32_t nProduced = RATE_KB_PER_SEC*(millis() - startTime)/512UL;
+    uint32_t queueSize = nProduced - nWrite;
+    if (queueSize == 0) continue;
+    if (queueSize > maxQueueSize) {
+      maxQueueSize = queueSize;
+    }
+    if ((millis() - startTime - dotCount*DOT_TIME_MS) > DOT_TIME_MS) {
+      if (maxQueueSize != maxQueuePrint) {
+        cout << F("\nQ: ") << maxQueueSize << endl;
+        maxQueuePrint = maxQueueSize;
+      } else {
+        cout << ".";
+        if (++dotCount%10 == 0) {
+          cout << endl;
+        }
+      }
+    }
     // put block number at start of first line in block
-    uint32_t n = b;
+    uint32_t n = b++;
     for (int8_t d = 5; d >= 0; d--) {
       pCache[d] = n || d == 5 ? n % 10 + '0' : ' ';
       n /= 10;
@@ -128,45 +149,30 @@ void loop(void) {
       error("writeData failed");
     }
     tw = micros() - tw;
-
+    totalWriteTime += tw;
     // check for max write time
     if (tw > maxWriteTime) {
       maxWriteTime = tw;
     }
-    // check for overrun
-    if (micros() > tNext) {
-      if (overruns < OVER_DIM) {
-        over[overruns].block = b;
-        over[overruns].micros = tw;
-      }
-      overruns++;
-      // advance time to reflect overrun
-      tNext = micros();
-    } else {
-      // wait for time to write next block
-      while(micros() < tNext);
+    if (tw < minWriteTime) {
+      minWriteTime = tw;
     }
+    nWrite++;
   }
-  // total write time
-  t = micros() - t;
-
+  uint32_t endTime = millis();
+  uint32_t avgWriteTime = totalWriteTime/BLOCK_COUNT;
   // end multiple block write mode
   if (!sd.card()->writeStop()) {
     error("writeStop failed");
   }
 
-  cout << F("Done\n");
-  cout << F("Elapsed time: ") << setprecision(3)<< 1.e-6*t;
+  cout << F("\nDone\n");
+  cout << F("maxQueueSize: ") << maxQueueSize << endl;
+  cout << F("Elapsed time: ") << setprecision(3)<< 1.e-3*(endTime - startTime);
   cout << F(" seconds\n");
-  cout << F("Max write time: ") << maxWriteTime << F(" micros\n");
-  cout << F("Overruns: ") << overruns << endl;
-  if (overruns) {
-    uint8_t n = overruns > OVER_DIM ? OVER_DIM : overruns;
-    cout << F("fileBlock,micros") << endl;
-    for (uint8_t i = 0; i < n; i++) {
-      cout << over[i].block << ',' << over[i].micros << endl;
-    }
-  }
+  cout << F("Min block write time: ") << minWriteTime << F(" micros\n");
+  cout << F("Max block write time: ") << maxWriteTime << F(" micros\n");
+  cout << F("Avg block write time: ") << avgWriteTime << F(" micros\n");  
   // close file for next pass of loop
   file.close();
   Serial.println();

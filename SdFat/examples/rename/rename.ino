@@ -3,7 +3,7 @@
  * and SdFat::rename().
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 // SD chip select pin
 const uint8_t chipSelect = SS;
@@ -19,11 +19,15 @@ ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
-
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   cout << F("Insert an empty SD.  Type any character to start.") << endl;
-  while (Serial.read() <= 0) {}
-  delay(400);  // catch Due reset problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.

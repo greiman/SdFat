@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['longdirectoryentry',['longDirectoryEntry',['../structlong_directory_entry.html',1,'']]]
+  ['gpiopinmap_5ft',['GpioPinMap_t',['../struct_gpio_pin_map__t.html',1,'']]]
 ];

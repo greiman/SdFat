@@ -2,7 +2,7 @@
  * Simple data logger.
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 // SD chip select pin.  Be sure to disable any other SPI devices such as Enet.
 const uint8_t chipSelect = SS;
@@ -11,7 +11,7 @@ const uint8_t chipSelect = SS;
 // The interval must be greater than the maximum SD write latency plus the
 // time to acquire and write data to the SD to avoid overrun errors.
 // Run the bench example to check the quality of your SD card.
-const uint32_t SAMPLE_INTERVAL_MS = 200;
+const uint32_t SAMPLE_INTERVAL_MS = 1000;
 
 // Log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "Data"
@@ -67,12 +67,18 @@ void setup() {
   char fileName[13] = FILE_BASE_NAME "00.csv";
 
   Serial.begin(9600);
-  while (!Serial) {} // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   delay(1000);
 
   Serial.println(F("Type any character to start"));
-  while (!Serial.available()) {}
-
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
+  
   // Initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
   if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
@@ -96,9 +102,10 @@ void setup() {
   if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) {
     error("file.open");
   }
+  // Read any Serial data.
   do {
     delay(10);
-  } while (Serial.read() >= 0);
+  } while (Serial.available() && Serial.read() >= 0);
 
   Serial.print(F("Logging to: "));
   Serial.println(fileName);
@@ -138,6 +145,6 @@ void loop() {
     // Close file and stop.
     file.close();
     Serial.println(F("Done"));
-    while(1) {}
+    SysCall::halt();
   }
 }

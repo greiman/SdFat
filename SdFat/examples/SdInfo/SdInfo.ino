@@ -2,7 +2,7 @@
  * This program attempts to initialize an SD card and analyze its structure.
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 /*
  * SD chip select pin.  Common values are:
  *
@@ -139,18 +139,22 @@ void volDmp() {
   cout << F("dataStartBlock: ") << sd.vol()->dataStartBlock() << endl;
   if (sd.vol()->dataStartBlock() % eraseSize) {
     cout << F("Data area is not aligned on flash erase boundaries!\n");
-    cout << F("Download and use formatter from www.sdsd.card()->org/consumer!\n");
+    cout << F("Download and use formatter from www.sdcard.org!\n");
   }
 }
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while(!Serial) {}  // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
 
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
 
-  // pstr stores strings in flash to save RAM
+  // F stores strings in flash to save RAM
   cout << F("SdFat version: ") << SD_FAT_VERSION << endl;
   if (DISABLE_CHIP_SELECT < 0) {
     cout << F(
@@ -167,13 +171,16 @@ void setup() {
 }
 //------------------------------------------------------------------------------
 void loop() {
-  // read any existing Serial data
-  while (Serial.read() >= 0) {}
+  // Read any existing Serial data.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
 
-  // pstr stores strings in flash to save RAM
+  // F stores strings in flash to save RAM
   cout << F("\ntype any character to start\n");
-  while (Serial.read() <= 0) {}
-  delay(400);  // catch Due reset problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
   uint32_t t = millis();
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['rdstate',['rdstate',['../classios.html#aacc57e1e46e23f2f54898ff6a89129a2',1,'ios']]],
-  ['read',['read',['../class_minimum_serial.html#a4890dd60f2ffb61eba0821cc80d411ad',1,'MinimumSerial::read()'],['../class_file.html#a4c46a1975e66c37977bf07c58ec10b4e',1,'File::read()'],['../class_digital_pin.html#a55e344551ca86f8acd489aac277c9961',1,'DigitalPin::read()'],['../class_fat_file.html#a60ae55ff6fe158c2340071d702a363c5',1,'FatFile::read()'],['../class_fat_file.html#a200e6e0553d5b709520c9dfac9ef77dd',1,'FatFile::read(void *buf, size_t nbyte)'],['../class_fat_cache.html#ac2bb0b8f2ce3ab5cd86cf30b4a663cea',1,'FatCache::read()']]],
+  ['read',['read',['../class_minimum_serial.html#a4890dd60f2ffb61eba0821cc80d411ad',1,'MinimumSerial::read()'],['../class_file.html#a4c46a1975e66c37977bf07c58ec10b4e',1,'File::read()'],['../class_fat_file.html#a60ae55ff6fe158c2340071d702a363c5',1,'FatFile::read()'],['../class_fat_file.html#a200e6e0553d5b709520c9dfac9ef77dd',1,'FatFile::read(void *buf, size_t nbyte)'],['../class_fat_cache.html#ac2bb0b8f2ce3ab5cd86cf30b4a663cea',1,'FatCache::read()'],['../class_digital_pin.html#a55e344551ca86f8acd489aac277c9961',1,'DigitalPin::read()']]],
   ['readblock',['readBlock',['../class_sd_spi_card.html#a2973091eeab7b6ba528f6442bc5df36e',1,'SdSpiCard']]],
   ['readblocks',['readBlocks',['../class_sd_spi_card.html#a5a7e12a5a076cc690885378932fa289f',1,'SdSpiCard']]],
   ['readcid',['readCID',['../class_sd_spi_card.html#aa073dc42828164883db1b9faeff909ea',1,'SdSpiCard']]],

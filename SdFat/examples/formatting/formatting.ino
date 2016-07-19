@@ -3,7 +3,7 @@
  * Format dates
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 // create Serial stream
 ArduinoOutStream cout(Serial);
@@ -42,7 +42,10 @@ void showDate(int m, int d, int y) {
 void setup(void) {
   Serial.begin(9600);
 
-  while (!Serial) {}  // wait for Leonardo
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   delay(2000);
 
   cout << endl << "default formatting" << endl;

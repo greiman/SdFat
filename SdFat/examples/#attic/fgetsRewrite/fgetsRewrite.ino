@@ -1,6 +1,6 @@
 // Demo of rewriting a line read by fgets
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 // SD card chip select pin
 const uint8_t chipSelect = SS;
@@ -83,13 +83,17 @@ void makeTestFile() {
   wrfile.close();
 }
 //------------------------------------------------------------------------------
-void setup(void) {
+void setup() {
   Serial.begin(9600);
-  while (!Serial) {} // wait for Leonardo
-
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   cout << F("Type any character to start\n");
-  while (Serial.read() <= 0) {}
-  delay(400);  // catch Due reset problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
@@ -103,4 +107,4 @@ void setup(void) {
 
   cout << F("\nDone\n");
 }
-void loop(void) {}
+void loop() {}

@@ -5,16 +5,16 @@
 // Will not work on Due, Leonardo, or Teensy
 
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
 #ifdef UDR0  // Must be AVR with serial port zero.
-#include <MinimumSerial.h>
+#include "MinimumSerial.h"
 
 MinimumSerial MiniSerial;
 
 void setup() {
   MiniSerial.begin(9600);
-  MiniSerial.println(FreeRam());
+  MiniSerial.println(FreeStack());
 }
 void loop() {
   int c;

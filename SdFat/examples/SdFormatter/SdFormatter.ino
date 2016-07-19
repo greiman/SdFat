@@ -14,9 +14,9 @@
 // Print extra info for debug if DEBUG_PRINT is nonzero
 #define DEBUG_PRINT 0
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 #if DEBUG_PRINT
-#include <SdFatUtil.h>
+#include "FreeStack.h"
 #endif  // DEBUG_PRINT
 //
 // Change the value of chipSelect if your hardware does
@@ -74,12 +74,12 @@ void sdError_F(const __FlashStringHelper* str) {
     cout << F("SD error: ") << hex << int(card.errorCode());
     cout << ',' << int(card.errorData()) << dec << endl;
   }
-  while (1);
+  SysCall::halt();
 }
 //------------------------------------------------------------------------------
 #if DEBUG_PRINT
 void debugPrint() {
-  cout << F("FreeRam: ") << FreeRam() << endl;
+  cout << F("FreeStack: ") << FreeStack() << endl;
   cout << F("partStart: ") << relSector << endl;
   cout << F("partSize: ") << partSize << endl;
   cout << F("reserved: ") << reservedSectors << endl;
@@ -440,8 +440,18 @@ void formatCard() {
 void setup() {
   char c;
   Serial.begin(9600);
-  while (!Serial) {} // wait for Leonardo
-
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
+  cout << F("Type any character to start\n");
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
+  // Discard any extra characters.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
   cout << F(
          "\n"
          "This program can erase and/or format SD/SDHC cards.\n"
@@ -455,8 +465,9 @@ void setup() {
          "\n"
          "Warning, all data on the card will be erased.\n"
          "Enter 'Y' to continue: ");
-  while (!Serial.available()) {}
-  delay(400);  // catch Due restart problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
   c = Serial.read();
   cout << c << endl;
@@ -464,8 +475,10 @@ void setup() {
     cout << F("Quiting, you did not enter 'Y'.\n");
     return;
   }
-  // read any existing Serial data
-  while (Serial.read() >= 0) {}
+  // Read any existing Serial data.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
 
   cout << F(
          "\n"
@@ -476,7 +489,9 @@ void setup() {
          "\n"
          "Enter option: ");
 
-  while (!Serial.available()) {}
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
   c = Serial.read();
   cout << c << endl;
   if (!strchr("EFQ", c)) {
@@ -497,8 +512,8 @@ void setup() {
   }
   cardCapacityMB = (cardSizeBlocks + 2047)/2048;
 
-  cout << F("Card Size: ") << cardCapacityMB;
-  cout << F(" MB, (MB = 1,048,576 bytes)") << endl;
+  cout << F("Card Size: ") << setprecision(0) << 1.048576*cardCapacityMB;
+  cout << F(" MB, (MB = 1,000,000 bytes)") << endl;
 
   if (c == 'E' || c == 'F') {
     eraseCard();

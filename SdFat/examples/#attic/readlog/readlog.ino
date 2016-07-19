@@ -3,7 +3,7 @@
  * Demo of pathnames and working directories
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 // SD chip select pin
 const uint8_t chipSelect = SS;
@@ -17,8 +17,11 @@ ArduinoOutStream cout(Serial);
 void setup() {
   int c;
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
-
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
   if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {

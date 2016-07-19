@@ -1,6 +1,7 @@
 var searchData=
 [
   ['endl',['endl',['../iostream_8h.html#ab9868f8e151efc1705646437dbb59bb2',1,'iostream.h']]],
+  ['endtransaction',['endTransaction',['../class_sd_spi_base.html#aceef8d93a30e4fccb4fd81d4e3c26b55',1,'SdSpiBase::endTransaction()'],['../class_sd_spi.html#ab3eda15d0e8fb881c616eed7e4bab1ba',1,'SdSpi::endTransaction()'],['../class_sd_spi_lib.html#a8e9bf91c47f1923abeb14d338aaae569',1,'SdSpiLib::endTransaction()'],['../class_sd_spi_soft.html#a9efd9900dfc03582e433ff8939e96dff',1,'SdSpiSoft::endTransaction()']]],
   ['eof',['eof',['../classios.html#ad2f091f3ed1a2e13f62557854c0885a7',1,'ios']]],
   ['erase',['erase',['../class_sd_spi_card.html#a1caa13d19df6596b2c0dd62365c75362',1,'SdSpiCard']]],
   ['erasesingleblockenable',['eraseSingleBlockEnable',['../class_sd_spi_card.html#aed4591884254c9f58daa8738d7c1ccdd',1,'SdSpiCard']]],

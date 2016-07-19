@@ -2,8 +2,8 @@
 // You can use test files located in
 // SdFat/examples/LongFileName/testFiles.
 #include<SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
 
 // SD card chip select pin.
 const uint8_t SD_CS_PIN = SS;
@@ -34,8 +34,8 @@ void setup() {
   if (!sd.begin(SD_CS_PIN)) {
     sd.initErrorHalt();
   }
-  Serial.print(F("Free RAM: "));
-  Serial.println(FreeRam());
+  Serial.print(F("FreeStack: "));
+  Serial.println(FreeStack());
   Serial.println();
 
   // List files in root directory.
@@ -63,25 +63,31 @@ void setup() {
 void loop() {
   int c;
 
-  // Discard any Serial input.
-  while (Serial.read() > 0) {}
+  // Read any existing Serial data.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
   Serial.print(F("\r\nEnter File Number: "));
 
-  while ((c = Serial.read()) < 0) {};
-  if (!isdigit(c) || (c -= '0') >= n) {
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
+  c = Serial.read();
+  uint8_t i = c - '0';
+  if (!isdigit(c) || i >= n) {
     Serial.println(F("Invald number"));
     return;
   }
-  Serial.println(c);
-  if (!file.open(&dirFile, dirIndex[c], O_READ)) {
+  Serial.println(i);
+  if (!file.open(&dirFile, dirIndex[i], O_READ)) {
     sd.errorHalt(F("open"));
   }
   Serial.println();
 
-  char last;
+  char last = 0;
 
   // Copy up to 500 characters to Serial.
-  for (int i = 0; i < 500 && (c = file.read()) > 0; i++)  {
+  for (int k = 0; k < 500 && (c = file.read()) > 0; k++)  {
     Serial.write(last = (char)c);
   }
   // Add new line if missing from last line.

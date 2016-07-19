@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['obufstream',['obufstream',['../classobufstream.html',1,'']]],
-  ['ofstream',['ofstream',['../classofstream.html',1,'']]],
-  ['ostream',['ostream',['../classostream.html',1,'']]]
+  ['longdirectoryentry',['longDirectoryEntry',['../structlong_directory_entry.html',1,'']]]
 ];

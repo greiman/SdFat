@@ -1,17 +1,19 @@
 var searchData=
 [
-  ['c',['c',['../structsetfill.html#a42ffb4e6135c1274ae827cfed7793a82',1,'setfill']]],
-  ['cache_5ffor_5fread',['CACHE_FOR_READ',['../class_fat_cache.html#ae5ac564caf5c65f223a6f5c6adac0691',1,'FatCache']]],
-  ['cache_5ffor_5fwrite',['CACHE_FOR_WRITE',['../class_fat_cache.html#aeb3fa32ee4120404854c282f0c0e133a',1,'FatCache']]],
-  ['cache_5foption_5fno_5fread',['CACHE_OPTION_NO_READ',['../class_fat_cache.html#adf974f55e53ee0aaa85abb0d7d67181c',1,'FatCache']]],
-  ['cache_5freserve_5ffor_5fwrite',['CACHE_RESERVE_FOR_WRITE',['../class_fat_cache.html#a7307dd12178856bc3e823d8738856662',1,'FatCache']]],
-  ['cache_5fstatus_5fdirty',['CACHE_STATUS_DIRTY',['../class_fat_cache.html#aac8c38e5c545d0f80b13d816117f626e',1,'FatCache']]],
-  ['cache_5fstatus_5fmask',['CACHE_STATUS_MASK',['../class_fat_cache.html#ab70dc4a2e387f0e9bf392044c702ae32',1,'FatCache']]],
-  ['cache_5fstatus_5fmirror_5ffat',['CACHE_STATUS_MIRROR_FAT',['../class_fat_cache.html#a45236e1c0a2a098f08d3add0e4b1467a',1,'FatCache']]],
-  ['chksum',['chksum',['../structlong_directory_entry.html#a60c35531bc0e12f2d764d290244f8cc9',1,'longDirectoryEntry']]],
-  ['cluster',['cluster',['../struct_fat_pos__t.html#a7b50657b0debaf0e6231af2c74a655fe',1,'FatPos_t']]],
-  ['codearea',['codeArea',['../structmaster_boot_record.html#a26ca1fb4ebbff2cc1a54153b1dfcd688',1,'masterBootRecord']]],
-  ['creationdate',['creationDate',['../structdirectory_entry.html#a7b43372794655fe6604d3c17c02302fe',1,'directoryEntry']]],
-  ['creationtime',['creationTime',['../structdirectory_entry.html#a622bfa70c2cd9006108d7473d737a953',1,'directoryEntry']]],
-  ['creationtimetenths',['creationTimeTenths',['../structdirectory_entry.html#aa5e1ce5b411b88f005b28a3e7c7c5af6',1,'directoryEntry']]]
+  ['badbit',['badbit',['../classios__base.html#ac8c2c8f2f6bc9e6ce101c20e88ebce35',1,'ios_base']]],
+  ['basefield',['basefield',['../classios__base.html#a75ce5482aa207d7aa0265d138b50a102',1,'ios_base']]],
+  ['begincylinderhigh',['beginCylinderHigh',['../structpartition_table.html#a744f0c7f9ad4c426b10de085b4f52392',1,'partitionTable']]],
+  ['begincylinderlow',['beginCylinderLow',['../structpartition_table.html#a941fcb4df298f5f73ccca011bf40787a',1,'partitionTable']]],
+  ['beginhead',['beginHead',['../structpartition_table.html#a7d426694b8cf2151ae38568670a8c845',1,'partitionTable']]],
+  ['beginsector',['beginSector',['../structpartition_table.html#ae201c11d9671c9efc307c654a2b6c026',1,'partitionTable']]],
+  ['binary',['binary',['../classios__base.html#ac99947c17c2936d15243671366605602',1,'ios_base']]],
+  ['boolalpha',['boolalpha',['../classios__base.html#afa74acd95d4bbc7cc3551251aac2bf00',1,'ios_base']]],
+  ['boot',['boot',['../structpartition_table.html#adf386afb1f33046d8b6a1a0afa780ec9',1,'partitionTable']]],
+  ['bootcode',['bootCode',['../structfat__boot.html#acf9f5d9f61a6e680e11849f957ecf782',1,'fat_boot::bootCode()'],['../structfat32__boot.html#a7a74880066860140386edf3d9278b9f7',1,'fat32_boot::bootCode()']]],
+  ['bootsectorsig0',['bootSectorSig0',['../structfat__boot.html#a7951b888af4f357b84dd40af2ef7f29d',1,'fat_boot::bootSectorSig0()'],['../structfat32__boot.html#a1cb46a5427b641a6017a082bc56df1be',1,'fat32_boot::bootSectorSig0()']]],
+  ['bootsectorsig1',['bootSectorSig1',['../structfat__boot.html#afe8f58668ff594bb2022ce7c06b7726c',1,'fat_boot::bootSectorSig1()'],['../structfat32__boot.html#a53bc302a398f02a86d3b28f25a5ec8e2',1,'fat32_boot::bootSectorSig1()']]],
+  ['bootsig0',['BOOTSIG0',['../_fat_structs_8h.html#aa1aeb3a5e2838c5c7270fa17bcc31e8e',1,'FatStructs.h']]],
+  ['bootsig1',['BOOTSIG1',['../_fat_structs_8h.html#a1b5a143c48d93d6f4e3fc1f5f3ac1dc3',1,'FatStructs.h']]],
+  ['bootsignature',['bootSignature',['../structfat__boot.html#a712dc388c530e91e4a692e7102d6bdc8',1,'fat_boot::bootSignature()'],['../structfat32__boot.html#ab79a1205277ecab05526fb0bac6e42f6',1,'fat32_boot::bootSignature()']]],
+  ['bytespersector',['bytesPerSector',['../structbios_parm_block.html#aec24d316af486445d55da14cbbfa6bf4',1,'biosParmBlock::bytesPerSector()'],['../structfat__boot.html#a60b2461f8ebf0ad295a95094e1bd7d65',1,'fat_boot::bytesPerSector()'],['../structfat32__boot.html#a03c7086a8c988257a6678179a67a3fee',1,'fat32_boot::bytesPerSector()']]]
 ];

@@ -2,7 +2,7 @@
 #include <SdFat.h>
 #include <SdFatTestSuite.h>
 SdFat sd;
-char *testName = "SDFAT.TST";
+const char *testName = "SDFAT.TST";
 //------------------------------------------------------------------------------
 void fstreamOpen() {
   ios::openmode nocreate[] = {ios::in, ios::in | ios::out};

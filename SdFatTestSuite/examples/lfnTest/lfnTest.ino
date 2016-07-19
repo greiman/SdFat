@@ -7,7 +7,7 @@ SdFile file;
 char name[260];
 
 //------------------------------------------------------------------------------
-char* testName[] = {
+const char* testName[] = {
   "low.low",
   "low.Mix",
   "low.UP",
@@ -40,11 +40,11 @@ bool checkName(char first, size_t len) {
     return false;
   }
   for (i = 1; i < (len - 4); i++) {
-    if (name[i] != ('0' + (i + 1) %10)) {
+    if (name[i] != (char)('0' + (i + 1) %10)) {
       return false;
     }
   }
-  char* p = ".txt";
+  const char* p = ".txt";
   while (*p) {
     if (name[i++] != *p++) {
       return false;
@@ -65,7 +65,7 @@ void makeName(char first, size_t len) {
   for (i = 1; i < (len - 4); i++) {
     name[i] = '0' + (i + 1) %10;
   }
-  char* p = ".txt";
+  const char* p = ".txt";
   while (*p) name[i++] = *p++;
   name[i] = 0;
 }
@@ -74,7 +74,6 @@ void makeName(char first, size_t len) {
 void basicTest() {
   size_t i;
   size_t n = sd.vol()->fatType() == 32 ? 255 : 99;
-  uint16_t index;
   uint16_t maxIndex = 0;
   
   makeName('Z', 256);

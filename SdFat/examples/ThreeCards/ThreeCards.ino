@@ -2,8 +2,8 @@
  * Example use of three SD cards.
  */
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
 #if SD_SPI_CONFIGURATION >= 3  // Must be set in SdFat/SdFatConfig.h
 
 // SD1 is a microSD on hardware SPI pins 50-52
@@ -45,19 +45,22 @@ void list() {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
-  Serial.print(F("FreeRam: "));
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
+  Serial.print(F("FreeStack: "));
 
-  Serial.println(FreeRam());
+  Serial.println(FreeStack());
 
   // fill buffer with known data
-  for (int i = 0; i < sizeof(buf); i++) {
+  for (size_t i = 0; i < sizeof(buf); i++) {
     buf[i] = i;
   }
-
   Serial.println(F("type any character to start"));
-  while (Serial.read() <= 0) {}
-
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
   // disable sd2 while initializing sd1
   pinMode(SD2_CS, OUTPUT);
   digitalWrite(SD2_CS, HIGH);
@@ -140,7 +143,7 @@ void setup() {
   Serial.println(F("Writing SD1:/Dir1/TEST1.bin"));
 
   // write data to /Dir1/TEST1.bin on sd1
-  for (int i = 0; i < NWRITE; i++) {
+  for (uint16_t i = 0; i < NWRITE; i++) {
     if (file1.write(buf, sizeof(buf)) != sizeof(buf)) {
       sd1.errorExit("sd1.write");
     }
@@ -168,7 +171,7 @@ void setup() {
     if (n == 0) {
       break;
     }
-    if (file2.write(buf, n) != n) {
+    if ((int)file2.write(buf, n) != n) {
       sd2.errorExit("write3");
     }
   }
@@ -196,7 +199,7 @@ void setup() {
     if (n != sizeof(buf)) {
       sd2.errorExit("read2");
     }
-    if (file3.write(buf, n) != n) {
+    if ((int)file3.write(buf, n) != n) {
       sd3.errorExit("write2");
     }
   }
@@ -206,11 +209,11 @@ void setup() {
   // Verify content of file3
   file3.rewind();
   Serial.println(F("Verifying content of TEST3.bin"));
-  for (int i = 0; i < NWRITE; i++) {
+  for (uint16_t i = 0; i < NWRITE; i++) {
     if (file3.read(buf, sizeof(buf)) != sizeof(buf)) {
       sd3.errorExit("sd3.read");
     }
-    for (int j = 0; j < sizeof(buf); j++) {
+    for (size_t j = 0; j < sizeof(buf); j++) {
       if (j != buf[j]) {
         sd3.errorExit("Verify error");
       }

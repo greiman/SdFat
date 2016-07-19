@@ -5,7 +5,6 @@
 #include <SdFat.h>
 #include <SdFatTestSuite.h>
 SdFat SD;
-#define FILE_WRITE O_RDWR | O_CREAT | O_AT_END
 #define ATS_PrintTestStatus(msg, b) testVerify_P(b, PSTR(msg))
 
 void setup() {

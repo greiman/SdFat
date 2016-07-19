@@ -14,11 +14,18 @@
  * Data is written to the file using a SD multiple block write command.
  */
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
+#include "UserDataType.h"  // Edit this include file to change data_t.
+//------------------------------------------------------------------------------
+// Set useSharedSpi true for use of an SPI sensor.
+// May not work for some cards.
+const bool useSharedSpi = false;
+
+// File start time in micros.
+uint32_t startMicros;
 //------------------------------------------------------------------------------
 // User data functions.  Modify these functions for your data items.
-#include "UserDataType.h"  // Edit this include file to change data_t.
 
 // Acquire a data record.
 void acquireData(data_t* data) {
@@ -30,7 +37,7 @@ void acquireData(data_t* data) {
 
 // Print a data record.
 void printData(Print* pr, data_t* data) {
-  pr->print(data->time);
+  pr->print(data->time - startMicros);
   for (int i = 0; i < ADC_DIM; i++) {
     pr->write(',');
     pr->print(data->adc[i]);
@@ -61,6 +68,7 @@ const uint8_t SD_CS_PIN = SS;
 // Digital pin to indicate an error, set to -1 if not used.
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
+#undef ERROR_LED_PIN
 const int8_t ERROR_LED_PIN = -1;
 //------------------------------------------------------------------------------
 // File definitions.
@@ -381,18 +389,21 @@ void logData() {
   // Wait for Serial Idle.
   Serial.flush();
   delay(10);
+  bool closeFile = false;
   uint32_t bn = 0;
   uint32_t t0 = millis();
   uint32_t t1 = t0;
   uint32_t overrun = 0;
   uint32_t overrunTotal = 0;
   uint32_t count = 0;
+  uint32_t maxDelta = 0;
+  uint32_t minDelta = 99999;
   uint32_t maxLatency = 0;
-  int32_t diff;
-  // Start at a multiple of interval.
-  uint32_t logTime = micros()/LOG_INTERVAL_USEC + 1;
-  logTime *= LOG_INTERVAL_USEC;
-  bool closeFile = false;
+  uint32_t logTime = micros();
+
+  // Set time for first record of file.
+  startMicros = logTime + LOG_INTERVAL_USEC;
+
   while (1) {
     // Time for next data record.
     logTime += LOG_INTERVAL_USEC;
@@ -401,7 +412,7 @@ void logData() {
     }
 
     if (closeFile) {
-      if (curBlock != 0 && curBlock->count >= 0) {
+      if (curBlock != 0) {
         // Put buffer in full queue.
         fullQueue[fullHead] = curBlock;
         fullHead = queueNext(fullHead);
@@ -415,21 +426,30 @@ void logData() {
         curBlock->overrun = overrun;
         overrun = 0;
       }
-      do {
-        diff = logTime - micros();
-      } while(diff > 0);
-      if (diff < -10) {
-        error("LOG_INTERVAL_USEC too small");
+      if ((int32_t)(logTime - micros()) < 0) {
+        error("Rate too fast");             
       }
+      int32_t delta;
+      do {
+        delta = micros() - logTime;
+      } while (delta < 0);
       if (curBlock == 0) {
         overrun++;
       } else {
+        if (useSharedSpi) {
+          sd.card()->chipSelectHigh();
+        }
         acquireData(&curBlock->data[curBlock->count++]);
+        if (useSharedSpi) {
+          sd.card()->chipSelectLow();
+        }        
         if (curBlock->count == DATA_DIM) {
           fullQueue[fullHead] = curBlock;
           fullHead = queueNext(fullHead);
           curBlock = 0;
         }
+        if ((uint32_t)delta > maxDelta) maxDelta = delta;
+        if ((uint32_t)delta < minDelta) minDelta = delta;          
       }
     }
 
@@ -490,6 +510,9 @@ void logData() {
   Serial.println(maxLatency);
   Serial.print(F("Record time sec: "));
   Serial.println(0.001*(t1 - t0), 3);
+  Serial.print(minDelta);
+  Serial.print(F(" <= jitter microseconds <= "));
+  Serial.println(maxDelta);  
   Serial.print(F("Sample count: "));
   Serial.println(count);
   Serial.print(F("Samples/sec: "));
@@ -504,10 +527,14 @@ void setup(void) {
     pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-  while (!Serial) {}
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
 
-  Serial.print(F("FreeRam: "));
-  Serial.println(FreeRam());
+  Serial.print(F("FreeStack: "));
+  Serial.println(FreeStack());
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
   if (sizeof(block_t) != 512) {
@@ -521,8 +548,10 @@ void setup(void) {
 }
 //------------------------------------------------------------------------------
 void loop(void) {
-  // discard any input
-  while (Serial.read() >= 0) {}
+  // Read any Serial data.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
   Serial.println();
   Serial.println(F("type:"));
   Serial.println(F("c - convert file to csv"));
@@ -530,13 +559,15 @@ void loop(void) {
   Serial.println(F("e - overrun error details"));
   Serial.println(F("r - record data"));
 
-  while(!Serial.available()) {}
+  while(!Serial.available()) {
+    SysCall::yield();
+  }
   char c = tolower(Serial.read());
 
   // Discard extra Serial data.
   do {
     delay(10);
-  } while (Serial.read() >= 0);
+  } while (Serial.available() && Serial.read() >= 0);
 
   if (ERROR_LED_PIN >= 0) {
     digitalWrite(ERROR_LED_PIN, LOW);

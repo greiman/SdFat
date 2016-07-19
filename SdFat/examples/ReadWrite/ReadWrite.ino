@@ -20,7 +20,7 @@
 #define SD_CS_PIN SS
 #include <SPI.h>
 //#include <SD.h>
-#include <SdFat.h>
+#include "SdFat.h"
 SdFat SD;
 
 File myFile;
@@ -29,10 +29,11 @@ void setup()
 {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
+  
+  // Wait for USB Serial 
   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
+    SysCall::yield();
   }
-
 
   Serial.print("Initializing SD card...");
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.

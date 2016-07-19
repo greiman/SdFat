@@ -9,7 +9,11 @@ File file;
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    yield();
+  }
 
   if (!SD.begin()) {
     Serial.println("begin failed");

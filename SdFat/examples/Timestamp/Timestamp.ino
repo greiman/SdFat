@@ -3,7 +3,7 @@
  * and the timestamp() function.
  */
 #include <SPI.h>
-#include <SdFat.h>
+#include "SdFat.h"
 
 SdFat sd;
 
@@ -75,12 +75,14 @@ void printTimestamps(SdFile& f) {
 //------------------------------------------------------------------------------
 void setup(void) {
   Serial.begin(9600);
-  while (!Serial) {}  // wait for Leonardo
-
+  // Wait for USB Serial
+  while (!Serial) {
+    SysCall::yield();
+  }
   cout << F("Type any character to start\n");
-  while (!Serial.available());
-  delay(400);  // catch Due reset problem
-
+  while (!Serial.available()) {
+    SysCall::yield();  
+  }
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
   if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
@@ -170,4 +172,4 @@ void setup(void) {
   cout << F("\nDone\n");
 }
 
-void loop(void) {}
+void loop() {}

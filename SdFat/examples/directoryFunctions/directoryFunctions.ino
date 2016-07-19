@@ -1,13 +1,12 @@
 /*
  * Example use of chdir(), ls(), mkdir(), and  rmdir().
  */
-#include <SPI.h>
-#include <SdFat.h>
+#include <SPI.h> 
+#include "SdFat.h"
+
 // SD card chip select pin.
 const uint8_t SD_CHIP_SELECT = SS;
 //------------------------------------------------------------------------------
-// Permit SD to be wiped if ALLOW_WIPE is true.
-const bool ALLOW_WIPE = false;
 
 // File system object.
 SdFat sd;
@@ -29,40 +28,44 @@ ArduinoInStream cin(Serial, cinBuf, sizeof(cinBuf));
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {} // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   delay(1000);
 
   cout << F("Type any character to start\n");
   // Wait for input line and discard.
   cin.readline();
-
+  cout << endl;
+  
   // Initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
   if (!sd.begin(SD_CHIP_SELECT, SPI_HALF_SPEED)) {
     sd.initErrorHalt();
   }
-
-  // Check for empty SD.
-  if (file.openNext(sd.vwd(), O_READ)) {
-    cout << F("Found files/folders in the root directory.\n");
-    if (!ALLOW_WIPE) {
-      error("SD not empty, use a blank SD or set ALLOW_WIPE true.");
-    } else {
-      cout << F("Type: 'WIPE' to delete all SD files.\n");
-      char buf[10];
-      cin.readline();
-      cin.get(buf, sizeof(buf));
-      if (cin.fail() || strncmp(buf, "WIPE", 4) || buf[4] >= ' ') {
-        error("Invalid WIPE input");
-      }
-      file.close();
-      if (!sd.vwd()->rmRfStar()) {
-        error("wipe failed");
-      }
-      cout << F("***SD wiped clean.***\n\n");
-    }
+  if (sd.exists("Folder1") 
+    || sd.exists("Folder1/file1.txt")
+    || sd.exists("Folder1/File2.txt")) {
+    error("Please remove existing Folder1, file1.txt, and File2.txt");
   }
 
+  int rootFileCount = 0;
+  sd.vwd()->rewind(); 
+  while (file.openNext(sd.vwd(), O_READ)) {
+    if (!file.isHidden()) {
+      rootFileCount++;
+    }
+    file.close();
+    if (rootFileCount > 10) {
+      error("Too many files in root. Please use an empty SD.");
+    }
+  }
+  if (rootFileCount) {
+    cout << F("\nPlease use an empty SD for best results.\n\n");
+    delay(1000);
+  }
   // Create a new folder.
   if (!sd.mkdir("Folder1")) {
     error("Create Folder1 failed");
@@ -89,7 +92,7 @@ void setup() {
   file.close();
   cout << F("Created File2.txt in current directory\n");
 
-  cout << F("List of files on the SD.\n");
+  cout << F("\nList of files on the SD.\n");
   sd.ls("/", LS_R);
 
   // Remove files from current directory.
@@ -103,7 +106,7 @@ void setup() {
     error("chdir to root failed.\n");
   }
 
-  cout << F("List of files on the SD.\n");
+  cout << F("\nList of files on the SD.\n");
   sd.ls(LS_R);
 
   // Remove Folder1.
@@ -111,7 +114,9 @@ void setup() {
     error("rmdir for Folder1 failed\n");
   }
 
-  cout << F("\nFolder1 removed, SD empty.\n");
+  cout << F("\nFolder1 removed.\n");
+  cout << F("\nList of files on the SD.\n");
+  sd.ls(LS_R);
   cout << F("Done!\n");
 }
 //------------------------------------------------------------------------------

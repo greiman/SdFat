@@ -1,7 +1,9 @@
 var searchData=
 [
   ['peek',['peek',['../class_print_file.html#a3a2a66f4a0cb69ab4edc66d39997fda7',1,'PrintFile::peek()'],['../class_file.html#a0e5025f39bd584563bfe4b05fc1db268',1,'File::peek()'],['../class_fat_file.html#ac05b7136b887539426856c623869aa3a',1,'FatFile::peek()'],['../classistream.html#a4022265e0ede3698454f1ff59348c14a',1,'istream::peek()']]],
-  ['pgm',['pgm',['../structpgm.html#a8b331db0d6add415bbd3e91508f4eee2',1,'pgm::pgm(char *str)'],['../structpgm.html#ad73730e5688ef7810f0c51455444af41',1,'pgm::pgm(const char *str)']]],
+  ['pinmask',['pinMask',['../group__digital_pin.html#ga99fe9f7aeaaae3764a7b7c40d9d9837b',1,'DigitalPin.h']]],
+  ['pinreg',['pinReg',['../group__digital_pin.html#ga213b72ce9a61eddce1e85fa057e9e3b6',1,'DigitalPin.h']]],
+  ['portreg',['portReg',['../group__digital_pin.html#ga1e2ef44778ccf79ac2c02afe0633ef88',1,'DigitalPin.h']]],
   ['position',['position',['../class_file.html#aae991c597c0bc4c5eb44c1f3b06a21ec',1,'File']]],
   ['precision',['precision',['../classios__base.html#a9d36cb5a859b74e04f640d2f5e53b41d',1,'ios_base::precision() const '],['../classios__base.html#a5b70cc65fc2c276136fea99bddedb6f0',1,'ios_base::precision(unsigned int n)']]],
   ['print',['print',['../class_stdio_stream.html#ad3f6ee8e8ca5dcf6dabfd88199b172e2',1,'StdioStream::print(char c)'],['../class_stdio_stream.html#a1158ea5f9bf041f21b1733b7811c9bb9',1,'StdioStream::print(const char *str)'],['../class_stdio_stream.html#aac4d7b3548d03b8fd70adf12c7ee315c',1,'StdioStream::print(const __FlashStringHelper *str)'],['../class_stdio_stream.html#a26f5b98560b6771225005b073166108b',1,'StdioStream::print(double val, uint8_t prec=2)'],['../class_stdio_stream.html#a06b6eb9f0a7000fdcc73cd6af8d40560',1,'StdioStream::print(float val, uint8_t prec=2)'],['../class_stdio_stream.html#a7129f85c7c5f16867f467731ef84dee9',1,'StdioStream::print(T val)']]],

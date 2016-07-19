@@ -1,3 +1,45 @@
+19 jul 2016
+
+Fix for multi-block transfers chip select.
+
+27 Apr 2016
+
+Mods for STM32F1
+
+11 Apr 2016
+
+Mods for ESP8266
+
+9 Apr 2016
+
+Fix beginTransaction call for Standard SPI library
+
+14 Feb 2016
+
+Add startMicros to LowLatencyLogger
+
+12 Feb 2016
+
+Mods for Particle.io boards.
+
+Features for shared SPI with multiple block write.
+
+23 Jan 2016
+
+New Examples.
+
+New SPI structure for ports to boards like the Particle Photon/Electron.
+
+Several bug fixes.
+
+19 Jul 2015
+
+Converted to 1.5x library format.
+
+Use standard SPI library if no custom SPI library is available for a board.
+
+Option to maintain freeClusterCount.
+
 16 Mar 2015
 
 Minimal support for Teensy-LC.

@@ -2,8 +2,8 @@
  * This program is a simple binary write/read benchmark.
  */
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
+#include "SdFat.h"
+#include "FreeStack.h"
 
 // SD chip select pin
 const uint8_t chipSelect = SS;
@@ -15,10 +15,10 @@ const size_t BUF_SIZE = 512;
 const uint32_t FILE_SIZE_MB = 5;
 
 // Write pass count.
-const uint8_t WRITE_COUNT = 10;
+const uint8_t WRITE_COUNT = 2;
 
 // Read pass count.
-const uint8_t READ_COUNT = 5;
+const uint8_t READ_COUNT = 2;
 //==============================================================================
 // End of configuration constants.
 //------------------------------------------------------------------------------
@@ -29,6 +29,10 @@ uint8_t buf[BUF_SIZE];
 
 // file system
 SdFat sd;
+// Set SD_SPI_CONFIGURATION to three to test next two definitions.
+// SdFatLibSpi sd;
+// Args are misoPin, mosiPin, sckPin.
+// SdFatSoftSpi<6, 7, 5> sd;
 
 // test file
 SdFile file;
@@ -36,7 +40,7 @@ SdFile file;
 // Serial output stream
 ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
-// store error strings in flash to save RAM
+// Store error strings in flash to save RAM.
 #define error(s) sd.errorHalt(F(s))
 //------------------------------------------------------------------------------
 void cidDmp() {
@@ -62,7 +66,11 @@ void cidDmp() {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {} // wait for Leonardo
+  
+  // Wait for USB Serial 
+  while (!Serial) {
+    SysCall::yield();
+  }
   delay(1000);
   cout << F("\nUse a freshly formatted SD for best performance.\n");
 
@@ -77,15 +85,18 @@ void loop() {
   uint32_t minLatency;
   uint32_t totalLatency;
 
-  // discard any input
-  while (Serial.read() >= 0) {}
+  // Discard any input.
+  do {
+    delay(10);
+  } while (Serial.available() && Serial.read() >= 0);
 
   // F( stores strings in flash to save RAM
   cout << F("Type any character to start\n");
-  while (Serial.read() <= 0) {}
-  delay(400);  // catch Due reset problem
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
-  cout << F("Free RAM: ") << FreeRam() << endl;
+  cout << F("FreeStack: ") << FreeStack() << endl;
 
   // initialize the SD card at SPI_FULL_SPEED for best performance.
   // try SPI_HALF_SPEED if bus errors occur.
@@ -129,7 +140,9 @@ void loop() {
     for (uint32_t i = 0; i < n; i++) {
       uint32_t m = micros();
       if (file.write(buf, sizeof(buf)) != sizeof(buf)) {
-        error("write failed");
+        sd.errorPrint("write failed");
+        file.close();
+        return;
       }
       m = micros() - m;
       if (maxLatency < m) {
@@ -146,11 +159,11 @@ void loop() {
     cout << s/t <<',' << maxLatency << ',' << minLatency;
     cout << ',' << totalLatency/n << endl;
   }
-
   cout << endl << F("Starting read test, please wait.") << endl;
   cout << endl <<F("read speed and latency") << endl;
   cout << F("speed,max,min,avg") << endl;
   cout << F("KB/Sec,usec,usec,usec") << endl;
+
   // do read test
   for (uint8_t nTest = 0; nTest < READ_COUNT; nTest++) {
     file.rewind();
@@ -161,8 +174,11 @@ void loop() {
     for (uint32_t i = 0; i < n; i++) {
       buf[BUF_SIZE-1] = 0;
       uint32_t m = micros();
-      if (file.read(buf, sizeof(buf)) != sizeof(buf)) {
-        error("read failed");
+      int32_t nr = file.read(buf, sizeof(buf)); 
+      if (nr != sizeof(buf)) {   
+        sd.errorPrint("read failed");
+        file.close();
+        return;
       }
       m = micros() - m;
       if (maxLatency < m) {
@@ -176,6 +192,7 @@ void loop() {
         error("data check");
       }
     }
+    s = file.fileSize();
     t = millis() - t;
     cout << s/t <<',' << maxLatency << ',' << minLatency;
     cout << ',' << totalLatency/n << endl;

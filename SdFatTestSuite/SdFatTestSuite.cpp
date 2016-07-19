@@ -32,7 +32,7 @@ void testBegin() {
   Serial.begin(9600);
   while (!Serial) {}  // wait for leonardo
   testOut = &Serial;
-  SerialPrintln_P(PSTR("Type any character to begin."));
+  Serial.println(F("Type any character to begin."));
   while (Serial.read() <= 0) {}
   delay(200); // Catch Due reset problem
 
