@@ -11,7 +11,7 @@ For more information see the Manual installation section of this guide:
 http://arduino.cc/en/Guide/Libraries 
 
 A number of configuration options can be set by editing SdFatConfig.h
-#define macros.  See the html documentation for details
+\#define macros.  See the html documentation for details
 
 Read changes.txt if you have used previous releases of this library.
 
@@ -23,12 +23,16 @@ StdioStream, ifstream, ofstream, and others.
 A new class, "File", has been added to provide compatibility with the Arduino
 SD.h library. To use SdFat with programs written for SD.h replace
 
+```
 #include <SD.h>
+```
 
 with these two lines:
 
-#include <SdFat.h>
+```
+#include "SdFat.h"
 SdFat SD;
+```
 
 Please continue by reading the html documentation.
 
