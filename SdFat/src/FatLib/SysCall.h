@@ -50,8 +50,12 @@ class SysCall {
   /** Yield to other threads. */
   static void yield();
 };
-
-#if defined(ARDUINO)
+#if defined(ESP8266)
+inline void SysCall::yield() {
+  // Avoid ESP8266 bug
+  delay(0);
+}
+#elif defined(ARDUINO)
 inline void SysCall::yield() {
   // Use the external Arduino yield() function.
   ::yield();
