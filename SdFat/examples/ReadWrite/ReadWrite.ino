@@ -40,9 +40,9 @@ void setup()
   // Note that even if it's not used as the CS pin, the hardware SS pin
   // (10 on most Arduino boards, 53 on the Mega) must be left as an output
   // or the SD library functions will not work.
-  pinMode(10, OUTPUT);
+  pinMode(SS, OUTPUT);
 
-  if (!SD.begin(SD_CS_PIN)) {
+  if (!SD.begin(SD_CS_PIN, SPI_HALF_SPEED)) {
     Serial.println("initialization failed!");
     return;
   }
