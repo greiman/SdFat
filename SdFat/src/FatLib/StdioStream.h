@@ -58,7 +58,7 @@ const uint8_t UNGETC_BUF_SIZE = 2;
 #undef getchar
 #undef gets
 #undef perror
-#undef printf
+//#undef printf  // NOLINT
 #undef putc
 #undef putchar
 #undef puts
