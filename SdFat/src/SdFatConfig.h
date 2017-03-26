@@ -46,7 +46,9 @@
  *  * (asterisk)
  *
  */
+#ifndef USE_LONG_FILE_NAMES
 #define USE_LONG_FILE_NAMES 1
+#endif
 //------------------------------------------------------------------------------
 /**
  * Set ARDUINO_FILE_USES_STREAM nonzero to use Stream as the base class
