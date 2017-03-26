@@ -1,9 +1,10 @@
 /*
  * Example of getline from section 27.7.1.3 of the C++ standard
+ * 
  * Demonstrates the behavior of getline for various exceptions.
  * See http://www.cplusplus.com/reference/iostream/istream/getline/
  *
- * Note: This example is meant to demonstrate subtleties the standard and
+ * Note: This example is meant to demonstrate subtleties in the standard and
  * may not the best way to read a file.
  */
 #include <SPI.h>
@@ -32,21 +33,21 @@ void makeTestFile() {
 }
 //------------------------------------------------------------------------------
 void testGetline() {
-  const int line_buffer_size = 18;
-  char buffer[line_buffer_size];
-  ifstream sdin("getline.txt");
+  const int line_buffer_size = 18; // The size of the buffer to store the line in
+  char buffer[line_buffer_size]; // create the buffer
+  ifstream sdin("getline.txt"); 
   int line_number = 0;
 
   while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
-    int count = sdin.gcount();
-    if (sdin.fail()) {
+    int count = sdin.gcount(); //gcount: The number of characters extracted. This includes newline
+    if (sdin.fail()) { // check for an error
       cout << "Partial long line";
       sdin.clear(sdin.rdstate() & ~ios_base::failbit);
     } else if (sdin.eof()) {
       cout << "Partial final line";  // sdin.fail() is false
     } else {
       count--;  // Don’t include newline in count
-      cout << "Line " << ++line_number;
+      cout << "Line " << ++line_number; // print out the line number
     }
     cout << " (" << count << " chars): " << buffer << endl;
   }
@@ -67,7 +68,7 @@ void setup(void) {
   }
 
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
-  // breadboards.  use SPI_FULL_SPEED for better performance.
+  // breadboards. Use SPI_FULL_SPEED for better performance.
   if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
     sd.initErrorHalt();
   }
