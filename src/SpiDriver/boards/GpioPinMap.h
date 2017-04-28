@@ -30,15 +30,15 @@
 || defined(__AVR_ATmega16__)
 #ifdef ARDUINO_1284P_AVR_DEVELOPERS
 #include "AvrDevelopersGpioPinMap.h"
-#elif defined(ARDUINO_1284P_BOBUINO)
+#elif defined(BOBUINO_PINOUT) || defined(ARDUINO_1284P_BOBUINO)
 #include "BobuinoGpioPinMap.h"
 #elif defined(ARDUINO_1284P_SLEEPINGBEAUTY)
 #include "SleepingBeautyGpioPinMap.h"
-#elif defined(ARDUINO_1284P_STANDARD)
+#elif defined(STANDARD_PINOUT) || defined(ARDUINO_1284P_STANDARD)
 #include "Standard1284GpioPinMap.h"
-#else // ARDUINO_1284P_SLEEPINGBEAUTY
+#else // ARDUINO_1284P_AVR_DEVELOPERS
 #error Undefined variant 1284, 644, 324
-#endif  // ARDUINO_1284P_SLEEPINGBEAUTY
+#endif  //  ARDUINO_1284P_AVR_DEVELOPERS
 #else  // 1284P, 1284, 644
 #error Unknown board type.
 #endif  // end all boards

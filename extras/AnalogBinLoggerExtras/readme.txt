@@ -21,8 +21,7 @@ You may need to increase the time between samples if your card has higher
 latency.  Using a Mega Arduino can help since it has more buffering.
 
 The bintocsv folder contains a PC program for converting binary files to
-CSV files.  I have included a executable for Windows.  Linux and Mac users
-can build from the included source files.  bintocvs is a command line program.
+CSV files.  Build it from the included source files.  bintocvs is a command line program.
 
 bintocsv binFile csvFile 
 
