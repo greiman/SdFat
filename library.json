@@ -1,0 +1,11 @@
+{
+  "name": "SdFat",
+  "keywords": "sd, card, file, system",
+  "description": "Arduino FAT16/FAT32 Library",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/greiman/SdFat.git"
+  },
+  "include": "SdFat"
+}
