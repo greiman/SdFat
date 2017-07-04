@@ -766,7 +766,7 @@ int FatFile::read(void* buf, size_t nbyte) {
       memcpy(dst, src, n);
 #if USE_MULTI_BLOCK_IO
     } else if (toRead >= 1024) {
-      uint8_t nb = toRead >> 9;
+      size_t nb = toRead >> 9;
       if (!isRootFixed()) {
         uint8_t mb = m_vol->blocksPerCluster() - blockOfCluster;
         if (mb < nb) {
@@ -1439,7 +1439,7 @@ int FatFile::write(const void* buf, size_t nbyte) {
     } else if (nToWrite >= 1024) {
       // use multiple block write command
       uint8_t maxBlocks = m_vol->blocksPerCluster() - blockOfCluster;
-      uint8_t nBlock = nToWrite >> 9;
+      size_t nBlock = nToWrite >> 9;
       if (nBlock > maxBlocks) {
         nBlock = maxBlocks;
       }

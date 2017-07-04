@@ -28,6 +28,11 @@
 #include "SdSpiBaseDriver.h"
 #include "SdFatConfig.h"
 //-----------------------------------------------------------------------------
+/** SDCARD_SPI is defined if board has built-in SD card socket */
+#ifndef SDCARD_SPI
+#define SDCARD_SPI SPI
+#endif  // SDCARD_SPI
+//-----------------------------------------------------------------------------
 /**
  * \class SdSpiLibDriver
  * \brief SdSpiLibDriver - use standard SPI library.
@@ -40,11 +45,11 @@ class SdSpiLibDriver {
  public:
   /** Activate SPI hardware. */
   void activate() {
-    SPI.beginTransaction(m_spiSettings);
+    SDCARD_SPI.beginTransaction(m_spiSettings);
   }
   /** Deactivate SPI hardware. */
   void deactivate() {
-    SPI.endTransaction();
+    SDCARD_SPI.endTransaction();
   }
   /** Initialize the SPI bus.
    *
@@ -54,14 +59,14 @@ class SdSpiLibDriver {
     m_csPin = csPin;
     digitalWrite(csPin, HIGH);
     pinMode(csPin, OUTPUT);
-    SPI.begin();
+    SDCARD_SPI.begin();
   }
   /** Receive a byte.
    *
    * \return The byte.
    */
   uint8_t receive() {
-    return SPI.transfer( 0XFF);
+    return SDCARD_SPI.transfer( 0XFF);
   }
   /** Receive multiple bytes.
   *
@@ -72,7 +77,7 @@ class SdSpiLibDriver {
   */
   uint8_t receive(uint8_t* buf, size_t n) {
     for (size_t i = 0; i < n; i++) {
-      buf[i] = SPI.transfer(0XFF);
+      buf[i] = SDCARD_SPI.transfer(0XFF);
     }
     return 0;
   }
@@ -81,7 +86,7 @@ class SdSpiLibDriver {
    * \param[in] data Byte to send
    */
   void send(uint8_t data) {
-    SPI.transfer(data);
+    SDCARD_SPI.transfer(data);
   }
   /** Send multiple bytes.
    *
@@ -90,7 +95,7 @@ class SdSpiLibDriver {
    */
   void send(const uint8_t* buf, size_t n) {
     for (size_t i = 0; i < n; i++) {
-      SPI.transfer(buf[i]);
+      SDCARD_SPI.transfer(buf[i]);
     }
   }
   /** Set CS low. */
