@@ -55,7 +55,7 @@ int csvReadText(File* file, char* str, size_t size, char delim) {
       rtn = ch;
       break;
     }
-    if ((n+1) >= size) {
+    if ((n + 1) >= size) {
       // string too long
       rtn = -2;
       n--;

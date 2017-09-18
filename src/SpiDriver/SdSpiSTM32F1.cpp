@@ -111,7 +111,7 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
 #if USE_STM32F1_DMAC
   pSpi[m_spiPort]->dmaSend(const_cast<uint8*>(buf), n);
 #else  // #if USE_STM32F1_DMAC
-  pSpi[m_spiPort]->write(buf, n);
+  pSpi[m_spiPort]->write(const_cast<uint8*>(buf), n);
 #endif  // USE_STM32F1_DMAC
 }
 //-----------------------------------------------------------------------------
