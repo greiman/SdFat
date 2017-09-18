@@ -84,12 +84,15 @@ uint8_t SdSpiAltDriver::receive() {
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
   int rtn = 0;
 #if USE_STM32F1_DMAC
-  rtn = pSpi[m_spiPort]->dmaTransfer(0, const_cast<uint8*>(buf), n);
+  rtn = pSpi[m_spiPort]->dmaTransfer(0, buf, n);
 #else  // USE_STM32F1_DMAC
-  //  pSpi[m_spiPort]->read(buf, n); fails ?? use byte transfer
+#if 1  // set to zero if multi-byte read() fails.
+  pSpi[m_spiPort]->read(buf, n);
+#else // Try multi-byte read again
   for (size_t i = 0; i < n; i++) {
     buf[i] = pSpi[m_spiPort]->transfer(0XFF);
   }
+#endif // Try multi-byte read again 
 #endif  // USE_STM32F1_DMAC
   return rtn;
 }
