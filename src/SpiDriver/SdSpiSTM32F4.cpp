@@ -19,7 +19,7 @@
  */
 #if defined(__STM32F4__)
 #include "SdSpiDriver.h"
-#define USE_STM32F4_DMAC 0
+#define USE_STM32F4_DMAC 1
 //------------------------------------------------------------------------------
 static SPIClass m_SPI1(1);
 #if BOARD_NR_SPI > 1
@@ -84,10 +84,16 @@ uint8_t SdSpiAltDriver::receive() {
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
   int rtn = 0;
 #if USE_STM32F4_DMAC
-  rtn = pSpi[m_spiPort]->dmaTransfer(0, const_cast<uint8*>(buf), n);
-#else  // USE_STM32F1_DMAC
+  rtn = pSpi[m_spiPort]->dmaTransfer(0, buf, n);
+#else  // USE_STM32F4_DMAC
+#if 1  // set to zero if multi-byte read() fails.
   pSpi[m_spiPort]->read(buf, n);
-#endif  // USE_STM32F1_DMAC
+#else // Try multi-byte read again
+  for (size_t i = 0; i < n; i++) {
+    buf[i] = pSpi[m_spiPort]->transfer(0XFF);
+  }
+#endif // Try multi-byte read again 
+#endif  // USE_STM32F4_DMAC
   return rtn;
 }
 //------------------------------------------------------------------------------
@@ -96,7 +102,7 @@ uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
  * \param[in] b Byte to send
  */
 void SdSpiAltDriver::send(uint8_t b) {
-  pSpi[m_spiPort]->write(b); //transfer(b);
+  pSpi[m_spiPort]->write(b);
 }
 //------------------------------------------------------------------------------
 /** Send multiple bytes.
@@ -107,12 +113,12 @@ void SdSpiAltDriver::send(uint8_t b) {
 void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
 #if USE_STM32F4_DMAC
   pSpi[m_spiPort]->dmaSend(const_cast<uint8*>(buf), n);
-#else  // #if USE_STM32F1_DMAC
+#else  // #if USE_STM32F4_DMAC
   pSpi[m_spiPort]->write(const_cast<uint8*>(buf), n);
-#endif  // USE_STM32F1_DMAC
+#endif  // USE_STM32F4_DMAC
 }
 //-----------------------------------------------------------------------------
 void SdSpiAltDriver::setPort(uint8_t portNumber) {
   m_spiPort = portNumber < 1 || portNumber > BOARD_NR_SPI ? 0 : portNumber -1;
 }
-#endif  // defined(__STM32F1__)
+#endif  // defined(__STM32F4__)
