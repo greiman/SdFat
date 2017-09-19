@@ -93,7 +93,7 @@ uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
  * \param[in] b Byte to send
  */
 void SdSpiAltDriver::send(uint8_t b) {
-  m_spi->transfer(b);
+  m_spi->write(b);
 }
 //------------------------------------------------------------------------------
 /** Send multiple bytes.
