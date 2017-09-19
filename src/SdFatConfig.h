@@ -161,6 +161,8 @@
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #define ENABLE_SDIO_CLASS 1
 #define ENABLE_SDIOEX_CLASS 1
+#elif defined(__STM32F4__)
+#define ENABLE_SDIO_CLASS 1
 #else  // ENABLE_SDIO_CLASS
 #define ENABLE_SDIO_CLASS 0
 #endif  // ENABLE_SDIO_CLASS
@@ -171,6 +173,9 @@
 #if defined(__STM32F1__) || defined(__STM32F4__)
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
+#elif defined(__STM32F4__)
+// has 3 SPI ports
+#define SD_HAS_CUSTOM_SPI 3
 #elif defined(__AVR__)\
   || defined(__SAM3X8E__) || defined(__SAM3X8H__)\
   || (defined(__arm__) && defined(CORE_TEENSY))\
