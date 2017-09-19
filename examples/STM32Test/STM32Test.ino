@@ -33,11 +33,7 @@ void setup() {
   Serial.begin(9600);
   // Wait for USB Serial 
   while (!Serial) {
-    SysCall::yield();
   }
-  Serial.print(F("FreeStack: "));
-
-  Serial.println(FreeStack());
 
   // fill buffer with known data
   for (size_t i = 0; i < sizeof(buf); i++) {
@@ -46,8 +42,9 @@ void setup() {
 
   Serial.println(F("type any character to start"));
   while (!Serial.available()) {
-    SysCall::yield();
   }
+  Serial.print(F("FreeStack: "));
+  Serial.println(FreeStack());
 
   // initialize the first card
   if (!sd1.begin(SD1_CS, SD_SCK_MHZ(18))) {

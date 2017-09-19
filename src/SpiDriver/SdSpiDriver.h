@@ -184,7 +184,7 @@ class SdSpiAltDriver {
   void setPort(uint8_t portNumber);
 
  private:
-  uint8_t m_spiPort;
+  SPIClass* m_spi;
 #else   // IMPLEMENT_SPI_PORT_SELECTION
  private:
 #endif  // IMPLEMENT_SPI_PORT_SELECTION

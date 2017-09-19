@@ -168,7 +168,7 @@
 /**
  * Determine the default SPI configuration.
  */
-#if defined(__STM32F1__)
+#if defined(__STM32F1__) || defined(__STM32F4__)
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
 #elif defined(__AVR__)\

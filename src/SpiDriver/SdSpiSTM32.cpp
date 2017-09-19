@@ -17,35 +17,33 @@
  * along with the Arduino SdSpiAltDriver Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#if defined(__STM32F1__)
+#if defined(__STM32F1__) || defined(__STM32F4__)
 #include "SdSpiDriver.h"
-#define USE_STM32F1_DMAC 1
+#if defined(__STM32F1__)
+#define USE_STM32_DMA 1
+#elif defined(__STM32F4__)
+#define USE_STM32_DMA 0
+#else  // defined(__STM32F1__)
+#error Unknown STM32 type
+#endif  // defined(__STM32F1__)
 //------------------------------------------------------------------------------
 static SPIClass m_SPI1(1);
-#if BOARD_NR_SPI > 1
+#if BOARD_NR_SPI >= 2
 static SPIClass m_SPI2(2);
-#endif  // BOARD_NR_SPI > 1
-#if BOARD_NR_SPI > 2
+#endif  // BOARD_NR_SPI >= 2
+#if BOARD_NR_SPI >= 3
 static SPIClass m_SPI3(3);
-#endif  // BOARD_NR_SPI > 2
-//
-static SPIClass* pSpi[] =
-#if BOARD_NR_SPI == 1
-  {&m_SPI1};
-#elif BOARD_NR_SPI == 2
-  {&m_SPI1, &m_SPI2};
-#elif BOARD_NR_SPI == 3
-  {&m_SPI1, &m_SPI2, &m_SPI3};
-#else  // BOARD_NR_SPI
-#error "BOARD_NR_SPI too large"
-#endif  // BOARD_NR_SPI
+#endif  // BOARD_NR_SPI >= 3
+#if BOARD_NR_SPI > 3
+#error BOARD_NR_SPI too large
+#endif
 //------------------------------------------------------------------------------
 /** Set SPI options for access to SD/SDHC cards.
  *
  * \param[in] divisor SCK clock divider relative to the APB1 or APB2 clock.
  */
 void SdSpiAltDriver::activate() {
-  pSpi[m_spiPort]->beginTransaction(m_spiSettings);
+  m_spi->beginTransaction(m_spiSettings);
 }
 //------------------------------------------------------------------------------
 /** Initialize the SPI bus.
@@ -56,14 +54,14 @@ void SdSpiAltDriver::begin(uint8_t csPin) {
   m_csPin = csPin;
   pinMode(m_csPin, OUTPUT);
   digitalWrite(m_csPin, HIGH);
-  pSpi[m_spiPort]->begin();
+  m_spi->begin();
 }
 //------------------------------------------------------------------------------
 /**
  * End SPI transaction.
  */
 void SdSpiAltDriver::deactivate() {
-  pSpi[m_spiPort]->endTransaction();
+  m_spi->endTransaction();
 }
 //------------------------------------------------------------------------------
 /** Receive a byte.
@@ -71,7 +69,7 @@ void SdSpiAltDriver::deactivate() {
  * \return The byte.
  */
 uint8_t SdSpiAltDriver::receive() {
-  return pSpi[m_spiPort]->transfer(0XFF);
+  return m_spi->transfer(0XFF);
 }
 //------------------------------------------------------------------------------
 /** Receive multiple bytes.
@@ -82,19 +80,12 @@ uint8_t SdSpiAltDriver::receive() {
  * \return Zero for no error or nonzero error code.
  */
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
-  int rtn = 0;
-#if USE_STM32F1_DMAC
-  rtn = pSpi[m_spiPort]->dmaTransfer(0, buf, n);
-#else  // USE_STM32F1_DMAC
-#if 1  // set to zero if multi-byte read() fails.
-  pSpi[m_spiPort]->read(buf, n);
-#else // Try multi-byte read again
-  for (size_t i = 0; i < n; i++) {
-    buf[i] = pSpi[m_spiPort]->transfer(0XFF);
-  }
-#endif // Try multi-byte read again 
-#endif  // USE_STM32F1_DMAC
-  return rtn;
+#if USE_STM32_DMA
+  return m_spi->dmaTransfer(0, buf, n);
+#else  // USE_STM32_DMA
+  m_spi->read(buf, n);
+  return 0;
+#endif  // USE_STM32_DMA
 }
 //------------------------------------------------------------------------------
 /** Send a byte.
@@ -102,7 +93,7 @@ uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
  * \param[in] b Byte to send
  */
 void SdSpiAltDriver::send(uint8_t b) {
-  pSpi[m_spiPort]->transfer(b);
+  m_spi->transfer(b);
 }
 //------------------------------------------------------------------------------
 /** Send multiple bytes.
@@ -111,14 +102,24 @@ void SdSpiAltDriver::send(uint8_t b) {
  * \param[in] n Number of bytes to send.
  */
 void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
-#if USE_STM32F1_DMAC
-  pSpi[m_spiPort]->dmaSend(const_cast<uint8*>(buf), n);
-#else  // #if USE_STM32F1_DMAC
-  pSpi[m_spiPort]->write(const_cast<uint8*>(buf), n);
-#endif  // USE_STM32F1_DMAC
+#if USE_STM32_DMA
+  m_spi->dmaTransfer(const_cast<uint8*>(buf), 0, n);
+#else  // USE_STM32_DMA
+  m_spi->write(const_cast<uint8*>(buf), n);
+#endif  // USE_STM32_DMA
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void SdSpiAltDriver::setPort(uint8_t portNumber) {
-  m_spiPort = portNumber < 1 || portNumber > BOARD_NR_SPI ? 0 : portNumber -1;
+  m_spi = &m_SPI1;
+#if BOARD_NR_SPI >= 2
+  if (portNumber == 2) {
+    m_spi = &m_SPI2;
+  }
+#endif  // BOARD_NR_SPI >= 2
+#if BOARD_NR_SPI >= 3
+  if (portNumber == 3) {
+    m_spi = &m_SPI3;
+  }
+#endif  // BOARD_NR_SPI >= 2
 }
-#endif  // defined(__STM32F1__)
+#endif  // defined(__STM32F1__) || defined(__STM32F4__)
