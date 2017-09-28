@@ -22,7 +22,7 @@
 #if defined(__STM32F1__)
 #define USE_STM32_DMA 1
 #elif defined(__STM32F4__)
-#define USE_STM32_DMA 0
+#define USE_STM32_DMA 1
 #else  // defined(__STM32F1__)
 #error Unknown STM32 type
 #endif  // defined(__STM32F1__)
