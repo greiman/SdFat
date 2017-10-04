@@ -1,23 +1,27 @@
-/* Arduino SdFat Library
- * Copyright (C) 2012 by William Greiman
+/**
+ * Copyright (c) 20011-2017 Bill Greiman
+ * This file is part of the SdFat library for SD memory cards.
  *
- * This file is part of the Arduino SdFat Library
+ * MIT License
  *
- * This Library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * This Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
-
 /**
 \mainpage Arduino %SdFat Library
 <CENTER>Copyright &copy; 2012, 2013, 2014, 2015, 2016 by William Greiman
@@ -38,9 +42,9 @@ The main classes in %SdFat are SdFat, SdFatEX, SdFatSoftSpi, SdFatSoftSpiEX,
 SdBaseFile, SdFile, File, StdioStream, \ref fstream, \ref ifstream,
 and \ref ofstream.
 
-The SdFat, SdFatEX, SdFatSoftSpi and SdFatSoftSpiEX classes maintain a 
+The SdFat, SdFatEX, SdFatSoftSpi and SdFatSoftSpiEX classes maintain a
 FAT volume, a current working directory, and simplify initialization
-of other classes. The SdFat and SdFatEX classes uses a fast custom hardware SPI 
+of other classes. The SdFat and SdFatEX classes uses a fast custom hardware SPI
 implementation.  The SdFatSoftSpi and SdFatSoftSpiEX classes uses software SPI.
 
 the SdFatEX and SdFatSoftSpiEX use extended multi-block I/O for enhanced
@@ -109,7 +113,7 @@ will be defined. If the symbol ENABLE_SOFTWARE_SPI_CLASS is also nonzero,
 the class SdFatSoftSpiEX will be defined.
 These classes used extended multi-block SD I/O for better performance.
 the SPI bus may not be shared with other devices in this mode.
- 
+
 Set USE_STANDARD_SPI_LIBRARY and  ENABLE_SOFTWARE_SPI_CLASS to
 enable various SPI options. set USE_STANDARD_SPI_LIBRARY to use the standard
 Arduino SPI library. set ENABLE_SOFTWARE_SPI_CLASS to enable the SdFatSoftSpi
@@ -236,7 +240,7 @@ Does another SPI device need to be disabled?
 Is there a wiring/soldering problem?
 
 errorCode: 0x1, errorData: 0xff
-</PRE> 
+</PRE>
 Here is a message from QuickStart that indicates a formatting problem:
 <PRE>
 Card successfully initialized.
@@ -284,7 +288,7 @@ Short names are always converted to upper case and their original case
 value is lost.  Files that have a base-name where all characters have the
 same case and an extension where all characters have the same case will
 display properly.  Examples this type name are UPPER.low, lower.TXT,
-UPPER.TXT, and lower.txt. 
+UPPER.TXT, and lower.txt.
 
 An application which writes to a file using print(), println() or
 write() must close the file or call sync() at the appropriate time to
