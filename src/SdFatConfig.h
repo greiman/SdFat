@@ -28,6 +28,7 @@
  */
 #ifndef SdFatConfig_h
 #define SdFatConfig_h
+#include <Arduino.h>
 #include <stdint.h>
 #ifdef __AVR__
 #include <avr/io.h>
