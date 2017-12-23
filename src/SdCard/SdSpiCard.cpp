@@ -539,8 +539,8 @@ bool SdSpiCard::writeBlock(uint32_t blockNumber, const uint8_t* src) {
     goto fail;
   }
 
-#define CHECK_PROGRAMMING 0
-#if CHECK_PROGRAMMING
+
+#if CHECK_FLASH_PROGRAMMING
   // wait for flash programming to complete
   if (!waitNotBusy(SD_WRITE_TIMEOUT)) {
     error(SD_CARD_ERROR_WRITE_TIMEOUT);
