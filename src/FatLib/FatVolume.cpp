@@ -200,7 +200,10 @@ int8_t FatVolume::fatGet(uint32_t cluster, uint32_t* value) {
   cache_t* pc;
 
   // error if reserved cluster of beyond FAT
-  DBG_HALT_IF(cluster < 2 || cluster > m_lastCluster);
+  if (cluster < 2 || cluster > m_lastCluster) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
 
   if (fatType() == 32) {
     lba = m_fatStartBlock + (cluster >> 7);
@@ -266,7 +269,10 @@ bool FatVolume::fatPut(uint32_t cluster, uint32_t value) {
   cache_t* pc;
 
   // error if reserved cluster of beyond FAT
-  DBG_HALT_IF(cluster < 2 || cluster > m_lastCluster);
+  if (cluster < 2 || cluster > m_lastCluster) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
 
   if (fatType() == 32) {
     lba = m_fatStartBlock + (cluster >> 7);
