@@ -779,7 +779,7 @@ int FatFile::read(void* buf, size_t nbyte) {
         }
       }
       n = 512*nb;
-      if (block <= m_vol->cacheBlockNumber()
+      if (m_vol->cacheBlockNumber() <= block
           && block < (m_vol->cacheBlockNumber() + nb)) {
         // flush cache if a block is in the cache
         if (!m_vol->cacheSyncData()) {
@@ -1444,17 +1444,17 @@ int FatFile::write(const void* buf, size_t nbyte) {
     } else if (nToWrite >= 1024) {
       // use multiple block write command
       uint8_t maxBlocks = m_vol->blocksPerCluster() - blockOfCluster;
-      size_t nBlock = nToWrite >> 9;
-      if (nBlock > maxBlocks) {
-        nBlock = maxBlocks;
+      size_t nb = nToWrite >> 9;
+      if (nb > maxBlocks) {
+        nb = maxBlocks;
       }
-      n = 512*nBlock;
-      if (block <= m_vol->cacheBlockNumber()
-          && block < (m_vol->cacheBlockNumber() + nBlock)) {
+      n = 512*nb;
+      if (m_vol->cacheBlockNumber() <= block
+          && block < (m_vol->cacheBlockNumber() + nb)) {
         // invalidate cache if block is in cache
         m_vol->cacheInvalidate();
       }
-      if (!m_vol->writeBlocks(block, src, nBlock)) {
+      if (!m_vol->writeBlocks(block, src, nb)) {
         DBG_FAIL_MACRO;
         goto fail;
       }
