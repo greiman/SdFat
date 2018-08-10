@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 20011-2017 Bill Greiman
+ * Copyright (c) 2011-2018 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,6 +33,12 @@
 #ifdef __AVR__
 #include <avr/io.h>
 #endif  // __AVR__
+//------------------------------------------------------------------------------
+/**
+ * Set INCLUDE_SDIOS nonzero to include sdios.h in SdFat.h.
+ * sdios.h provides C++ style IO Streams.
+ */
+#define INCLUDE_SDIOS 1
 //------------------------------------------------------------------------------
 /**
  * Set USE_LONG_FILE_NAMES nonzero to use long file names (LFN).
@@ -184,7 +190,7 @@
 /**
  * Determine the default SPI configuration.
  */
-#if defined(__STM32F1__) || defined(__STM32F4__)
+#if defined(__STM32F1__) || defined(__STM32F4__) 
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
 #elif defined(__AVR__)\

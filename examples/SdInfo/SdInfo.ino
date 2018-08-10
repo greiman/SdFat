@@ -3,6 +3,7 @@
  */
 #include <SPI.h>
 #include "SdFat.h"
+#include "sdios.h"
 
 // Set USE_SDIO to zero for SPI card access. 
 #define USE_SDIO 0

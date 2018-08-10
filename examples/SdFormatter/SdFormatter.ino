@@ -30,6 +30,7 @@ const uint8_t chipSelect = SS;
 #define DEBUG_PRINT 0
 #include <SPI.h>
 #include "SdFat.h"
+#include "sdios.h"
 #if DEBUG_PRINT
 #include "FreeStack.h"
 #endif  // DEBUG_PRINT

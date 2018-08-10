@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include "SdFat.h"
+#include "sdios.h"
 
 //  create a serial output stream
 ArduinoOutStream cout(Serial);

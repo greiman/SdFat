@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 20011-2017 Bill Greiman
+ * Copyright (c) 2011-2018 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -32,9 +32,12 @@
 #include "BlockDriver.h"
 #include "FatLib/FatLib.h"
 #include "SdCard/SdioCard.h"
+#if INCLUDE_SDIOS
+#include "sdios.h"
+#endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version */
-#define SD_FAT_VERSION "1.0.6"
+#define SD_FAT_VERSION "1.0.7"
 //==============================================================================
 /**
  * \class SdBaseFile
