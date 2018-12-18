@@ -24,6 +24,16 @@
  */
 #ifndef FatApiConstants_h
 #define FatApiConstants_h
+// Temp fix for particle mesh.
+#ifdef O_RDONLY
+#undef O_RDONLY
+#endif  // O_RDONLY
+#ifdef O_RDWR
+#undef O_RDWR
+#endif  // O_RDWR
+#ifdef O_WRONLY
+#undef O_WRONLY
+#endif  // O_WRONLY
 //------------------------------------------------------------------------------
 // use the gnu style oflag in open()
 /** open() oflag for reading */

@@ -436,7 +436,7 @@ void binaryToCsv() {
     return;
   }
   binFile.rewind();
-  if (!binFile.read(&buf , 512) == 512) {
+  if (binFile.read(&buf , 512) != 512) {
     error("Read metadata failed");
   }
   // Create a new csv file.
@@ -517,7 +517,7 @@ void checkOverrun() {
   binFile.rewind();
   Serial.println();
   Serial.println(F("Checking overrun errors - type any character to stop"));
-  if (!binFile.read(&buf , 512) == 512) {
+  if (binFile.read(&buf , 512) != 512) {
     error("Read metadata failed");
   }
   bn++;
