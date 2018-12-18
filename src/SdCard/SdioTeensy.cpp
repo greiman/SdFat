@@ -24,6 +24,9 @@
  */
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #include "SdioCard.h"
+
+namespace sdfat {
+
 //==============================================================================
 #define SDHC_PROCTL_DTW_4BIT 0x01
 const uint32_t FIFO_WML = 16;
@@ -797,4 +800,7 @@ bool SdioCard::writeStart(uint32_t lba, uint32_t count) {
 bool SdioCard::writeStop() {
   return transferStop();
 }
+
+}; // namespace sdfat
+
 #endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)

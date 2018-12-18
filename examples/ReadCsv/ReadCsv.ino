@@ -9,6 +9,9 @@
 
 // next two lines for SdFat
 #include <SdFat.h>
+
+using namespace sdfat;
+
 SdFat SD;
 
 #define CS_PIN SS

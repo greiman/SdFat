@@ -24,6 +24,9 @@
  */
 #ifndef FreeStack_h
 #define FreeStack_h
+
+namespace sdfat {
+
 /**
  * \file
  * \brief FreeStack() function.
@@ -58,4 +61,7 @@ static int FreeStack() {
   return 0;
 }
 #endif
+
+}; // namespace sdfat
+
 #endif  // FreeStack_h

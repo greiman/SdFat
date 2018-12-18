@@ -32,6 +32,9 @@
 #if ENABLE_ARDUINO_FEATURES
 #include "FatFile.h"
 #include <limits.h>
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 /** Arduino SD.h style flag for open for read. */
 #define FILE_READ O_READ
@@ -246,4 +249,7 @@ class File : public FatFile, public Stream {
   }
 };
 #endif  // ENABLE_ARDUINO_FEATURES
+
+}; // namespace sdfat
+
 #endif  // ArduinoFiles_h

@@ -29,6 +29,9 @@
  * \brief \ref ostream class
  */
 #include "ios.h"
+
+namespace sdfat {
+
 //==============================================================================
 /**
  * \class ostream
@@ -273,4 +276,7 @@ class ostream : public virtual ios {
   void putPgm(const char* str);
   void putStr(const char* str);
 };
+
+}; // namespace sdfat
+
 #endif  // ostream_h

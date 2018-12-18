@@ -2,6 +2,8 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+using namespace sdfat;
+
 // Define PRINT_FIELD nonzero to use printField.
 #define PRINT_FIELD 0
 

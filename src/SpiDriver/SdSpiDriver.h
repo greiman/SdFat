@@ -37,6 +37,9 @@
 #ifndef SDCARD_SPI
 #define SDCARD_SPI SPI
 #endif  // SDCARD_SPI
+
+namespace sdfat {
+
 //-----------------------------------------------------------------------------
 /**
  * \class SdSpiLibDriver
@@ -196,6 +199,9 @@ class SdSpiAltDriver {
   SPISettings m_spiSettings;
   uint8_t m_csPin;
 };
+
+}; // namespace sdfat
+
 //------------------------------------------------------------------------------
 #if ENABLE_SOFTWARE_SPI_CLASS || defined(DOXYGEN)
 #ifdef ARDUINO
@@ -203,6 +209,9 @@ class SdSpiAltDriver {
 #elif defined(PLATFORM_ID)  // Only defined if a Particle device
 #include "SoftSPIParticle.h"
 #endif  // ARDUINO
+
+namespace sdfat {
+
 /**
  * \class SdSpiSoftDriver
  * \brief Software SPI class for access to SD and SDHC flash memory cards.
@@ -281,7 +290,13 @@ class SdSpiSoftDriver : public SdSpiBaseDriver {
   uint8_t m_csPin;
   SoftSPI<MisoPin, MosiPin, SckPin, 0> m_spi;
 };
+
+}; // namespace sdfat
+
 #endif  // ENABLE_SOFTWARE_SPI_CLASS || defined(DOXYGEN)
+
+namespace sdfat {
+
 //-----------------------------------------------------------------------------
 // Choose SPI driver for SdFat and SdFatEX classes.
 #if USE_STANDARD_SPI_LIBRARY || !SD_HAS_CUSTOM_SPI
@@ -366,4 +381,7 @@ inline void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   while (!(SPSR & (1 << SPIF))) {}
 }
 #endif  // __AVR__
+
+}; // namespace sdfat
+
 #endif  // SdSpiDriver_h

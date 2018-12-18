@@ -23,6 +23,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "fstream.h"
+
+namespace sdfat {
+
 //==============================================================================
 /// @cond SHOW_PROTECTED
 int16_t FatStreamBase::getch() {
@@ -170,3 +173,5 @@ void FatStreamBase::write(char c) {
   write(&c, 1);
 }
 /// @endcond
+
+}; // namespace sdfat

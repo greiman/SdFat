@@ -33,6 +33,9 @@
 #include "SdInfo.h"
 #include "../FatLib/BaseBlockDriver.h"
 #include "../SpiDriver/SdSpiDriver.h"
+
+namespace sdfat {
+
 //==============================================================================
 /**
  * \class SdSpiCard
@@ -370,4 +373,7 @@ class SdSpiCardEX : public SdSpiCard {
   uint32_t m_curBlock;
   uint8_t m_curState;
 };
+
+}; // namespace sdfat
+
 #endif  // SdSpiCard_h

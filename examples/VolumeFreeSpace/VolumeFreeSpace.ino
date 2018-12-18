@@ -4,6 +4,9 @@
 #include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
+
+using namespace sdfat;
+
 /*
  * SD chip select pin.  Common values are:
  *

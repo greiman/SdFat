@@ -6,6 +6,8 @@
 #include "SdFat.h"
 #include "FreeStack.h"
 
+using namespace sdfat;
+
 SdFat sd1;
 const uint8_t SD1_CS = 10;  // chip select for sd1
 

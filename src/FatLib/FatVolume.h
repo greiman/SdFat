@@ -32,6 +32,9 @@
 #include "FatLibConfig.h"
 #include "FatStructs.h"
 #include "BlockDriver.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /** Macro for debug. */
@@ -372,4 +375,7 @@ class FatVolume {
     return cluster > m_lastCluster;
   }
 };
+
+}; // namespace sdfat
+
 #endif  // FatVolume

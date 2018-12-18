@@ -24,6 +24,9 @@
  */
 #ifndef SdSpiBaseDriver_h
 #define SdSpiBaseDriver_h
+
+namespace sdfat {
+
 /**
  * \class SdSpiBaseDriver
  * \brief SPI base driver.
@@ -76,4 +79,7 @@ class SdSpiBaseDriver {
   /** Set CS high. */
   virtual void unselect() = 0;
 };
+
+}; // namespace sdfat
+
 #endif  // SdSpiBaseDriver_h

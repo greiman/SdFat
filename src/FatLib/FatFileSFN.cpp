@@ -24,6 +24,9 @@
  */
 #include "FatFile.h"
 #include "FatFileSystem.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 bool FatFile::getSFN(char* name) {
   dir_t* dir;
@@ -276,3 +279,5 @@ fail:
   return false;
 }
 #endif  // !USE_LONG_FILE_NAMES
+
+}; // namespace sdfat

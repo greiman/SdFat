@@ -35,6 +35,9 @@
 #if INCLUDE_SDIOS
 #include "sdios.h"
 #endif  // INCLUDE_SDIOS
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 /** SdFat version */
 #define SD_FAT_VERSION "1.0.8"
@@ -509,4 +512,7 @@ class Sd2Card : public SdSpiCard {
  private:
   SdFatSpiDriver m_spi;
 };
+
+}; // namespace sdfat
+
 #endif  // SdFat_h

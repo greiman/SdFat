@@ -8,6 +8,8 @@
 #define ROW_DIM 5
 #define COL_DIM 4
 
+using namespace sdfat;
+
 SdFat SD;
 File file;
 

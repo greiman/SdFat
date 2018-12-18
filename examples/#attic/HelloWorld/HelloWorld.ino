@@ -2,6 +2,8 @@
 #include "SdFat.h"
 #include "sdios.h"
 
+using namespace sdfat;
+
 //  create a serial output stream
 ArduinoOutStream cout(Serial);
 

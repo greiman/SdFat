@@ -1,6 +1,8 @@
 #include "UserTypes.h"
 // User data functions.  Modify these functions for your data items.
 
+using namespace sdfat;
+
 // Start time for data
 static uint32_t startMicros;
 

@@ -25,6 +25,9 @@
 #ifndef SdInfo_h
 #define SdInfo_h
 #include <stdint.h>
+
+namespace sdfat {
+
 // Based on the document:
 //
 // SD Specifications
@@ -477,4 +480,7 @@ inline uint32_t sdCardCapacity(csd_t* csd) {
     return 0;
   }
 }
+
+}; // namespace sdfat
+
 #endif  // SdInfo_h

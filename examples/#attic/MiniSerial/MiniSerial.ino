@@ -10,6 +10,8 @@
 #ifdef UDR0  // Must be AVR with serial port zero.
 #include "MinimumSerial.h"
 
+using namespace sdfat;
+
 MinimumSerial MiniSerial;
 
 void setup() {

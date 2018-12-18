@@ -40,6 +40,9 @@
 #define SPI_TX_IDX  1
 /** DMAC Channel HW Interface Number for SPI RX. */
 #define SPI_RX_IDX  2
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 /** Disable DMA Controller. */
 static void dmac_disable() {
@@ -215,4 +218,7 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   // leave RDR empty
   uint8_t b = pSpi->SPI_RDR;
 }
+
+}; // namespace sdfat
+
 #endif  // defined(__SAM3X8E__) || defined(__SAM3X8H__)

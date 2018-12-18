@@ -24,6 +24,9 @@
  */
 #include "FatFile.h"
 #include "FatFileSystem.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 // Pointer to cwd directory.
 FatFile* FatFile::m_cwd = 0;
@@ -1496,3 +1499,5 @@ fail:
   m_error |= WRITE_ERROR;
   return -1;
 }
+
+}; // namespace sdfat

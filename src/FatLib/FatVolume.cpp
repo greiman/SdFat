@@ -24,6 +24,9 @@
  */
 #include <string.h>
 #include "FatVolume.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 cache_t* FatCache::read(uint32_t lbn, uint8_t option) {
   if (m_lbn != lbn) {
@@ -612,3 +615,5 @@ fail:
   m_fatType = 0;
   return false;
 }
+
+}; // namespace sdfat

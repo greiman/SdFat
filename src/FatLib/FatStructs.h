@@ -24,6 +24,9 @@
  */
 #ifndef FatStructs_h
 #define FatStructs_h
+
+namespace sdfat {
+
 /**
  * \file
  * \brief FAT file structures
@@ -879,4 +882,7 @@ typedef struct longDirectoryEntry ldir_t;
  * begin with an entry having this mask.
  */
 const uint8_t LDIR_ORD_LAST_LONG_ENTRY = 0X40;
+
+}; // namespace sdfat
+
 #endif  // FatStructs_h
