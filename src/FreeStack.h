@@ -52,6 +52,12 @@ static int FreeStack() {
   char top = 't';
   return &top - reinterpret_cast<char*>(sbrk(0));
 }
+#elif defined(ESP8266)
+static int FreeStack() {
+  int free = (int)ESP.getFreeContStack();
+  ESP.resetFreeContStack();
+  return free;
+}
 #else
 #warning FreeStack is not defined for this system.
 static int FreeStack() {
