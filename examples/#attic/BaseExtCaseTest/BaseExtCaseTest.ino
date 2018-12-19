@@ -4,6 +4,10 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 const uint8_t chipSelect = SS;
 
 SdFat sd;

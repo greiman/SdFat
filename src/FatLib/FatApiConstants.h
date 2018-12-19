@@ -24,6 +24,11 @@
  */
 #ifndef FatApiConstants_h
 #define FatApiConstants_h
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 // Temp fix for particle mesh.
 #ifdef O_RDONLY
 #undef O_RDONLY
@@ -79,4 +84,9 @@ const uint8_t T_ACCESS = 1;
 const uint8_t T_CREATE = 2;
 /** Set the file's write date and time */
 const uint8_t T_WRITE = 4;
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // FatApiConstants_h

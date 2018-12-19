@@ -33,6 +33,11 @@
 #include "SdInfo.h"
 #include "../FatLib/BaseBlockDriver.h"
 #include "../SpiDriver/SdSpiDriver.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //==============================================================================
 /**
  * \class SdSpiCard
@@ -370,4 +375,9 @@ class SdSpiCardEX : public SdSpiCard {
   uint32_t m_curBlock;
   uint8_t m_curState;
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // SdSpiCard_h

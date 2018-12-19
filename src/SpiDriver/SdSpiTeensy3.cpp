@@ -27,6 +27,10 @@
 // SPI definitions
 #include "kinetis.h"
 
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 void SdSpiAltDriver::activate() {
   SPI.beginTransaction(m_spiSettings);
@@ -230,4 +234,9 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   }
 }
 #endif  // KINETISK
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // defined(__arm__) && defined(CORE_TEENSY)

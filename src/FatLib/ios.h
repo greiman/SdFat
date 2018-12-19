@@ -25,6 +25,11 @@
 #ifndef ios_h
 #define ios_h
 #include "FatFile.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /**
  * \file
  * \brief \ref ios_base and \ref ios classes
@@ -420,4 +425,9 @@ class ios : public ios_base {
  private:
   iostate m_iostate;
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // ios_h

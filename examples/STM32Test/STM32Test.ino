@@ -6,6 +6,10 @@
 #include "SdFat.h"
 #include "FreeStack.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // set ENABLE_EXTENDED_TRANSFER_CLASS non-zero to use faster EX classes
 
 // Use first SPI port

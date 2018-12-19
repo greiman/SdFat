@@ -46,6 +46,11 @@
 #define MOSI_MODE  OUTPUT
 /** Pin Mode for SCK is output. */
 #define SCK_MODE  OUTPUT
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 /**
  * @class SoftSPI
@@ -163,5 +168,10 @@ class SoftSPI {
   }
   //----------------------------------------------------------------------------
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // SoftSPI_h
 /** @} */

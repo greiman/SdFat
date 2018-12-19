@@ -20,6 +20,11 @@
 #include <SPI.h>
 //#include <SD.h>
 #include "SdFat.h"
+
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 SdFat SD;
 
 #define SD_CS_PIN SS

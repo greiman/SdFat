@@ -31,6 +31,11 @@
 #else  // defined(__STM32F1__)
 #error Unknown STM32 type
 #endif  // defined(__STM32F1__)
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 static SPIClass m_SPI1(1);
 #if BOARD_NR_SPI >= 2
@@ -127,4 +132,9 @@ void SdSpiAltDriver::setPort(uint8_t portNumber) {
   }
 #endif  // BOARD_NR_SPI >= 2
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // defined(__STM32F1__) || defined(__STM32F4__)

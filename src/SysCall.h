@@ -24,6 +24,7 @@
  */
 #ifndef SysCall_h
 #define SysCall_h
+
 /**
  * \file
  * \brief SysCall class
@@ -36,6 +37,11 @@
 #else  // defined(ARDUINO)
 #error "Unknown system"
 #endif  // defined(ARDUINO)
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //-----------------------------------------------------------------------------
 #ifdef ESP8266
 // undefine F macro if ESP8266.
@@ -85,4 +91,9 @@ inline void SysCall::yield() {
 #else  // ESP8266
 inline void SysCall::yield() {}
 #endif  // ESP8266
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // SysCall_h

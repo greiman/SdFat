@@ -23,6 +23,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "SdSpiCard.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 // debug trace macro
 #define SD_TRACE(m, b)
 // #define SD_TRACE(m, b) Serial.print(m);Serial.println(b);
@@ -668,3 +673,7 @@ fail:
   spiStop();
   return false;
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

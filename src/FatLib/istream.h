@@ -30,6 +30,10 @@
  */
 #include "ios.h"
 
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /**
  * \class istream
  * \brief Input Stream
@@ -381,4 +385,9 @@ void istream::getNumber(T* value) {
     }
   }
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // istream_h

@@ -1,6 +1,11 @@
 // Example to wipe all data from an already formatted SD.
 #include <SPI.h>
 #include "SdFat.h"
+
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 const int chipSelect = SS;
 
 SdFat sd;

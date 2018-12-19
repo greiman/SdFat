@@ -36,6 +36,11 @@
 #include "FatApiConstants.h"
 #include "FatStructs.h"
 #include "FatVolume.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 class FatFileSystem;
 //------------------------------------------------------------------------------
 // Stuff to store strings in AVR flash.
@@ -1003,4 +1008,9 @@ class FatFile {
   uint32_t   m_fileSize;         // file size in bytes
   uint32_t   m_firstCluster;     // first cluster of file
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // FatFile_h

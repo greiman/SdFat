@@ -26,6 +26,11 @@
 #include <float.h>
 #include <ctype.h>
 #include "istream.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 int istream::get() {
   int c;
@@ -394,3 +399,7 @@ void istream::skipWhite() {
   } while (isspace(c));
   setpos(&pos);
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

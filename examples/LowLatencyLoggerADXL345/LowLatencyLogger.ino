@@ -18,11 +18,16 @@
 #include "FreeStack.h"
 #include "UserTypes.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 #ifdef __AVR_ATmega328P__
 #include "MinimumSerial.h"
 MinimumSerial MinSerial;
 #define Serial MinSerial
 #endif  // __AVR_ATmega328P__
+
 //==============================================================================
 // Start of configuration constants.
 //==============================================================================

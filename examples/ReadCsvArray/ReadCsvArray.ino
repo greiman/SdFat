@@ -8,6 +8,10 @@
 #define ROW_DIM 5
 #define COL_DIM 4
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 SdFat SD;
 File file;
 

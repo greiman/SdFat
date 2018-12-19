@@ -27,6 +27,11 @@
 #include "FatVolume.h"
 #include "FatFile.h"
 #include "ArduinoFiles.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /**
  * \file
  * \brief FatFileSystem class
@@ -322,4 +327,9 @@ fail:
  private:
   FatFile m_vwd;
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // FatFileSystem_h

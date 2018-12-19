@@ -9,6 +9,11 @@
 
 // next two lines for SdFat
 #include <SdFat.h>
+
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 SdFat SD;
 
 #define CS_PIN SS

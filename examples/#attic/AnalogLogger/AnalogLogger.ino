@@ -5,6 +5,10 @@
 #include "sdios.h"
 #include "FreeStack.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 #define SD_CHIP_SELECT  SS  // SD chip select pin
 #define USE_DS1307       0  // set nonzero to use DS1307 RTC
 #define LOG_INTERVAL  1000  // mills between entries

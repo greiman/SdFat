@@ -6,6 +6,10 @@
 #include "SdFat.h"
 #include "sdios.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // create Serial stream
 ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------

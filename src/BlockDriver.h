@@ -30,6 +30,10 @@
 #define BlockDriver_h
 #include "FatLib/BaseBlockDriver.h"
 #include "SdCard/SdSpiCard.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
 //-----------------------------------------------------------------------------
 /** typedef for BlockDriver */
 #if ENABLE_EXTENDED_TRANSFER_CLASS || ENABLE_SDIO_CLASS
@@ -37,4 +41,9 @@ typedef BaseBlockDriver BlockDriver;
 #else  // ENABLE_EXTENDED_TRANSFER_CLASS || ENABLE_SDIO_CLASS
 typedef SdSpiCard BlockDriver;
 #endif  // ENABLE_EXTENDED_TRANSFER_CLASS || ENABLE_SDIO_CLASS
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // BlockDriver_h

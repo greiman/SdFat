@@ -6,6 +6,10 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 SdFat sd;
 
 SdFile file;

@@ -23,6 +23,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "fstream.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //==============================================================================
 /// @cond SHOW_PROTECTED
 int16_t FatStreamBase::getch() {
@@ -170,3 +175,7 @@ void FatStreamBase::write(char c) {
   write(&c, 1);
 }
 /// @endcond
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

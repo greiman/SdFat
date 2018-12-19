@@ -23,6 +23,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "SdSpiCard.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 bool SdSpiCardEX::readBlock(uint32_t block, uint8_t* dst) {
   if (m_curState != READ_STATE || block != m_curBlock) {
     if (!syncBlocks()) {
@@ -92,3 +97,7 @@ bool SdSpiCardEX::writeBlocks(uint32_t block,
   }
   return true;
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

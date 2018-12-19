@@ -24,6 +24,11 @@
  */
 #if defined(ESP8266)
 #include "SdSpiDriver.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 /** Initialize the SPI bus.
  *
@@ -90,4 +95,9 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   }
   SPI.transferBytes(const_cast<uint8_t*>(buf), 0, n);
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // defined(ESP8266)

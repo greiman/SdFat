@@ -29,6 +29,11 @@
  * \brief \ref ostream class
  */
 #include "ios.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //==============================================================================
 /**
  * \class ostream
@@ -273,4 +278,9 @@ class ostream : public virtual ios {
   void putPgm(const char* str);
   void putStr(const char* str);
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // ostream_h

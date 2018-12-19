@@ -25,6 +25,11 @@
 #ifndef SdInfo_h
 #define SdInfo_h
 #include <stdint.h>
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 // Based on the document:
 //
 // SD Specifications
@@ -477,4 +482,9 @@ inline uint32_t sdCardCapacity(csd_t* csd) {
     return 0;
   }
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // SdInfo_h

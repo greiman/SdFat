@@ -30,6 +30,11 @@
  */
 #include <limits.h>
 #include "FatFile.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 /** Total size of stream buffer. The entire buffer is used for output.
   * During input UNGETC_BUF_SIZE of this space is reserved for ungetc.
@@ -37,6 +42,11 @@
 const uint8_t STREAM_BUF_SIZE = 64;
 /** Amount of buffer allocated for ungetc during input. */
 const uint8_t UNGETC_BUF_SIZE = 2;
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 //------------------------------------------------------------------------------
 // Get rid of any macros defined in <stdio.h>.
 #include <stdio.h>
@@ -103,6 +113,11 @@ const uint8_t UNGETC_BUF_SIZE = 2;
 /** Seek relative to start-of-file. */
 #define SEEK_SET 0
 #endif  // SEEK_SET
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 /** \class StdioStream
  * \brief StdioStream implements a minimal stdio stream.
@@ -663,5 +678,10 @@ class StdioStream : private FatFile {
   uint8_t  m_w;
   uint8_t  m_buf[STREAM_BUF_SIZE];
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 //------------------------------------------------------------------------------
 #endif  // StdioStream_h

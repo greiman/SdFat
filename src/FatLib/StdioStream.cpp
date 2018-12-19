@@ -24,6 +24,11 @@
  */
 #include "StdioStream.h"
 #include "FmtNumber.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 int StdioStream::fclose() {
   int rtn = 0;
@@ -525,3 +530,6 @@ char* StdioStream::fmtSpace(uint8_t len) {
   return reinterpret_cast<char*>(m_p);
 }
 
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

@@ -30,6 +30,11 @@
  */
 #include <string.h>
 #include "iostream.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //==============================================================================
 /**
  * \class ibufstream
@@ -169,4 +174,9 @@ class obufstream : public ostream {
   size_t m_size;
   size_t m_in;
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // bufstream_h

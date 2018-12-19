@@ -35,6 +35,10 @@ const uint8_t chipSelect = SS;
 #include "FreeStack.h"
 #endif  // DEBUG_PRINT
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // Serial output stream
 ArduinoOutStream cout(Serial);
 

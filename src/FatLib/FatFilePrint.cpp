@@ -25,6 +25,11 @@
 #include <math.h>
 #include "FatFile.h"
 #include "FmtNumber.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 // print uint8_t with width 2
 static void print2u(print_t* pr, uint8_t v) {
@@ -250,3 +255,7 @@ size_t FatFile::printFileSize(print_t* pr) {
   }
   return pr->write(buf);
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

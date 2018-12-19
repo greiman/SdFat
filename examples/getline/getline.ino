@@ -10,6 +10,10 @@
 #include "SdFat.h"
 #include "sdios.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // SD chip select pin
 const uint8_t chipSelect = SS;
 

@@ -5,6 +5,10 @@
 #include <SPI.h>
 #include <SD.h>
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 File file;
 //------------------------------------------------------------------------------
 void setup() {

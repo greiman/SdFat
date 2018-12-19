@@ -24,6 +24,10 @@
  */
 #include "SdioCard.h"
 
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 // limit of K66 due to errata KINETIS_K_0N65N.
 const uint32_t MAX_SDHC_COUNT = 0XFFFF;
 
@@ -106,3 +110,7 @@ bool SdioCardEX::writeBlocks(uint32_t lba, const uint8_t* src, size_t nb) {
   }
   return true;
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

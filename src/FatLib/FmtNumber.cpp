@@ -28,6 +28,11 @@
 #include <avr/pgmspace.h>
 #define USE_STIMMER
 #endif  // __AVR__
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 // Stimmer div/mod 10 for AVR
 // this code fragment works out i/10 and i%10 by calculating
@@ -457,4 +462,6 @@ fail:
   return 0;
 }
 
-
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

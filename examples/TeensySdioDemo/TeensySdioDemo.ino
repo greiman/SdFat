@@ -7,6 +7,10 @@
 
 #include "SdFat.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // 32 KiB buffer.
 const size_t BUF_DIM = 32768;
 

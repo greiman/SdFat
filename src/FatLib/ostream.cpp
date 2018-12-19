@@ -27,6 +27,11 @@
 #ifndef PSTR
 #define PSTR(x) x
 #endif
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //------------------------------------------------------------------------------
 void ostream::do_fill(unsigned len) {
   for (; len < width(); len++) {
@@ -194,3 +199,7 @@ void ostream::putStr(const char *str) {
   putstr(str);
   do_fill(n);
 }
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif

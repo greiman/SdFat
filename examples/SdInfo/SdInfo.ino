@@ -5,6 +5,10 @@
 #include "SdFat.h"
 #include "sdios.h"
 
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 // Set USE_SDIO to zero for SPI card access. 
 #define USE_SDIO 0
 /*

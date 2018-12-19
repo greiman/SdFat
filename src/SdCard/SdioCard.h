@@ -26,6 +26,11 @@
 #define SdioCard_h
 #include "SysCall.h"
 #include "BlockDriver.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /**
  * \class SdioCard
  * \brief Raw SDIO access to SD and SDHC flash memory cards.
@@ -298,4 +303,9 @@ class SdioCardEX : public SdioCard {
   uint32_t m_limitLba;
   uint8_t m_curState;
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // SdioCard_h

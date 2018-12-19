@@ -24,6 +24,11 @@
 #include "SdFat.h"
 #include "FreeStack.h"
 #include "AnalogBinLogger.h"
+
+#ifdef SDFAT_NAMESPACE
+using namespace sdfat;
+#endif
+
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.

@@ -30,6 +30,11 @@
  */
 #include "FatFile.h"
 #include "iostream.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 //==============================================================================
 /**
  * \class FatStreamBase
@@ -316,5 +321,10 @@ class ofstream : public ostream, FatStreamBase {
   }
   /// @endcond
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 //------------------------------------------------------------------------------
 #endif  // fstream_h

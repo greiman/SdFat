@@ -25,6 +25,11 @@
 #ifndef BaseBlockDriver_h
 #define BaseBlockDriver_h
 #include "FatLibConfig.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /**
  * \class BaseBlockDriver
  * \brief Base block driver.
@@ -77,4 +82,9 @@ class BaseBlockDriver {
   virtual bool writeBlocks(uint32_t block, const uint8_t* src, size_t nb) = 0;
 #endif  // USE_MULTI_BLOCK_IO
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // BaseBlockDriver_h

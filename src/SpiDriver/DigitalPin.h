@@ -32,8 +32,16 @@
  */
 #ifndef DigitalPin_h
 #define DigitalPin_h
+
 #if defined(__AVR__) || defined(DOXYGEN)
 #include <avr/io.h>
+#endif
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
+#if defined(__AVR__) || defined(DOXYGEN)
 /** GpioPinMap type */
 struct GpioPinMap_t {
   volatile uint8_t* pin;   /**< address of PIN for this pin */
@@ -298,6 +306,7 @@ inline void fastPinMode(uint8_t pin, uint8_t mode) {
  * @class DigitalPin
  * @brief Fast digital port I/O
  */
+
 template<uint8_t PinNumber>
 class DigitalPin {
  public:
@@ -382,5 +391,10 @@ class DigitalPin {
     fastDigitalWrite(PinNumber, value);
   }
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // DigitalPin_h
 /** @} */

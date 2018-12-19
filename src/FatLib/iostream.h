@@ -30,6 +30,11 @@
  */
 #include "istream.h"
 #include "ostream.h"
+
+#ifdef SDFAT_NAMESPACE
+namespace sdfat {
+#endif
+
 /** Skip white space
  * \param[in] is the Stream
  * \return The stream
@@ -155,4 +160,9 @@ inline istream &operator>>(istream &is, const setw &arg) {
  */
 class iostream : public istream, public ostream {
 };
+
+#ifdef SDFAT_NAMESPACE
+}; // namespace sdfat
+#endif
+
 #endif  // iostream_h
