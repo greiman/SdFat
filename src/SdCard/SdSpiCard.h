@@ -34,8 +34,12 @@
 #include "../FatLib/BaseBlockDriver.h"
 #include "../SpiDriver/SdSpiDriver.h"
 
-namespace sdfat {
+#ifdef HOST_MOCK
+extern uint64_t _sdCardSizeB;
+extern uint8_t _sdCard[];
+#endif
 
+namespace sdfat {
 //==============================================================================
 /**
  * \class SdSpiCard
@@ -46,6 +50,7 @@ class SdSpiCard : public BaseBlockDriver {
 #else  // ENABLE_EXTENDED_TRANSFER_CLASS || ENABLE_SDIO_CLASS
 class SdSpiCard {
 #endif  // ENABLE_EXTENDED_TRANSFER_CLASS || ENABLE_SDIO_CLASS
+#ifndef HOST_MOCK
  public:
   /** Construct an instance of SdSpiCard. */
   SdSpiCard() : m_errorCode(SD_CARD_ERROR_INIT_NOT_CALLED), m_type(0) {}
@@ -302,6 +307,83 @@ class SdSpiCard {
   bool    m_spiActive;
   uint8_t m_status;
   uint8_t m_type;
+#else
+ public:
+  SdSpiCard() : m_errorCode(SD_CARD_ERROR_INIT_NOT_CALLED), m_type(0) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+  }
+  ~SdSpiCard() { }
+  bool begin(SdSpiDriver* spi, uint8_t csPin, SPISettings spiSettings) {
+    m_errorCode = 0;
+    m_status = 0;
+    (void)spi;
+    (void)csPin;
+    (void)spiSettings;
+    return true;
+  }
+  uint32_t cardSize() { return _blocks; }
+  bool erase(uint32_t firstBlock, uint32_t lastBlock) {
+    memset(_data + firstBlock * 512, 0, (lastBlock - firstBlock) * 512);
+    return true;
+  }
+  bool eraseSingleBlockEnable() { return true; }
+  void error(uint8_t code) { m_errorCode = code; }
+  int errorCode() const { return m_errorCode; }
+  int errorData() const { return m_status; }
+  bool isBusy() { return false; }
+  bool readBlock(uint32_t lba, uint8_t* dst) {
+    memcpy(dst, _data + lba * 512, 512);
+    return true;
+  }
+  bool readBlocks(uint32_t lba, uint8_t* dst, size_t nb) {
+    memcpy(dst, _data + lba, 512 * nb);
+    return true;
+  }
+  bool readCID(cid_t* cid) { return true; }
+  bool readCSD(csd_t* csd) { return true; }
+  bool readData(uint8_t *dst) { return readBlock(_multi++, dst); }
+  bool readOCR(uint32_t* ocr) { return true; }
+  bool readStart(uint32_t blockNumber) {
+    _multi = blockNumber;
+    return true;
+  }
+  bool readStatus(uint8_t* status) { return true; }
+  bool readStop() { return true; }
+  bool syncBlocks() { return true; }
+  int type() const { return m_type; }
+  bool writeBlock(uint32_t lba, const uint8_t* src) {
+    memcpy(_data + lba * 512, src, 512);
+    return true;
+  }
+  bool writeBlocks(uint32_t lba, const uint8_t* src, size_t nb) {
+    memcpy(_data + lba * 512, src, 512 * nb);
+    return true;
+  }
+  bool writeData(const uint8_t* src) { return writeBlock(_multi++, src);
+  }
+  bool writeStart(uint32_t blockNumber) {
+    _multi = blockNumber;
+    return true;
+  }
+  bool writeStart(uint32_t blockNumber, uint32_t eraseCount) {
+    erase(blockNumber, blockNumber + eraseCount);
+    _multi = blockNumber;
+    return true;
+  }
+  bool writeStop() { return true; }
+  void spiStart() { }
+  void spiStop() { }
+
+private:
+  int _multi;
+  uint8_t *_data;
+  uint64_t _cardSizeB;
+  int _blocks;
+  int m_errorCode;
+  int m_status;
+  int m_type;
+#endif
 };
 //==============================================================================
 /**

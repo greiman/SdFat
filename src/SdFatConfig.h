@@ -39,6 +39,7 @@
  * sdios.h provides C++ style IO Streams.
  */
 #define INCLUDE_SDIOS 1
+
 //------------------------------------------------------------------------------
 /**
  * Set USE_LONG_FILE_NAMES nonzero to use long file names (LFN).
@@ -211,4 +212,13 @@
 #else  // USE_STANDARD_SPI_LIBRARY
 #define IMPLEMENT_SPI_PORT_SELECTION 1
 #endif  // USE_STANDARD_SPI_LIBRARY
+
+
+#ifdef HOST_MOCK
+#undef INCLUDE_SDIOS
+#define INCLUDE_SDIOS 0
+#undef SS
+#define SS 0
+#endif
+
 #endif  // SdFatConfig_h
