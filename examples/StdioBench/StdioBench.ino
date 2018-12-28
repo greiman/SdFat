@@ -53,7 +53,7 @@ void setup() {
   for (uint8_t dataType = 0; dataType < 5; dataType++) {
     for (uint8_t fileType = 0; fileType < 2; fileType++) {
       if (!fileType) {
-        if (!printFile.open("print.txt", O_CREAT | O_RDWR | O_TRUNC)) {
+        if (!printFile.open("print.txt", O_RDWR | O_CREAT | O_TRUNC)) {
           Serial.println(F("open fail"));
           return;
         }

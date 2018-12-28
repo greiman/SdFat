@@ -34,7 +34,7 @@
 #include <limits.h>
 //------------------------------------------------------------------------------
 /** Arduino SD.h style flag for open for read. */
-#define FILE_READ O_READ
+#define FILE_READ O_RDONLY
 /** Arduino SD.h style flag for open at EOF for read/write with create. */
 #define FILE_WRITE (O_RDWR | O_CREAT | O_AT_END)
 //==============================================================================
@@ -51,9 +51,9 @@ class PrintFile : public FatFile, public Print {
    *
    * \param[in] oflag Values for \a oflag are constructed by a
    * bitwise-inclusive OR of open flags. see
-   * FatFile::open(FatFile*, const char*, uint8_t).
+   * FatFile::open(FatFile*, const char*, oflag_t).
    */
-  PrintFile(const char* path, uint8_t oflag) : FatFile(path, oflag) {}
+  PrintFile(const char* path, oflag_t oflag) : FatFile(path, oflag) {}
 #if DESTRUCTOR_CLOSES_FILE
   ~PrintFile() {}
 #endif  // DESTRUCTOR_CLOSES_FILE
@@ -128,9 +128,9 @@ class File : public FatFile, public Stream {
    *
    * \param[in] oflag Values for \a oflag are constructed by a
    * bitwise-inclusive OR of open flags. see
-   * FatFile::open(FatFile*, const char*, uint8_t).
+   * FatFile::open(FatFile*, const char*, oflag_t).
    */
-  File(const char* path, uint8_t oflag) {
+  File(const char* path, oflag_t oflag) {
     open(path, oflag);
   }
   using FatFile::clearWriteError;
@@ -182,12 +182,12 @@ class File : public FatFile, public Stream {
   }
   /** Opens the next file or folder in a directory.
    *
-   * \param[in] mode open mode flags.
+   * \param[in] oflag open oflag flags.
    * \return a File object.
    */
-  File openNextFile(uint8_t mode = O_READ) {
+  File openNextFile(oflag_t oflag = O_RDONLY) {
     File tmpFile;
-    tmpFile.openNext(this, mode);
+    tmpFile.openNext(this, oflag);
     return tmpFile;
   }
   /** Read the next byte from a file.

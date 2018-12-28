@@ -123,7 +123,7 @@ fail:
 //------------------------------------------------------------------------------
 // open with filename in fname
 #define SFN_OPEN_USES_CHKSUM 0
-bool FatFile::open(FatFile* dirFile, fname_t* fname, uint8_t oflag) {
+bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   bool emptyFound = false;
 #if SFN_OPEN_USES_CHKSUM
   uint8_t chksum;
@@ -189,8 +189,8 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, uint8_t oflag) {
     }
     index++;
   }
-  // don't create unless O_CREAT and O_WRITE
-  if (!(oflag & O_CREAT) || !(oflag & O_WRITE)) {
+  // don't create unless O_CREAT and write mode
+  if (!(oflag & O_CREAT) || !isWriteMode(oflag)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -248,7 +248,7 @@ size_t FatFile::printName(print_t* pr) {
 bool FatFile::remove() {
   dir_t* dir;
   // Can't remove if LFN or not open for write.
-  if (!isFile() || isLFN() || !(m_flags & O_WRITE)) {
+  if (!isFile() || isLFN() || !(m_flags & F_WRITE)) {
     DBG_FAIL_MACRO;
     goto fail;
   }

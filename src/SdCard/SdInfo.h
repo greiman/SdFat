@@ -81,6 +81,7 @@ typedef enum {
   SD_CARD_ERROR_WRITE,
   SD_CARD_ERROR_WRITE_FIFO,
   SD_CARD_ERROR_WRITE_START,
+  SD_CARD_ERROR_FLASH_PROGRAMMING,
   SD_CARD_ERROR_WRITE_TIMEOUT,
 
     // Misc errors.
@@ -124,9 +125,9 @@ const uint16_t SD_INIT_TIMEOUT = 2000;
 /** erase timeout ms */
 const uint16_t SD_ERASE_TIMEOUT = 10000;
 /** read timeout ms */
-const uint16_t SD_READ_TIMEOUT = 300;
+const uint16_t SD_READ_TIMEOUT = 1000;
 /** write time out ms */
-const uint16_t SD_WRITE_TIMEOUT = 600;
+const uint16_t SD_WRITE_TIMEOUT = 2000;
 //------------------------------------------------------------------------------
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */

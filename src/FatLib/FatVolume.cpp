@@ -87,7 +87,7 @@ bool FatVolume::allocateCluster(uint32_t current, uint32_t* next) {
       if (setStart) {
         // Can't find space, checked all clusters.
         DBG_FAIL_MACRO;
-        goto fail;        
+        goto fail;
       }
       find = m_allocSearchStart;
       setStart = true;
@@ -96,8 +96,8 @@ bool FatVolume::allocateCluster(uint32_t current, uint32_t* next) {
     if (find == current) {
       // Can't find space, already searched clusters after current.
       DBG_FAIL_MACRO;
-      goto fail;      
-    }    
+      goto fail;
+    }
     uint32_t f;
     int8_t fg = fatGet(find, &f);
     if (fg < 0) {
@@ -122,7 +122,7 @@ bool FatVolume::allocateCluster(uint32_t current, uint32_t* next) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-  }   
+  }
   updateFreeClusterCount(-1);
   *next = find;
   return true;

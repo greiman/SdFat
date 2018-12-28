@@ -83,22 +83,22 @@ class FatFileSystem : public  FatVolume {
   /** open a file
    *
    * \param[in] path location of file to be opened.
-   * \param[in] mode open mode flags.
+   * \param[in] oflag open flags.
    * \return a File object.
    */
-  File open(const char *path, uint8_t mode = FILE_READ) {
+  File open(const char *path, oflag_t oflag = FILE_READ) {
     File tmpFile;
-    tmpFile.open(vwd(), path, mode);
+    tmpFile.open(vwd(), path, oflag);
     return tmpFile;
   }
   /** open a file
    *
    * \param[in] path location of file to be opened.
-   * \param[in] mode open mode flags.
+   * \param[in] oflag open flags.
    * \return a File object.
    */
-  File open(const String &path, uint8_t mode = FILE_READ) {
-    return open(path.c_str(), mode );
+  File open(const String &path, oflag_t oflag = FILE_READ) {
+    return open(path.c_str(), oflag );
   }
 #endif  // ENABLE_ARDUINO_FEATURES
   /** Change a volume's working directory to root
@@ -143,7 +143,7 @@ class FatFileSystem : public  FatVolume {
     if (path[0] == '/' && path[1] == '\0') {
       return chdir(set_cwd);
     }
-    if (!dir.open(vwd(), path, O_READ)) {
+    if (!dir.open(vwd(), path, O_RDONLY)) {
       goto fail;
     }
     if (!dir.isDir()) {
@@ -215,7 +215,7 @@ fail:
    */
   void ls(print_t* pr, const char* path, uint8_t flags) {
     FatFile dir;
-    dir.open(vwd(), path, O_READ);
+    dir.open(vwd(), path, O_RDONLY);
     dir.ls(pr, flags);
   }
   //----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ fail:
    */
   bool rename(const char *oldPath, const char *newPath) {
     FatFile file;
-    if (!file.open(vwd(), oldPath, O_READ)) {
+    if (!file.open(vwd(), oldPath, O_RDONLY)) {
       return false;
     }
     return file.rename(vwd(), newPath);
@@ -278,7 +278,7 @@ fail:
    */
   bool rmdir(const char* path) {
     FatFile sub;
-    if (!sub.open(vwd(), path, O_READ)) {
+    if (!sub.open(vwd(), path, O_RDONLY)) {
       return false;
     }
     return sub.rmdir();
@@ -296,7 +296,7 @@ fail:
    */
   bool truncate(const char* path, uint32_t length) {
     FatFile file;
-    if (!file.open(vwd(), path, O_WRITE)) {
+    if (!file.open(vwd(), path, O_WRONLY)) {
       return false;
     }
     return file.truncate(length);

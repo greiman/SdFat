@@ -9,13 +9,15 @@
 // set ENABLE_EXTENDED_TRANSFER_CLASS non-zero to use faster EX classes
 
 // Use first SPI port
-SdFat sd1(1);
-// SdFatEX sd1(1);
+SdFat sd1;
+// SdFatEX sd1;
 const uint8_t SD1_CS = PA4;  // chip select for sd1
 
 // Use second SPI port
-SdFat sd2(2);
-// SdFatEX sd2(2);
+SPIClass SPI_2(2);
+SdFat sd2(&SPI_2);
+// SdFatEX sd2(&SPI_2);
+
 const uint8_t SD2_CS = PB12;   // chip select for sd2
 
 const uint8_t BUF_DIM = 100;
@@ -120,7 +122,7 @@ void setup() {
 
   // create or open /Dir2/copy.bin and truncate it to zero length
   SdFile file2;
-  if (!file2.open("copy.bin", O_WRITE | O_CREAT | O_TRUNC)) {
+  if (!file2.open("copy.bin", O_WRONLY | O_CREAT | O_TRUNC)) {
     sd2.errorExit("file2");
   }
   Serial.println(F("Copying test.bin to copy.bin"));

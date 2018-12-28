@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 20011-2017 Bill Greiman
+ * Copyright (c) 20011-2018 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,7 +24,7 @@
  */
 /**
 \mainpage Arduino %SdFat Library
-<CENTER>Copyright &copy; 2012, 2013, 2014, 2015, 2016 by William Greiman
+<CENTER>Copyright &copy 2012-2018 by William Greiman
 </CENTER>
 
 \section Intro Introduction
@@ -222,7 +222,7 @@ the bug or problem.
 
 The two example programs QuickStart, and SdInfo are useful for troubleshooting.
 
-A message like this from SdInfo with erorCode 0X1 indicates the SD card
+A message like this from SdInfo with errorCode 0X1 indicates the SD card
 is not seen by SdFat.  This is often caused by a wiring error and reformatting
 the card will not solve the problem.
 <PRE>
@@ -294,7 +294,7 @@ An application which writes to a file using print(), println() or
 write() must close the file or call sync() at the appropriate time to
 force data and directory information to be written to the SD Card.
 
-Applications must use care calling sync() sync()
+Applications must use care calling sync()
 since 2048 bytes of I/O is required to update file and
 directory information.  This includes writing the current data block, reading
 the block that contains the directory entry for update, writing the directory

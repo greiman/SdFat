@@ -50,42 +50,42 @@ int16_t FatStreamBase::getch() {
 }
 //------------------------------------------------------------------------------
 void FatStreamBase::open(const char* path, ios::openmode mode) {
-  uint8_t flags;
+  oflag_t oflag;
   switch (mode & (app | in | out | trunc)) {
   case app | in:
   case app | in | out:
-    flags = O_RDWR | O_APPEND | O_CREAT;
+    oflag = O_RDWR | O_APPEND | O_CREAT;
     break;
 
   case app:
   case app | out:
-    flags = O_WRITE | O_APPEND | O_CREAT;
+    oflag = O_WRONLY | O_APPEND | O_CREAT;
     break;
 
   case in:
-    flags = O_READ;
+    oflag = O_RDONLY;
     break;
 
   case in | out:
-    flags = O_RDWR;
+    oflag = O_RDWR;
     break;
 
   case in | out | trunc:
-    flags = O_RDWR | O_TRUNC | O_CREAT;
+    oflag = O_RDWR | O_TRUNC | O_CREAT;
     break;
 
   case out:
   case out | trunc:
-    flags = O_WRITE | O_TRUNC | O_CREAT;
+    oflag = O_WRONLY | O_TRUNC | O_CREAT;
     break;
 
   default:
     goto fail;
   }
   if (mode & ios::ate) {
-    flags |= O_AT_END;
+    oflag |= O_AT_END;
   }
-  if (!FatFile::open(path, flags)) {
+  if (!FatFile::open(path, oflag)) {
     goto fail;
   }
   setmode(mode);

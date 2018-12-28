@@ -1,8 +1,8 @@
 var searchData=
 [
   ['cacheclear',['cacheClear',['../class_fat_volume.html#aa1e3b1d0c21d202deb82668068ab00e8',1,'FatVolume']]],
-  ['card',['card',['../class_sd_file_system.html#ab5dcfbeeb7caa38a38db86003341eb07',1,'SdFileSystem']]],
-  ['cardbegin',['cardBegin',['../class_sd_fat.html#ae380e4572776db851b2f80a3ed143fca',1,'SdFat::cardBegin()'],['../class_sd_fat_sdio.html#ac49062cc8fb2a42564d0ff05b4c0be8b',1,'SdFatSdio::cardBegin()']]],
+  ['card',['card',['../class_sd_file_system.html#ab5dcfbeeb7caa38a38db86003341eb07',1,'SdFileSystem::card()'],['../class_sd_fat_sdio_e_x.html#ac3fe2fd93b491918ec77308ec7c0290c',1,'SdFatSdioEX::card()']]],
+  ['cardbegin',['cardBegin',['../class_sd_fat.html#ae380e4572776db851b2f80a3ed143fca',1,'SdFat::cardBegin()'],['../class_sd_fat_sdio.html#ac49062cc8fb2a42564d0ff05b4c0be8b',1,'SdFatSdio::cardBegin()'],['../class_sd_fat_sdio_e_x.html#a18f3cf979d7e72105c4642b0ebb56324',1,'SdFatSdioEX::cardBegin()']]],
   ['carderrorcode',['cardErrorCode',['../class_sd_file_system.html#aedfd5a0830c955bc5514e52f2f2dd066',1,'SdFileSystem']]],
   ['carderrordata',['cardErrorData',['../class_sd_file_system.html#a0602ab3c04ea33293649f0a15fc81e05',1,'SdFileSystem']]],
   ['cardsize',['cardSize',['../class_sdio_card.html#a3d8f9a92f7faec77094ec65e6c41dd45',1,'SdioCard::cardSize()'],['../class_sd_spi_card.html#afca8bd6b7e465bf9c475ba375c4deec8',1,'SdSpiCard::cardSize()']]],
@@ -13,12 +13,12 @@ var searchData=
   ['clearerror',['clearError',['../class_fat_file.html#a052e2c15a39b322a5307b693b8835b22',1,'FatFile']]],
   ['clearwriteerror',['clearWriteError',['../class_fat_file.html#aeca2a2eff91e6aa55fe1b0e3860c9a05',1,'FatFile']]],
   ['close',['close',['../class_fat_file.html#afd16af325e0642e4bff6430b7d8bb18b',1,'FatFile::close()'],['../classfstream.html#ac5720ee620c09d63dd186823e688ea9a',1,'fstream::close()'],['../classifstream.html#ac5892f472afdef6160f5fe2401b16dce',1,'ifstream::close()'],['../classofstream.html#a240f3752c7ff7a78d10c143d2083715f',1,'ofstream::close()']]],
-  ['clustercount',['clusterCount',['../class_fat_volume.html#a18446a9c5924304fa7a87d5f03ccaf21',1,'FatVolume']]],
-  ['clustersizeshift',['clusterSizeShift',['../class_fat_volume.html#ac0e63f33d71d5dc95a602834274def6a',1,'FatVolume']]],
+  ['clustercount',['clusterCount',['../class_fat_volume.html#ae724879a554174e31a737f73da418009',1,'FatVolume']]],
+  ['clustersizeshift',['clusterSizeShift',['../class_fat_volume.html#ab36468240ef6846578ad7f58d1bc41ac',1,'FatVolume']]],
   ['contiguousrange',['contiguousRange',['../class_fat_file.html#aa367708bcc8bc0e0c45c0c2a812c65da',1,'FatFile']]],
   ['createcontiguous',['createContiguous',['../class_fat_file.html#a0afc2a1cffa238d1cb2049bfa2d8d199',1,'FatFile::createContiguous(FatFile *dirFile, const char *path, uint32_t size)'],['../class_fat_file.html#a0853fbd44aee2798d14d8e3aed78f8bf',1,'FatFile::createContiguous(const char *path, uint32_t size)']]],
-  ['curcluster',['curCluster',['../class_fat_file.html#a4c03e2f6729526786e6ab4a623e0339b',1,'FatFile']]],
-  ['curposition',['curPosition',['../class_fat_file.html#a20c55b134bfd1d287a00bf64eba9332e',1,'FatFile']]],
+  ['curcluster',['curCluster',['../class_fat_file.html#a526f3dd56ce205690e45ffc86ef6f891',1,'FatFile']]],
+  ['curposition',['curPosition',['../class_fat_file.html#a97e0620949f97e9b9c91ed1094d728aa',1,'FatFile']]],
   ['curtimems',['curTimeMS',['../_sys_call_8h.html#a7a1c5babdcf00c78d4d2e6a012bd9e68',1,'SysCall.h']]],
   ['cwd',['cwd',['../class_fat_file.html#a3b68e603ad8e47bad915f0547e580adb',1,'FatFile']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['destructor_5fcloses_5ffile',['DESTRUCTOR_CLOSES_FILE',['../_sd_fat_config_8h.html#a9a2b1ca4d91cff876f48deeaacbc33da',1,'DESTRUCTOR_CLOSES_FILE():&#160;SdFatConfig.h'],['../_fat_lib_config_8h.html#a9a2b1ca4d91cff876f48deeaacbc33da',1,'DESTRUCTOR_CLOSES_FILE():&#160;FatLibConfig.h']]]
+  ['check_5fflash_5fprogramming',['CHECK_FLASH_PROGRAMMING',['../_sd_fat_config_8h.html#a63747c9ac4e3d78579690cf9eb38c4df',1,'SdFatConfig.h']]]
 ];

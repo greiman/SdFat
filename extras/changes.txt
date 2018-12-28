@@ -1,3 +1,54 @@
+28 Dec 2018
+
+Support for multiple SPI ports now uses a pointer to a SPIClass object.
+
+See the STM32Test example.
+
+explicit SdFat(SPIClass* spiPort);
+\\ or
+explicit SdFatEX(SPIClass* spiPort);
+
+
+Open flags for Particle Gen3 and ARM boards are now defined by fcntl.h.
+See SdFatConfig.h for options.
+
+Support for particle Gen3 devices.
+
+New cluster allocation algorithm.
+
+26 Apr 2017
+
+The SPI divisor has been replaced by SPISettings in the begin() call.
+
+bool begin(uint8_t csPin = SS, SPISettings spiSettings = SPI_FULL_SPEED);
+
+Several macros have been defined for backward compatibility. 
+
+#define SD_SCK_MHZ(maxMhz) SPISettings(1000000UL*maxMhz, MSBFIRST, SPI_MODE0)
+// SPI divisor constants
+/** Set SCK to max possible rate. */
+#define SPI_FULL_SPEED SD_SCK_MHZ(50)
+/** Set SCK rate to F_CPU/3 for Due */
+#define SPI_DIV3_SPEED SD_SCK_HZ(F_CPU/3)
+/** Set SCK rate to F_CPU/4. */
+#define SPI_HALF_SPEED SD_SCK_HZ(F_CPU/4)
+// ...
+
+There are two new classes, SdFatEX and SdFatSoftSpiEX.
+
+Teensy 3.5/3.6 SDIO support has been added.  Try the TeensySdioDemo example.
+Many other example will work with Teensy SDIO if you use the SdFatSdio classes
+and call begin with no parameters.
+
+ SdFatSdio sd;
+ 
+ ....
+ 
+  if (!sd.begin()) {
+    // Handle failure.
+  }
+ 
+
 13 Sep 2016
 
 Added SdFatSdioEX class with Extended SD I/O.  

@@ -99,7 +99,7 @@ void setup() {
       error("Can't create file name");
     }
   }
-  if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) {
+  if (!file.open(fileName, O_WRONLY | O_CREAT | O_EXCL)) {
     error("file.open");
   }
   // Read any Serial data.

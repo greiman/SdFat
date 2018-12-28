@@ -41,10 +41,10 @@ void setup() {
   Serial.println();
 
   // List files in root directory.
-  if (!dirFile.open("/", O_READ)) {
+  if (!dirFile.open("/", O_RDONLY)) {
     sd.errorHalt("open root failed");
   }
-  while (n < nMax && file.openNext(&dirFile, O_READ)) {
+  while (n < nMax && file.openNext(&dirFile, O_RDONLY)) {
 
     // Skip directories and hidden files.
     if (!file.isSubDir() && !file.isHidden()) {
@@ -81,7 +81,7 @@ void loop() {
     return;
   }
   Serial.println(i);
-  if (!file.open(&dirFile, dirIndex[i], O_READ)) {
+  if (!file.open(&dirFile, dirIndex[i], O_RDONLY)) {
     sd.errorHalt(F("open"));
   }
   Serial.println();

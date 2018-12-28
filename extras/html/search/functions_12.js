@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['vol',['vol',['../class_fat_file_system.html#a4ca68fe47bb675df0a80df1ed7a53698',1,'FatFileSystem']]],
-  ['volume',['volume',['../class_fat_file.html#a3c64bd8a9abb9a6461d4addb405614df',1,'FatFile']]],
-  ['volumeblockcount',['volumeBlockCount',['../class_fat_volume.html#a07bc98088ce4a9c725700899c184f7fc',1,'FatVolume']]],
-  ['vwd',['vwd',['../class_fat_file_system.html#acf257d02b7166683bda2abc5058004bf',1,'FatFileSystem']]]
+  ['ungetc',['ungetc',['../class_stdio_stream.html#ac00e0dd906c2e857ece53794c6c92786',1,'StdioStream']]],
+  ['unsetf',['unsetf',['../classios__base.html#a3bf7d054a433ed15e8b984e16f630fa4',1,'ios_base']]],
+  ['uppercase',['uppercase',['../ios_8h.html#af5d5e1a0effa1b500bb882feed5a2061',1,'ios.h']]]
 ];

@@ -66,7 +66,7 @@ void demoFgets() {
 //------------------------------------------------------------------------------
 void makeTestFile() {
   // create or open test file
-  SdFile wrfile("fgets.txt", O_WRITE | O_CREAT | O_TRUNC);
+  SdFile wrfile("fgets.txt", O_WRONLY | O_CREAT | O_TRUNC);
 
   // check for open error
   if (!wrfile.isOpen()) {

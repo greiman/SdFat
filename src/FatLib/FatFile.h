@@ -116,9 +116,9 @@ class FatFile {
    * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
    *
    * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
-   * OR of open flags. see FatFile::open(FatFile*, const char*, uint8_t).
+   * OR of open flags. see FatFile::open(FatFile*, const char*, oflag_t).
    */
-  FatFile(const char* path, uint8_t oflag) {
+  FatFile(const char* path, oflag_t oflag) {
     m_attr = FILE_ATTR_CLOSED;
     m_error = 0;
     open(path, oflag);
@@ -333,7 +333,7 @@ class FatFile {
    */
   bool exists(const char* path) {
     FatFile file;
-    return file.open(this, path, O_READ);
+    return file.open(this, path, O_RDONLY);
   }
   /**
    * Get a string from a file.
@@ -486,12 +486,12 @@ class FatFile {
    * \param[in] path with a valid 8.3 DOS name for a file to be opened.
    *
    * \param[in] oflag bitwise-inclusive OR of open mode flags.
-   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *                  See see FatFile::open(FatFile*, const char*, oflag_t).
    *
    * \return The value true is returned for success and
    * the value false is returned for failure.
    */
-  bool open(FatFileSystem* fs, const char* path, uint8_t oflag);
+  bool open(FatFileSystem* fs, const char* path, oflag_t oflag);
   /** Open a file by index.
    *
    * \param[in] dirFile An open FatFile instance for the directory.
@@ -500,12 +500,12 @@ class FatFile {
    * opened.  The value for \a index is (directory file position)/32.
    *
    * \param[in] oflag bitwise-inclusive OR of open mode flags.
-   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *                  See see FatFile::open(FatFile*, const char*, oflag_t).
    *
    * See open() by path for definition of flags.
    * \return true for success or false for failure.
    */
-  bool open(FatFile* dirFile, uint16_t index, uint8_t oflag);
+  bool open(FatFile* dirFile, uint16_t index, oflag_t oflag);
   /** Open a file or directory by name.
    *
    * \param[in] dirFile An open FatFile instance for the directory containing
@@ -516,13 +516,13 @@ class FatFile {
    * \param[in] oflag Values for \a oflag are constructed by a
    *                  bitwise-inclusive OR of flags from the following list
    *
-   * O_READ - Open for reading.
+   * O_RDONLY - Open for reading.
    *
-   * O_RDONLY - Same as O_READ.
+   * O_READ - Same as O_RDONLY (GNU).
    *
-   * O_WRITE - Open for writing.
+   * O_WRONLY - Open for writing.
    *
-   * O_WRONLY - Same as O_WRITE.
+   * O_WRITE - Same as O_WRONLY (GNU).
    *
    * O_RDWR - Open for reading and writing.
    *
@@ -552,18 +552,18 @@ class FatFile {
    * \return The value true is returned for success and
    * the value false is returned for failure.
    */
-  bool open(FatFile* dirFile, const char* path, uint8_t oflag);
+  bool open(FatFile* dirFile, const char* path, oflag_t oflag);
   /** Open a file in the current working directory.
    *
    * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
    *
    * \param[in] oflag bitwise-inclusive OR of open mode flags.
-   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *                  See see FatFile::open(FatFile*, const char*, oflag_t).
    *
    * \return The value true is returned for success and
    * the value false is returned for failure.
    */
-  bool open(const char* path, uint8_t oflag = O_READ) {
+  bool open(const char* path, oflag_t oflag = O_RDONLY) {
     return open(m_cwd, path, oflag);
   }
   /** Open the next file or subdirectory in a directory.
@@ -572,11 +572,11 @@ class FatFile {
    *                    containing the file to be opened.
    *
    * \param[in] oflag bitwise-inclusive OR of open mode flags.
-   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *                  See see FatFile::open(FatFile*, const char*, oflag_t).
    *
    * \return true for success or false for failure.
    */
-  bool openNext(FatFile* dirFile, uint8_t oflag = O_READ);
+  bool openNext(FatFile* dirFile, oflag_t oflag = O_RDONLY);
   /** Open a volume's root directory.
    *
    * \param[in] vol The FAT volume containing the root directory to be opened.
@@ -970,18 +970,20 @@ class FatFile {
   bool openCluster(FatFile* file);
   static bool parsePathName(const char* str, fname_t* fname, const char** ptr);
   bool mkdir(FatFile* parent, fname_t* fname);
-  bool open(FatFile* dirFile, fname_t* fname, uint8_t oflag);
-  bool openCachedEntry(FatFile* dirFile, uint16_t cacheIndex, uint8_t oflag,
+  bool open(FatFile* dirFile, fname_t* fname, oflag_t oflag);
+  bool openCachedEntry(FatFile* dirFile, uint16_t cacheIndex, oflag_t oflag,
                        uint8_t lfnOrd);
   bool readLBN(uint32_t* lbn);
   dir_t* readDirCache(bool skipReadOk = false);
   bool setDirSize();
 
   // bits defined in m_flags
-  // should be 0X0F
-  static const uint8_t F_OFLAG = (O_ACCMODE | O_APPEND | O_SYNC);
-  // sync of directory entry required
-  static const uint8_t F_FILE_DIR_DIRTY = 0X80;
+  static const uint8_t F_READ           = 0X01;
+  static const uint8_t F_WRITE          = 0X02;
+  static const uint8_t F_FILE_DIR_DIRTY = 0X04;
+  static const uint8_t F_APPEND         = 0X08;
+  static const uint8_t F_SYNC           = 0X80;
+
 
   // global pointer to cwd dir
   static FatFile* m_cwd;

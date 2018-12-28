@@ -117,12 +117,12 @@ class StdioStream : private FatFile {
   StdioStream() {
     m_w = m_r = 0;
     m_p = m_buf;
-    m_flags = 0;
+    m_status = 0;
   }
   //----------------------------------------------------------------------------
   /** Clear the stream's end-of-file and error indicators. */
   void clearerr() {
-    m_flags &= ~(F_ERR | F_EOF);
+    m_status &= ~(S_ERR | S_EOF);
   }
   //----------------------------------------------------------------------------
   /** Close a stream.
@@ -142,14 +142,14 @@ class StdioStream : private FatFile {
    * \return non-zero if and only if the end-of-file indicator is set.
    */
   int feof() {
-    return (m_flags & F_EOF) != 0;
+    return (m_status & S_EOF) != 0;
   }
   //----------------------------------------------------------------------------
   /** Test the stream's error indicator.
    * \return return non-zero if and only if the error indicator is set.
    */
   int ferror() {
-    return (m_flags & F_ERR) != 0;
+    return (m_status & S_ERR) != 0;
   }
   //----------------------------------------------------------------------------
   /** Flush the stream.
@@ -650,14 +650,14 @@ class StdioStream : private FatFile {
   char* fmtSpace(uint8_t len);
   int write(const void* buf, size_t count);
   //----------------------------------------------------------------------------
-  // F_SRD and F_WR are never simultaneously asserted
-  static const uint8_t F_SRD = 0x01;  // OK to read
-  static const uint8_t F_SWR = 0x02;  // OK to write
-  static const uint8_t F_SRW = 0x04;  // open for reading & writing
-  static const uint8_t F_EOF = 0x10;  // found EOF
-  static const uint8_t F_ERR = 0x20;  // found error
+  // S_SRD and S_WR are never simultaneously asserted
+  static const uint8_t S_SRD = 0x01;  // OK to read
+  static const uint8_t S_SWR = 0x02;  // OK to write
+  static const uint8_t S_SRW = 0x04;  // open for reading & writing
+  static const uint8_t S_EOF = 0x10;  // found EOF
+  static const uint8_t S_ERR = 0x20;  // found error
   //----------------------------------------------------------------------------
-  uint8_t  m_flags;
+  uint8_t  m_status;
   uint8_t* m_p;
   uint8_t  m_r;
   uint8_t  m_w;

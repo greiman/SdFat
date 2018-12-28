@@ -35,7 +35,7 @@ void setup() {
   // Warning, openNext starts at the current position of sd.vwd() so a
   // rewind may be neccessary in your application.
   sd.vwd()->rewind();
-  while (file.openNext(sd.vwd(), O_READ)) {
+  while (file.openNext(sd.vwd(), O_RDONLY)) {
     file.printFileSize(&Serial);
     Serial.write(' ');
     file.printModifyDateTime(&Serial);

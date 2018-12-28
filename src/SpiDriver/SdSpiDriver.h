@@ -32,12 +32,12 @@
 #include "SPI.h"
 #include "SdSpiBaseDriver.h"
 #include "SdFatConfig.h"
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /** SDCARD_SPI is defined if board has built-in SD card socket */
 #ifndef SDCARD_SPI
 #define SDCARD_SPI SPI
 #endif  // SDCARD_SPI
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * \class SdSpiLibDriver
  * \brief SdSpiLibDriver - use standard SPI library.
@@ -48,6 +48,63 @@ class SdSpiLibDriver : public SdSpiBaseDriver {
 class SdSpiLibDriver {
 #endif  // ENABLE_SOFTWARE_SPI_CLASS
  public:
+#if IMPLEMENT_SPI_PORT_SELECTION
+  /** Activate SPI hardware. */
+  void activate() {
+    m_spi->beginTransaction(m_spiSettings);
+  }
+  /** Deactivate SPI hardware. */
+  void deactivate() {
+    m_spi->endTransaction();
+  }
+  /** Initialize the SPI bus.
+   *
+   * \param[in] csPin SD card chip select pin.
+   */
+  void begin(uint8_t csPin) {
+    m_csPin = csPin;
+    digitalWrite(csPin, HIGH);
+    pinMode(csPin, OUTPUT);
+    m_spi->begin();
+  }
+  /** Receive a byte.
+   *
+   * \return The byte.
+   */
+  uint8_t receive() {
+    return m_spi->transfer( 0XFF);
+  }
+  /** Receive multiple bytes.
+  *
+  * \param[out] buf Buffer to receive the data.
+  * \param[in] n Number of bytes to receive.
+  *
+  * \return Zero for no error or nonzero error code.
+  */
+  uint8_t receive(uint8_t* buf, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+      buf[i] = m_spi->transfer(0XFF);
+    }
+    return 0;
+  }
+  /** Send a byte.
+   *
+   * \param[in] data Byte to send
+   */
+  void send(uint8_t data) {
+    m_spi->transfer(data);
+  }
+  /** Send multiple bytes.
+   *
+   * \param[in] buf Buffer for data to be sent.
+   * \param[in] n Number of bytes to send.
+   */
+  void send(const uint8_t* buf, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+      m_spi->transfer(buf[i]);
+    }
+  }
+#else  // IMPLEMENT_SPI_PORT_SELECTION
   /** Activate SPI hardware. */
   void activate() {
     SDCARD_SPI.beginTransaction(m_spiSettings);
@@ -103,6 +160,7 @@ class SdSpiLibDriver {
       SDCARD_SPI.transfer(buf[i]);
     }
   }
+#endif  // IMPLEMENT_SPI_PORT_SELECTION
   /** Set CS low. */
   void select() {
     digitalWrite(m_csPin, LOW);
@@ -118,12 +176,22 @@ class SdSpiLibDriver {
   void unselect() {
     digitalWrite(m_csPin, HIGH);
   }
-
+#if IMPLEMENT_SPI_PORT_SELECTION || defined(DOXYGEN)
+  /** Set SPI port.
+   * \param[in] spiPort Hardware SPI port.
+   */
+  void setPort(SPIClass* spiPort) {
+    m_spi = spiPort ? spiPort : &SDCARD_SPI;
+  }
  private:
+  SPIClass* m_spi;
+#else   // IMPLEMENT_SPI_PORT_SELECTION
+ private:
+#endif  // IMPLEMENT_SPI_PORT_SELECTION
   SPISettings m_spiSettings;
   uint8_t m_csPin;
 };
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * \class SdSpiAltDriver
  * \brief Optimized SPI class for access to SD and SDHC flash memory cards.
@@ -184,10 +252,11 @@ class SdSpiAltDriver {
   }
 #if IMPLEMENT_SPI_PORT_SELECTION || defined(DOXYGEN)
   /** Set SPI port number.
-   * \param[in] portNumber Hardware SPI port number.
+   * \param[in] spiPort Hardware SPI port.
    */
-  void setPort(uint8_t portNumber);
-
+  void setPort(SPIClass* spiPort) {
+    m_spi = spiPort ? spiPort : &SDCARD_SPI;
+  }
  private:
   SPIClass* m_spi;
 #else   // IMPLEMENT_SPI_PORT_SELECTION
@@ -282,7 +351,7 @@ class SdSpiSoftDriver : public SdSpiBaseDriver {
   SoftSPI<MisoPin, MosiPin, SckPin, 0> m_spi;
 };
 #endif  // ENABLE_SOFTWARE_SPI_CLASS || defined(DOXYGEN)
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Choose SPI driver for SdFat and SdFatEX classes.
 #if USE_STANDARD_SPI_LIBRARY || !SD_HAS_CUSTOM_SPI
 /** SdFat uses Arduino library SPI. */
@@ -300,7 +369,7 @@ typedef SdSpiBaseDriver SdSpiDriver;
 // Don't need virtual driver.
 typedef SdFatSpiDriver SdSpiDriver;
 #endif  // ENABLE_SOFTWARE_SPI_CLASS
-//=============================================================================
+//==============================================================================
 // Use of in-line for AVR to save flash.
 #ifdef __AVR__
 //------------------------------------------------------------------------------

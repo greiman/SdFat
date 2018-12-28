@@ -69,14 +69,16 @@
  * the SPI bus may not be shared with other devices in this mode.
  */
 #define ENABLE_EXTENDED_TRANSFER_CLASS 0
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
- * If the symbol USE_STANDARD_SPI_LIBRARY is nonzero, the classes SdFat and
- * SdFatEX use the standard Arduino SPI.h library. If USE_STANDARD_SPI_LIBRARY
- * is zero, an optimized custom SPI driver is used if it exists.
+ * If the symbol USE_STANDARD_SPI_LIBRARY is zero, an optimized custom SPI
+ * driver is used if it exists.  If the symbol USE_STANDARD_SPI_LIBRARY is
+ * one, the standard Arduino SPI.h library is used with SPI. If the symbol
+ * USE_STANDARD_SPI_LIBRARY is two, the SPI port can be selected with the
+ * constructors SdFat(SPIClass* spiPort) and SdFatEX(SPIClass* spiPort).
  */
 #define USE_STANDARD_SPI_LIBRARY 0
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * If the symbol ENABLE_SOFTWARE_SPI_CLASS is nonzero, the class SdFatSoftSpi
  * will be defined. If ENABLE_EXTENDED_TRANSFER_CLASS is also nonzero,
@@ -84,8 +86,25 @@
  */
 #define ENABLE_SOFTWARE_SPI_CLASS 0
 //------------------------------------------------------------------------------
+/** If the symbol USE_FCNTL_H is nonzero, open flags for access modes O_RDONLY,
+ * O_WRONLY, O_RDWR and the open modifiers O_APPEND, O_CREAT, O_EXCL, O_SYNC
+ * will be defined by including the system file fcntl.h.
+ */
+#if defined(__AVR__)
+// AVR fcntl.h does not define open flags.
+#define USE_FCNTL_H 0
+#elif defined(PLATFORM_ID)
+// Particle boards - use fcntl.h.
+#define USE_FCNTL_H 1
+#elif defined(__arm__)
+// ARM gcc defines open flags.
+#define USE_FCNTL_H 1
+#else  // defined(__AVR__)
+#define USE_FCNTL_H 0
+#endif  // defined(__AVR__)
+//------------------------------------------------------------------------------
 /**
- * If CHECK_FLASH_PROGRAMMING is zero, overlap of single sector flash 
+ * If CHECK_FLASH_PROGRAMMING is zero, overlap of single sector flash
  * programming and other operations will be allowed for faster write
  * performance.
  *
@@ -190,7 +209,7 @@
 /**
  * Determine the default SPI configuration.
  */
-#if defined(__STM32F1__) || defined(__STM32F4__) 
+#if defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID)
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
 #elif defined(__AVR__)\
@@ -206,9 +225,9 @@
 /**
  * Check if API to select HW SPI port is needed.
  */
-#if (USE_STANDARD_SPI_LIBRARY || SD_HAS_CUSTOM_SPI < 2)
-#define IMPLEMENT_SPI_PORT_SELECTION 0
-#else  // USE_STANDARD_SPI_LIBRARY
+#if USE_STANDARD_SPI_LIBRARY > 1 || SD_HAS_CUSTOM_SPI > 1
 #define IMPLEMENT_SPI_PORT_SELECTION 1
-#endif  // USE_STANDARD_SPI_LIBRARY
+#else  // IMPLEMENT_SPI_PORT_SELECTION
+#define IMPLEMENT_SPI_PORT_SELECTION 0
+#endif  // IMPLEMENT_SPI_PORT_SELECTION
 #endif  // SdFatConfig_h

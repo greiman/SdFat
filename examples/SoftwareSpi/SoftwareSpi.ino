@@ -36,7 +36,7 @@ void setup() {
     sd.initErrorHalt();
   }
 
-  if (!file.open("SoftSPI.txt", O_CREAT | O_RDWR)) {
+  if (!file.open("SoftSPI.txt", O_RDWR | O_CREAT)) {
     sd.errorHalt(F("open failed"));
   }
   file.println(F("This line was printed using software SPI."));

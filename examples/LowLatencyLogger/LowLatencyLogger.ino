@@ -197,7 +197,7 @@ void binaryToCsv() {
   strcpy(csvName, binName);
   strcpy(&csvName[BASE_NAME_SIZE + 3], "csv");
 
-  if (!csvFile.open(csvName, O_WRITE | O_CREAT | O_TRUNC)) {
+  if (!csvFile.open(csvName, O_WRONLY | O_CREAT | O_TRUNC)) {
     error("open csvFile failed");
   }
   binFile.rewind();
@@ -338,7 +338,7 @@ void openBinFile() {
   }
   binFile.close();
   strcpy(binName, name);
-  if (!binFile.open(binName, O_READ)) {
+  if (!binFile.open(binName, O_RDONLY)) {
     Serial.println(F("open failed"));
     return;
   }

@@ -117,7 +117,7 @@ void setup() {
 
   // create or open /Dir2/copy.bin and truncate it to zero length
   SdFile file2;
-  if (!file2.open("copy.bin", O_WRITE | O_CREAT | O_TRUNC)) {
+  if (!file2.open("copy.bin", O_WRONLY | O_CREAT | O_TRUNC)) {
     sd2.errorExit("file2");
   }
   Serial.println(F("Copying test.bin to copy.bin"));

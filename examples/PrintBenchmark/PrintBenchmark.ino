@@ -65,7 +65,7 @@ void loop() {
     char fileName[13] = "bench0.txt";
     fileName[5] = '0' + test;
     // open or create file - truncate existing file.
-    if (!file.open(fileName, O_CREAT | O_TRUNC | O_RDWR)) {
+    if (!file.open(fileName, O_RDWR | O_CREAT | O_TRUNC)) {
       error("open failed");
     }
     maxLatency = 0;
