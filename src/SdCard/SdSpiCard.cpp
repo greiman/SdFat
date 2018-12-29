@@ -143,6 +143,7 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
       error(SD_CARD_ERROR_CMD0);
       goto fail;
     }
+    delayMS(SD_CMD0_DELAY);
   }
 #if USE_SD_CRC
   if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
@@ -208,7 +209,7 @@ uint8_t SdSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
     spiStart();
   }
   // wait if busy
-  waitNotBusy(SD_WRITE_TIMEOUT);
+  waitNotBusy(SD_CMD_TIMEOUT);
 
 #if USE_SD_CRC
   // form message
