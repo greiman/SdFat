@@ -23,11 +23,115 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "SdSpiCard.h"
+//==============================================================================
 // debug trace macro
 #define SD_TRACE(m, b)
 // #define SD_TRACE(m, b) Serial.print(m);Serial.println(b);
 #define SD_CS_DBG(m)
 // #define SD_CS_DBG(m) Serial.println(F(m));
+
+#define DBG_PROFILE_TIME 0
+#if DBG_PROFILE_TIME
+
+#define DBG_TAG_LIST\
+  DBG_TAG(DBG_ACMD41_TIME, "ACMD41 time")\
+  DBG_TAG(DBG_CMD_BUSY, "cmd busy")\
+  DBG_TAG(DBG_ERASE_BUSY, "erase busy")\
+  DBG_TAG(DBG_WAIT_READ, "wait read")\
+  DBG_TAG(DBG_WRITE_FLASH, "write flash")\
+  DBG_TAG(DBG_WRITE_BUSY, "write busy")\
+  DBG_TAG(DBG_WRITE_STOP, "write stop")\
+  DBG_TAG(DBG_ACMD41_COUNT, "ACMD41 count")
+
+#define DBG_TIME_DIM DBG_ACMD41_COUNT
+
+enum DbgTag {
+  #define DBG_TAG(tag, str) tag,
+  DBG_TAG_LIST
+  DBG_COUNT_DIM
+  #undef DBG_TAG
+};
+
+static uint32_t dbgCount[DBG_COUNT_DIM];
+static uint32_t dbgBgnTime[DBG_TIME_DIM];
+static uint32_t dbgMaxTime[DBG_TIME_DIM];
+static uint32_t dbgMinTime[DBG_TIME_DIM];
+static uint32_t dbgTotalTime[DBG_TIME_DIM];
+//------------------------------------------------------------------------------
+static void dbgBeginTime(DbgTag tag) {
+  dbgBgnTime[tag] = micros();
+}
+//------------------------------------------------------------------------------
+static void dbgEndTime(DbgTag tag) {
+  uint32_t m = micros() - dbgBgnTime[tag];
+  dbgTotalTime[tag] += m;
+  if (m > dbgMaxTime[tag]) {
+    dbgMaxTime[tag] = m;
+  }
+  if (m < dbgMinTime[tag]) {
+    dbgMinTime[tag] = m;
+  }
+  dbgCount[tag]++;
+}
+//------------------------------------------------------------------------------
+static void dbgEventCount(DbgTag tag) {
+  dbgCount[tag]++;
+}
+//------------------------------------------------------------------------------
+void dbgInitTime() {
+  for (int i = 0; i < DBG_COUNT_DIM; i++) {
+    dbgCount[i] = 0;
+    if (i < DBG_TIME_DIM) {
+      dbgMaxTime[i] = 0;
+      dbgMinTime[i] = 9999999;
+      dbgTotalTime[i] = 0;
+    }
+  }
+}
+//------------------------------------------------------------------------------
+static void dbgPrintTagText(uint8_t tag) {
+  #define DBG_TAG(e, m) case e: Serial.print(F(m)); break;
+  switch (tag) {
+    DBG_TAG_LIST
+  }
+  #undef DBG_TAG
+}
+//------------------------------------------------------------------------------
+void dbgPrintTime() {
+  Serial.println();
+  Serial.println(F("======================="));
+  Serial.println(F("item,event,min,max,avg"));
+  Serial.println(F("tag,count,usec,usec,usec"));
+  for (int i = 0; i < DBG_COUNT_DIM; i++) {
+    if (dbgCount[i]) {
+      dbgPrintTagText(i);
+      Serial.print(',');
+      Serial.print(dbgCount[i]);
+      if (i < DBG_TIME_DIM) {
+        Serial.print(',');
+        Serial.print(dbgMinTime[i]);
+        Serial.print(',');
+        Serial.print(dbgMaxTime[i]);
+        Serial.print(',');
+        Serial.print(dbgTotalTime[i]/dbgCount[i]);
+      }
+      Serial.println();
+    }
+  }
+  Serial.println(F("======================="));
+  Serial.println();
+}
+#undef DBG_TAG_LIST
+#define DBG_BEGIN_TIME(tag) dbgBeginTime(tag)
+#define DBG_END_TIME(tag) dbgEndTime(tag)
+#define DBG_EVENT_COUNT(tag) dbgEventCount(tag)
+#else  // DBG_PROFILE_TIME
+#define DBG_BEGIN_TIME(tag)
+#define DBG_END_TIME(tag)
+#define DBG_EVENT_COUNT(tag)
+void dbgInitTime() {}
+void dbgPrintTime() {}
+#endif  // DBG_PROFILE_TIME
 //==============================================================================
 #if USE_SD_CRC
 // CRC functions
@@ -137,13 +241,11 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
     spiSend(0XFF);
   }
   spiSelect();
+
   // command to go idle in SPI mode
-  while (cardCommand(CMD0, 0) != R1_IDLE_STATE) {
-    if (isTimedOut(t0, SD_INIT_TIMEOUT)) {
-      error(SD_CARD_ERROR_CMD0);
-      goto fail;
-    }
-    delayMS(SD_CMD0_DELAY);
+  if (cardCommand(CMD0, 0) != R1_IDLE_STATE) {
+    error(SD_CARD_ERROR_CMD0);
+    goto fail;
   }
 #if USE_SD_CRC
   if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
@@ -152,33 +254,31 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
   }
 #endif  // USE_SD_CRC
   // check SD version
-  while (1) {
-    if (cardCommand(CMD8, 0x1AA) == (R1_ILLEGAL_COMMAND | R1_IDLE_STATE)) {
-      type(SD_CARD_TYPE_SD1);
-      break;
-    }
+  if (cardCommand(CMD8, 0x1AA) == (R1_ILLEGAL_COMMAND | R1_IDLE_STATE)) {
+    type(SD_CARD_TYPE_SD1);
+  } else {
     for (uint8_t i = 0; i < 4; i++) {
       m_status = spiReceive();
     }
     if (m_status == 0XAA) {
       type(SD_CARD_TYPE_SD2);
-      break;
-    }
-    if (isTimedOut(t0, SD_INIT_TIMEOUT)) {
+    } else {
       error(SD_CARD_ERROR_CMD8);
       goto fail;
     }
   }
   // initialize card and send host supports SDHC if SD2
   arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
-
+  DBG_BEGIN_TIME(DBG_ACMD41_TIME);
   while (cardAcmd(ACMD41, arg) != R1_READY_STATE) {
+    DBG_EVENT_COUNT(DBG_ACMD41_COUNT);
     // check for timeout
     if (isTimedOut(t0, SD_INIT_TIMEOUT)) {
       error(SD_CARD_ERROR_ACMD41);
       goto fail;
     }
   }
+  DBG_END_TIME(DBG_ACMD41_TIME);
   // if SD2 read OCR register to check for SDHC card
   if (type() == SD_CARD_TYPE_SD2) {
     if (cardCommand(CMD58, 0)) {
@@ -208,8 +308,12 @@ uint8_t SdSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
   if (!m_spiActive) {
     spiStart();
   }
-  // wait if busy
-  waitNotBusy(SD_CMD_TIMEOUT);
+  // wait if busy unless CMD0
+  if (cmd != CMD0) {
+    DBG_BEGIN_TIME(DBG_CMD_BUSY);
+    waitNotBusy(SD_CMD_TIMEOUT);
+    DBG_END_TIME(DBG_CMD_BUSY);
+  }
 
 #if USE_SD_CRC
   // form message
@@ -234,18 +338,15 @@ uint8_t SdSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
   for (int8_t i = 3; i >= 0; i--) {
     spiSend(pa[i]);
   }
-
   // send CRC - correct for CMD0 with arg zero or CMD8 with arg 0X1AA
   spiSend(cmd == CMD0 ? 0X95 : 0X87);
 #endif  // USE_SD_CRC
 
-  // skip stuff byte for stop read
-  if (cmd == CMD12) {
-    spiReceive();
-  }
+  // discard first fill byte to avoid MISO pull-up problem.
+  spiReceive();
 
-  // wait for response
-  for (uint8_t i = 0; ((m_status = spiReceive()) & 0X80) && i != 0XFF; i++) {
+  // there are 1-8 fill bytes before response.  fill bytes should be 0XFF.
+  for (uint8_t i = 0; ((m_status = spiReceive()) & 0X80) && i < 10; i++) {
   }
   return m_status;
 }
@@ -280,10 +381,12 @@ bool SdSpiCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
     error(SD_CARD_ERROR_ERASE);
     goto fail;
   }
+  DBG_BEGIN_TIME(DBG_ERASE_BUSY);
   if (!waitNotBusy(SD_ERASE_TIMEOUT)) {
     error(SD_CARD_ERROR_ERASE_TIMEOUT);
     goto fail;
   }
+  DBG_END_TIME(DBG_ERASE_BUSY);
   spiStop();
   return true;
 
@@ -367,6 +470,7 @@ bool SdSpiCard::readData(uint8_t* dst, size_t count) {
 #if USE_SD_CRC
   uint16_t crc;
 #endif  // USE_SD_CRC
+  DBG_BEGIN_TIME(DBG_WAIT_READ);
   // wait for start block token
   uint16_t t0 = curTimeMS();
   while ((m_status = spiReceive()) == 0XFF) {
@@ -375,6 +479,7 @@ bool SdSpiCard::readData(uint8_t* dst, size_t count) {
       goto fail;
     }
   }
+  DBG_END_TIME(DBG_WAIT_READ);
   if (m_status != DATA_START_BLOCK) {
     error(SD_CARD_ERROR_READ);
     goto fail;
@@ -543,10 +648,12 @@ bool SdSpiCard::writeBlock(uint32_t blockNumber, const uint8_t* src) {
 
 #if CHECK_FLASH_PROGRAMMING
   // wait for flash programming to complete
+  DBG_BEGIN_TIME(DBG_WRITE_FLASH);
   if (!waitNotBusy(SD_WRITE_TIMEOUT)) {
     error(SD_CARD_ERROR_FLASH_PROGRAMMING);
     goto fail;
   }
+  DBG_END_TIME(DBG_WRITE_FLASH);
   // response is r2 so get and check two bytes for nonzero
   if (cardCommand(CMD13, 0) || spiReceive()) {
     error(SD_CARD_ERROR_CMD13);
@@ -580,10 +687,12 @@ bool SdSpiCard::writeBlocks(uint32_t block, const uint8_t* src, size_t count) {
 //------------------------------------------------------------------------------
 bool SdSpiCard::writeData(const uint8_t* src) {
   // wait for previous write to finish
+  DBG_BEGIN_TIME(DBG_WRITE_BUSY);
   if (!waitNotBusy(SD_WRITE_TIMEOUT)) {
     error(SD_CARD_ERROR_WRITE_TIMEOUT);
     goto fail;
   }
+  DBG_END_TIME(DBG_WRITE_BUSY);
   if (!writeData(WRITE_MULTIPLE_TOKEN, src)) {
     goto fail;
   }
@@ -657,9 +766,11 @@ fail:
 }
 //------------------------------------------------------------------------------
 bool SdSpiCard::writeStop() {
+  DBG_BEGIN_TIME(DBG_WRITE_STOP);
   if (!waitNotBusy(SD_WRITE_TIMEOUT)) {
     goto fail;
   }
+  DBG_END_TIME(DBG_WRITE_STOP);
   spiSend(STOP_TRAN_TOKEN);
   spiStop();
   return true;

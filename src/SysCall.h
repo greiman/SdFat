@@ -52,11 +52,6 @@ inline uint16_t curTimeMS() {
   return millis();
 }
 //------------------------------------------------------------------------------
-/** Delay milliseconds */
-inline void delayMS(uint16_t ms) {
-  delay(ms);
-}
-//------------------------------------------------------------------------------
 /**
  * \class SysCall
  * \brief SysCall - Class to wrap system calls.
