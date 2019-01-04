@@ -243,9 +243,17 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
   spiSelect();
 
   // command to go idle in SPI mode
-  if (cardCommand(CMD0, 0) != R1_IDLE_STATE) {
-    error(SD_CARD_ERROR_CMD0);
-    goto fail;
+  for (uint8_t i = 0; cardCommand(CMD0, 0) != R1_IDLE_STATE; i++) {
+    if (i == SD_CMD0_RETRY) {
+      error(SD_CARD_ERROR_CMD0);
+      goto fail;
+    }
+    // stop multi-block write
+    spiSend(STOP_TRAN_TOKEN);
+    // finish block transfer
+    for (int i = 0; i < 520; i++) {
+      spiReceive();
+    }
   }
 #if USE_SD_CRC
   if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
