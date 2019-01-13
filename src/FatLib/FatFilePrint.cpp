@@ -96,12 +96,16 @@ void FatFile::dmpFile(print_t* pr, uint32_t pos, size_t n) {
   pr->write('\n');
 }
 //------------------------------------------------------------------------------
-void FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
+bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
   FatFile file;
+  if (!isDir() || getError()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
   rewind();
   while (file.openNext(this, O_RDONLY)) {
-    // indent for dir level
     if (!file.isHidden() || (flags & LS_A)) {
+    // indent for dir level
       for (uint8_t i = 0; i < indent; i++) {
         pr->write(' ');
       }
@@ -120,11 +124,22 @@ void FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
       pr->write('\r');
       pr->write('\n');
       if ((flags & LS_R) && file.isDir()) {
-        file.ls(pr, flags, indent + 2);
+        if (!file.ls(pr, flags, indent + 2)) {
+          DBG_FAIL_MACRO;
+          goto fail;
+        }
       }
     }
     file.close();
   }
+  if (getError()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  return true;
+
+ fail:
+  return false;
 }
 //------------------------------------------------------------------------------
 bool FatFile::printCreateDateTime(print_t* pr) {

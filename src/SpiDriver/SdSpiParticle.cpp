@@ -44,8 +44,7 @@ void SdSpiAltDriver::activate() {
  */
 void SdSpiAltDriver::begin(uint8_t csPin) {
   m_csPin = csPin;
-  m_spi->begin(m_csPin);
-  // Next line is redundant - begin(m_csPin) sets csPin to output mode.
+  m_spi->begin();
   pinMode(m_csPin, OUTPUT);
   digitalWrite(m_csPin, HIGH);
 }

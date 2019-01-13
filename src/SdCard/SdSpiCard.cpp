@@ -30,10 +30,11 @@
 #define SD_CS_DBG(m)
 // #define SD_CS_DBG(m) Serial.println(F(m));
 
-#define DBG_PROFILE_TIME 0
-#if DBG_PROFILE_TIME
+#define DBG_PROFILE_STATS 0
+#if DBG_PROFILE_STATS
 
 #define DBG_TAG_LIST\
+  DBG_TAG(DBG_CMD0_TIME, "CMD0 time")\
   DBG_TAG(DBG_ACMD41_TIME, "ACMD41 time")\
   DBG_TAG(DBG_CMD_BUSY, "cmd busy")\
   DBG_TAG(DBG_ERASE_BUSY, "erase busy")\
@@ -41,7 +42,8 @@
   DBG_TAG(DBG_WRITE_FLASH, "write flash")\
   DBG_TAG(DBG_WRITE_BUSY, "write busy")\
   DBG_TAG(DBG_WRITE_STOP, "write stop")\
-  DBG_TAG(DBG_ACMD41_COUNT, "ACMD41 count")
+  DBG_TAG(DBG_ACMD41_COUNT, "ACMD41 count")\
+  DBG_TAG(DBG_CMD0_COUNT, "CMD0 count")
 
 #define DBG_TIME_DIM DBG_ACMD41_COUNT
 
@@ -62,6 +64,17 @@ static void dbgBeginTime(DbgTag tag) {
   dbgBgnTime[tag] = micros();
 }
 //------------------------------------------------------------------------------
+static void dbgClearStats() {
+  for (int i = 0; i < DBG_COUNT_DIM; i++) {
+    dbgCount[i] = 0;
+    if (i < DBG_TIME_DIM) {
+      dbgMaxTime[i] = 0;
+      dbgMinTime[i] = 9999999;
+      dbgTotalTime[i] = 0;
+    }
+  }
+}
+//------------------------------------------------------------------------------
 static void dbgEndTime(DbgTag tag) {
   uint32_t m = micros() - dbgBgnTime[tag];
   dbgTotalTime[tag] += m;
@@ -78,17 +91,6 @@ static void dbgEventCount(DbgTag tag) {
   dbgCount[tag]++;
 }
 //------------------------------------------------------------------------------
-void dbgInitTime() {
-  for (int i = 0; i < DBG_COUNT_DIM; i++) {
-    dbgCount[i] = 0;
-    if (i < DBG_TIME_DIM) {
-      dbgMaxTime[i] = 0;
-      dbgMinTime[i] = 9999999;
-      dbgTotalTime[i] = 0;
-    }
-  }
-}
-//------------------------------------------------------------------------------
 static void dbgPrintTagText(uint8_t tag) {
   #define DBG_TAG(e, m) case e: Serial.print(F(m)); break;
   switch (tag) {
@@ -97,7 +99,7 @@ static void dbgPrintTagText(uint8_t tag) {
   #undef DBG_TAG
 }
 //------------------------------------------------------------------------------
-void dbgPrintTime() {
+static void dbgPrintStats() {
   Serial.println();
   Serial.println(F("======================="));
   Serial.println(F("item,event,min,max,avg"));
@@ -125,13 +127,13 @@ void dbgPrintTime() {
 #define DBG_BEGIN_TIME(tag) dbgBeginTime(tag)
 #define DBG_END_TIME(tag) dbgEndTime(tag)
 #define DBG_EVENT_COUNT(tag) dbgEventCount(tag)
-#else  // DBG_PROFILE_TIME
+#else  // DBG_PROFILE_STATS
 #define DBG_BEGIN_TIME(tag)
 #define DBG_END_TIME(tag)
 #define DBG_EVENT_COUNT(tag)
-void dbgInitTime() {}
-void dbgPrintTime() {}
-#endif  // DBG_PROFILE_TIME
+static void dbgClearStats() {}
+static void dbgPrintStats() {}
+#endif  // DBG_PROFILE_STATS
 //==============================================================================
 #if USE_SD_CRC
 // CRC functions
@@ -242,8 +244,13 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
   }
   spiSelect();
 
+  DBG_BEGIN_TIME(DBG_CMD0_TIME);
   // command to go idle in SPI mode
-  for (uint8_t i = 0; cardCommand(CMD0, 0) != R1_IDLE_STATE; i++) {
+  for (uint8_t i = 1;; i++) {
+    DBG_EVENT_COUNT(DBG_CMD0_COUNT);
+    if (cardCommand(CMD0, 0) == R1_IDLE_STATE) {
+      break;
+    }
     if (i == SD_CMD0_RETRY) {
       error(SD_CARD_ERROR_CMD0);
       goto fail;
@@ -255,6 +262,7 @@ bool SdSpiCard::begin(SdSpiDriver* spi, uint8_t csPin, SPISettings settings) {
       spiReceive();
     }
   }
+  DBG_END_TIME(DBG_CMD0_TIME);
 #if USE_SD_CRC
   if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
     error(SD_CARD_ERROR_CMD59);
@@ -363,6 +371,10 @@ uint32_t SdSpiCard::cardSize() {
   csd_t csd;
   return readCSD(&csd) ? sdCardCapacity(&csd) : 0;
 }
+//------------------------------------------------------------------------------
+void SdSpiCard::dbgClearStats() {::dbgClearStats();}
+//------------------------------------------------------------------------------
+void SdSpiCard::dbgPrintStats() {::dbgPrintStats();}
 //------------------------------------------------------------------------------
 bool SdSpiCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
   csd_t csd;

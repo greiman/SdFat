@@ -60,6 +60,10 @@ class SdSpiCard {
    *         or zero if an error occurs.
    */
   uint32_t cardSize();
+  /** Clear debug stats. */
+  void dbgClearStats();
+  /** Print debug stats. */
+  void dbgPrintStats();
   /** Erase a range of blocks.
    *
    * \param[in] firstBlock The address of the first block in the range.

@@ -141,9 +141,11 @@ class FatFile {
    * LS_SIZE - %Print file size.
    *
    * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(uint8_t flags = 0) {
-    ls(&Serial, flags);
+  bool ls(uint8_t flags = 0) {
+    return ls(&Serial, flags);
   }
   /** %Print a directory date field.
    *
@@ -464,8 +466,10 @@ class FatFile {
    *
    * \param[in] indent Amount of space before file name. Used for recursive
    * list to indicate subdirectory level.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(print_t* pr, uint8_t flags = 0, uint8_t indent = 0);
+  bool ls(print_t* pr, uint8_t flags = 0, uint8_t indent = 0);
   /** Make a new directory.
    *
    * \param[in] dir An open FatFile instance for the directory that will

@@ -61,9 +61,11 @@ class FatFileSystem : public  FatVolume {
    * LS_SIZE - %Print file size.
    *
    * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(uint8_t flags = 0) {
-    ls(&Serial, flags);
+  bool ls(uint8_t flags = 0) {
+    return ls(&Serial, flags);
   }
   /** List the directory contents of a directory to Serial.
    *
@@ -76,9 +78,11 @@ class FatFileSystem : public  FatVolume {
    * LS_SIZE - %Print file size.
    *
    * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(const char* path, uint8_t flags = 0) {
-    ls(&Serial, path, flags);
+  bool ls(const char* path, uint8_t flags = 0) {
+    return ls(&Serial, path, flags);
   }
   /** open a file
    *
@@ -194,9 +198,11 @@ fail:
    * LS_SIZE - %Print file size.
    *
    * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(print_t* pr, uint8_t flags = 0) {
-    vwd()->ls(pr, flags);
+  bool ls(print_t* pr, uint8_t flags = 0) {
+    return vwd()->ls(pr, flags);
   }
   //----------------------------------------------------------------------------
   /** List the directory contents of a directory.
@@ -212,11 +218,12 @@ fail:
    * LS_SIZE - %Print file size.
    *
    * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false if an error occurred.
    */
-  void ls(print_t* pr, const char* path, uint8_t flags) {
+  bool ls(print_t* pr, const char* path, uint8_t flags) {
     FatFile dir;
-    dir.open(vwd(), path, O_RDONLY);
-    dir.ls(pr, flags);
+    return dir.open(vwd(), path, O_RDONLY) && dir.ls(pr, flags);
   }
   //----------------------------------------------------------------------------
   /** Make a subdirectory in the volume working directory.
