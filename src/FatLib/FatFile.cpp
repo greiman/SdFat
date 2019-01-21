@@ -565,6 +565,16 @@ fail:
   return false;
 }
 //------------------------------------------------------------------------------
+bool FatFile::openCwd() {
+  if (!cwd()) {
+    DBG_FAIL_MACRO;
+    return false;
+  }
+  *this = *cwd();
+  rewind();
+  return true;
+}
+//------------------------------------------------------------------------------
 bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint8_t chksum = 0;
   ldir_t* ldir;

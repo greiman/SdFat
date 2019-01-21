@@ -11,6 +11,9 @@ const uint8_t chipSelect = SS;
 // File system object.
 SdFat sd;
 
+// Directory file.
+SdFile root;
+
 // Use for file creation in folders.
 SdFile file;
 
@@ -52,8 +55,10 @@ void setup() {
   }
 
   int rootFileCount = 0;
-  sd.vwd()->rewind(); 
-  while (file.openNext(sd.vwd(), O_RDONLY)) {
+  if (!root.open("/")){
+    error("open root failed");
+  }    
+  while (file.openNext(&root, O_RDONLY)) {
     if (!file.isHidden()) {
       rootFileCount++;
     }

@@ -813,7 +813,7 @@ static inline uint8_t FAT_MINUTE(uint16_t fatTime) {
   return (fatTime >> 5) & 0X3F;
 }
 /** second part of FAT directory time field
- * Note second/2 is stored in packed time.
+ * \note second/2 is stored in packed time.
  *
  * \param[in] fatTime Time in packed dir format.
  *

@@ -747,7 +747,7 @@ void logData() {
       error("Can't truncate file");
     }
   }
-  if (!binFile.rename(sd.vwd(), binName)) {
+  if (!binFile.rename(binName)) {
     error("Can't rename file");
   }
   Serial.print(F("File renamed: "));

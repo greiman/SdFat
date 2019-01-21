@@ -20,8 +20,8 @@ ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -53,8 +53,8 @@ void setup() {
   file.println("A test line for Name1.txt");
 
   // rename the file name2.txt and add a line.
-  // sd.vwd() is the volume working directory, root.
-  if (!file.rename(sd.vwd(), "name2.txt")) {
+  // Use current working directory, root.
+  if (!file.rename("name2.txt")) {
     error("name2.txt");
   }
   file.println("A test line for name2.txt");
@@ -69,7 +69,7 @@ void setup() {
   }
 
   // move file into Dir1, rename it NAME3.txt and add a line
-  if (!file.rename(sd.vwd(), "Dir1/NAME3.txt")) {
+  if (!file.rename("Dir1/NAME3.txt")) {
     error("NAME3.txt");
   }
   file.println("A line for Dir1/NAME3.txt");
