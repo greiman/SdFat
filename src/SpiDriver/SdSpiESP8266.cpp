@@ -64,7 +64,12 @@ uint8_t SdSpiAltDriver::receive() {
  * \return Zero for no error or nonzero error code.
  */
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
-  // Works without 32-bit alignment of buf.
+  // Adjust to 32-bit alignment.
+  while ((reinterpret_cast<uintptr_t>(buf) & 0X3) && n) {
+    *buf++ = SPI.transfer(0xff);
+    n--;
+  }
+  // Buff now 32-bit aligned
   SPI.transferBytes(0, buf, n);
   return 0;
 }
