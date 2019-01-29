@@ -280,9 +280,8 @@ inline void fastDigitalToggle(uint8_t pin) {
   fastDigitalWrite(pin, !fastDigitalRead(pin));
 }
 //------------------------------------------------------------------------------
-inline void fastPinMode(uint8_t pin, uint8_t mode) {
-  pinMode(pin, mode);
-}
+#define fastPinMode(pin, mode)\
+  {pinMode(pin, mode);}
 #endif  // __AVR__
 //------------------------------------------------------------------------------
 /** set pin configuration
