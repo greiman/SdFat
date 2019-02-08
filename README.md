@@ -5,42 +5,26 @@ SdFat requires Arduino 1.6x or greater.
 
 Key changes:
 
-The SPI divisor has been replaced by SPISettings in the begin() call.
+Support for multiple SPI ports now uses a pointer to a SPIClass object.
 
+See the STM32Test example.
 ```
-bool begin(uint8_t csPin = SS, SPISettings spiSettings = SPI_FULL_SPEED);
-```
-
-Several macros have been defined for backward compatibility. 
-
-```
-#define SD_SCK_MHZ(maxMhz) SPISettings(1000000UL*maxMhz, MSBFIRST, SPI_MODE0)
-// SPI divisor constants
-/** Set SCK to max possible rate. */
-#define SPI_FULL_SPEED SD_SCK_MHZ(50)
-/** Set SCK rate to F_CPU/3 for Due */
-#define SPI_DIV3_SPEED SD_SCK_HZ(F_CPU/3)
-/** Set SCK rate to F_CPU/4. */
-#define SPI_HALF_SPEED SD_SCK_HZ(F_CPU/4)
-// ...
+explicit SdFat(SPIClass* spiPort);
+\\ or
+explicit SdFatEX(SPIClass* spiPort);
 ```
 
-There are two new classes, SdFatEX and SdFatSoftSpiEX.
-
-Teensy 3.5/3.6 SDIO support has been added.  Try the TeensySdioDemo example.
-Many other example will work with Teensy SDIO if you use the SdFatSdio classes
-and call begin with no parameters.
-
-```
- SdFatSdio sd;
+Open flags now follow POSIX conventions.  O_RDONLY is the same as O_READ and O_WRONLY is the
+same as O_WRITE. One and only one of of the mode flags, O_RDONLY, O_RDWR, or
+O_WRONLY is required.
  
- ....
- 
-  if (!sd.begin()) {
-    // Handle failure.
-  }
- 
-```
+Open flags for Particle Gen3 and ARM boards are now defined by fcntl.h.
+See SdFatConfig.h for options.
+
+Support for particle Gen3 devices.
+
+New cluster allocation algorithm.
+
 Please read changes.txt and the html documentation in the extras folder for more information.
 
 Please report problems as issues.
@@ -53,6 +37,6 @@ html/index.html and read the Main Page.  Next go to the Classes tab and
 read the documentation for the classes SdFat, SdFatEX, SdBaseFile,
 SdFile, File, StdioStream, ifstream, ofstream, and others.
  
-Please continue by reading the html documentation.
+Please continue by reading the html documentation in SdFat/extras/html
 
-Updated 26 Apr 2017
+Updated 28 Dec 2018

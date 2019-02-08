@@ -35,17 +35,6 @@
 namespace sdfat {
 
 //------------------------------------------------------------------------------
-static SPIClass m_SPI1(1);
-#if BOARD_NR_SPI >= 2
-static SPIClass m_SPI2(2);
-#endif  // BOARD_NR_SPI >= 2
-#if BOARD_NR_SPI >= 3
-static SPIClass m_SPI3(3);
-#endif  // BOARD_NR_SPI >= 3
-#if BOARD_NR_SPI > 3
-#error BOARD_NR_SPI too large
-#endif
-//------------------------------------------------------------------------------
 /** Set SPI options for access to SD/SDHC cards.
  *
  * \param[in] divisor SCK clock divider relative to the APB1 or APB2 clock.
@@ -89,7 +78,7 @@ uint8_t SdSpiAltDriver::receive() {
  */
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
 #if USE_STM32_DMA
-  return m_spi->dmaTransfer(0, buf, n);
+  return m_spi->dmaTransfer(nullptr, buf, n);
 #else  // USE_STM32_DMA
   m_spi->read(buf, n);
   return 0;
@@ -111,24 +100,10 @@ void SdSpiAltDriver::send(uint8_t b) {
  */
 void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
 #if USE_STM32_DMA
-  m_spi->dmaTransfer(const_cast<uint8*>(buf), 0, n);
+  m_spi->dmaTransfer(const_cast<uint8*>(buf), nullptr, n);
 #else  // USE_STM32_DMA
   m_spi->write(const_cast<uint8*>(buf), n);
 #endif  // USE_STM32_DMA
-}
-//------------------------------------------------------------------------------
-void SdSpiAltDriver::setPort(uint8_t portNumber) {
-  m_spi = &m_SPI1;
-#if BOARD_NR_SPI >= 2
-  if (portNumber == 2) {
-    m_spi = &m_SPI2;
-  }
-#endif  // BOARD_NR_SPI >= 2
-#if BOARD_NR_SPI >= 3
-  if (portNumber == 3) {
-    m_spi = &m_SPI3;
-  }
-#endif  // BOARD_NR_SPI >= 2
 }
 
 }; // namespace sdfat

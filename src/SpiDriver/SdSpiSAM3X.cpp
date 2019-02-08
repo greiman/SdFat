@@ -170,7 +170,7 @@ uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
   int rtn = 0;
 #if USE_SAM3X_DMAC
   // clear overrun error
-  uint32_t s = pSpi->SPI_SR;
+  pSpi->SPI_SR;
 
   spiDmaRX(buf, n);
   spiDmaTX(0, n);
@@ -216,7 +216,7 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
 #endif  // #if USE_SAM3X_DMAC
   while ((pSpi->SPI_SR & SPI_SR_TXEMPTY) == 0) {}
   // leave RDR empty
-  uint8_t b = pSpi->SPI_RDR;
+  pSpi->SPI_RDR;
 }
 
 }; // namespace sdfat

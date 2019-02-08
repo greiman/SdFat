@@ -14,6 +14,9 @@ const uint8_t chipSelect = SS;
 // File system object.
 SdFat sd;
 
+// Directory file.
+SdFile root;
+
 // Use for file creation in folders.
 SdFile file;
 
@@ -55,8 +58,10 @@ void setup() {
   }
 
   int rootFileCount = 0;
-  sd.vwd()->rewind(); 
-  while (file.openNext(sd.vwd(), O_READ)) {
+  if (!root.open("/")){
+    error("open root failed");
+  }    
+  while (file.openNext(&root, O_RDONLY)) {
     if (!file.isHidden()) {
       rootFileCount++;
     }
@@ -76,7 +81,7 @@ void setup() {
   cout << F("Created Folder1\n");
 
   // Create a file in Folder1 using a path.
-  if (!file.open("Folder1/file1.txt", O_CREAT | O_WRITE)) {
+  if (!file.open("Folder1/file1.txt", O_WRONLY | O_CREAT)) {
     error("create Folder1/file1.txt failed");
   }
   file.close();
@@ -89,7 +94,7 @@ void setup() {
   cout << F("chdir to Folder1\n");
 
   // Create File2.txt in current directory.
-  if (!file.open("File2.txt", O_CREAT | O_WRITE)) {
+  if (!file.open("File2.txt", O_WRONLY | O_CREAT)) {
     error("create File2.txt failed");
   }
   file.close();

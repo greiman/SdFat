@@ -195,12 +195,12 @@ void binaryToCsv() {
   Serial.println();
   Serial.print(F("FreeStack: "));
   Serial.println(FreeStack());
-  
+
   // Create a new csvFile.
   strcpy(csvName, binName);
   strcpy(&csvName[BASE_NAME_SIZE + 3], "csv");
 
-  if (!csvFile.open(csvName, O_WRITE | O_CREAT | O_TRUNC)) {
+  if (!csvFile.open(csvName, O_WRONLY | O_CREAT | O_TRUNC)) {
     error("open csvFile failed");
   }
   binFile.rewind();
@@ -248,7 +248,7 @@ void createBinFile() {
   // max number of blocks to erase per erase call
   const uint32_t ERASE_SIZE = 262144L;
   uint32_t bgnBlock, endBlock;
-  
+
   // Delete old tmp file.
   if (sd.exists(TMP_FILE_NAME)) {
     Serial.println(F("Deleting tmp file " TMP_FILE_NAME));
@@ -341,7 +341,7 @@ void openBinFile() {
   }
   binFile.close();
   strcpy(binName, name);
-  if (!binFile.open(binName, O_READ)) {
+  if (!binFile.open(binName, O_RDONLY)) {
     Serial.println(F("open failed"));
     return;
   }
@@ -352,19 +352,19 @@ void recordBinFile() {
   const uint8_t QUEUE_DIM = BUFFER_BLOCK_COUNT + 1;
   // Index of last queue location.
   const uint8_t QUEUE_LAST = QUEUE_DIM - 1;
-  
+
   // Allocate extra buffer space.
   block_t block[BUFFER_BLOCK_COUNT - 1];
-  
+
   block_t* curBlock = 0;
-  
+
   block_t* emptyStack[BUFFER_BLOCK_COUNT];
   uint8_t emptyTop;
   uint8_t minTop;
 
   block_t* fullQueue[QUEUE_DIM];
   uint8_t fullHead = 0;
-  uint8_t fullTail = 0;  
+  uint8_t fullTail = 0;
 
   // Use SdFat's internal buffer.
   emptyStack[0] = (block_t*)sd.vol()->cacheClear();
@@ -377,7 +377,7 @@ void recordBinFile() {
   }
   emptyTop = BUFFER_BLOCK_COUNT;
   minTop = BUFFER_BLOCK_COUNT;
-  
+
   // Start a multiple block write.
   if (!sd.card()->writeStart(binFile.firstBlock())) {
     error("writeStart failed");
@@ -386,7 +386,7 @@ void recordBinFile() {
   Serial.println(FreeStack());
   Serial.println(F("Logging - type any character to stop"));
   bool closeFile = false;
-  uint32_t bn = 0;  
+  uint32_t bn = 0;
   uint32_t maxLatency = 0;
   uint32_t overrun = 0;
   uint32_t overrunTotal = 0;
@@ -396,7 +396,7 @@ void recordBinFile() {
     logTime += LOG_INTERVAL_USEC;
     if (Serial.available()) {
       closeFile = true;
-    }  
+    }
     if (closeFile) {
       if (curBlock != 0) {
         // Put buffer in full queue.
@@ -415,7 +415,7 @@ void recordBinFile() {
         overrun = 0;
       }
       if ((int32_t)(logTime - micros()) < 0) {
-        error("Rate too fast");             
+        error("Rate too fast");
       }
       int32_t delta;
       do {
@@ -426,24 +426,24 @@ void recordBinFile() {
         overrunTotal++;
         if (ERROR_LED_PIN >= 0) {
           digitalWrite(ERROR_LED_PIN, HIGH);
-        }        
+        }
 #if ABORT_ON_OVERRUN
         Serial.println(F("Overrun abort"));
         break;
- #endif  // ABORT_ON_OVERRUN       
+ #endif  // ABORT_ON_OVERRUN
       } else {
 #if USE_SHARED_SPI
         sd.card()->spiStop();
-#endif  // USE_SHARED_SPI   
+#endif  // USE_SHARED_SPI
         acquireData(&curBlock->data[curBlock->count++]);
 #if USE_SHARED_SPI
         sd.card()->spiStart();
-#endif  // USE_SHARED_SPI      
+#endif  // USE_SHARED_SPI
         if (curBlock->count == DATA_DIM) {
           fullQueue[fullHead] = curBlock;
           fullHead = fullHead < QUEUE_LAST ? fullHead + 1 : 0;
           curBlock = 0;
-        } 
+        }
       }
     }
     if (fullHead == fullTail) {
@@ -509,7 +509,7 @@ void recoverTmpFile() {
     if (binFile.read(&count, 2) != 2) error("read");
     if (count == 0 || count > DATA_DIM) {
       endBlock = midBlock - 1;
-    } else {          
+    } else {
       bgnBlock = midBlock;
     }
   }
@@ -532,7 +532,7 @@ void renameBinFile() {
       binName[BASE_NAME_SIZE]++;
     }
   }
-  if (!binFile.rename(sd.vwd(), binName)) {
+  if (!binFile.rename(binName)) {
     error("Can't rename file");
     }
   Serial.print(F("File renamed: "));
@@ -566,8 +566,8 @@ void setup(void) {
     pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -581,10 +581,10 @@ void setup(void) {
   // Allow userSetup access to SPI bus.
   pinMode(SD_CS_PIN, OUTPUT);
   digitalWrite(SD_CS_PIN, HIGH);
-  
+
   // Setup sensors.
   userSetup();
-  
+
   // Initialize at the highest speed supported by the board that is
   // not over 50 MHz. Try a lower speed if SPI errors occur.
   if (!sd.begin(SD_CS_PIN, SD_SCK_MHZ(50))) {
@@ -612,11 +612,11 @@ void loop(void) {
   } while (Serial.available() && Serial.read() >= 0);
   Serial.println();
   Serial.println(F("type:"));
-  Serial.println(F("b - open existing bin file"));  
+  Serial.println(F("b - open existing bin file"));
   Serial.println(F("c - convert file to csv"));
   Serial.println(F("d - dump data to Serial"));
   Serial.println(F("e - overrun error details"));
-  Serial.println(F("l - list files"));  
+  Serial.println(F("l - list files"));
   Serial.println(F("r - record data"));
   Serial.println(F("t - test without logging"));
   while(!Serial.available()) {
@@ -626,7 +626,7 @@ void loop(void) {
   Serial.println(F("LowLatencyLogger can not run with watchdog timer"));
   SysCall::halt();
 #endif
-  
+
   char c = tolower(Serial.read());
 
   // Discard extra Serial data.
@@ -646,12 +646,12 @@ void loop(void) {
   } else if (c == 'e') {
     checkOverrun();
   } else if (c == 'l') {
-    Serial.println(F("\nls:"));  
-    sd.ls(&Serial, LS_SIZE);  
+    Serial.println(F("\nls:"));
+    sd.ls(&Serial, LS_SIZE);
   } else if (c == 'r') {
     logData();
   } else if (c == 't') {
-    testSensor();    
+    testSensor();
   } else {
     Serial.println(F("Invalid entry"));
   }

@@ -176,7 +176,7 @@ bool FatFile::openCluster(FatFile* file) {
   }
   memset(this, 0, sizeof(FatFile));
   m_attr = FILE_ATTR_SUBDIR;
-  m_flags = O_READ;
+  m_flags = F_READ;
   m_vol = file->m_vol;
   m_firstCluster = file->m_dirCluster;
   return true;
@@ -293,7 +293,7 @@ bool FatFile::parsePathName(const char* path,
   return true;
 }
 //------------------------------------------------------------------------------
-bool FatFile::open(FatFile* dirFile, fname_t* fname, uint8_t oflag) {
+bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   bool fnameFound = false;
   uint8_t lfnOrd = 0;
   uint8_t freeNeed;
@@ -404,8 +404,8 @@ found:
   goto open;
 
 create:
-  // don't create unless O_CREAT and O_WRITE
-  if (!(oflag & O_CREAT) || !(oflag & O_WRITE)) {
+  // don't create unless O_CREAT and write mode.
+  if (!(oflag & O_CREAT) || !isWriteMode(oflag)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -563,7 +563,7 @@ bool FatFile::remove() {
   ldir_t* ldir;
 
   // Cant' remove not open for write.
-  if (!isFile() || !(m_flags & O_WRITE)) {
+  if (!isFile() || !(m_flags & F_WRITE)) {
     DBG_FAIL_MACRO;
     goto fail;
   }

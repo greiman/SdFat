@@ -1,7 +1,7 @@
 var searchData=
 [
   ['data',['data',['../unioncache__t.html#ae675b7a3a87d809070de111d1d1f1d81',1,'cache_t']]],
-  ['datastartblock',['dataStartBlock',['../class_fat_volume.html#a443364af257c219f8e908d5b073d8fa3',1,'FatVolume']]],
+  ['datastartblock',['dataStartBlock',['../class_fat_volume.html#a55906112e0d151db3b144d29630f5066',1,'FatVolume']]],
   ['datetimecallback',['dateTimeCallback',['../class_fat_file.html#a29a623f50df057e8b49045ba6611ec2b',1,'FatFile']]],
   ['datetimecallbackcancel',['dateTimeCallbackCancel',['../class_fat_file.html#a5df02f1d037e6091375488af25244ebc',1,'FatFile']]],
   ['dbgfat',['dbgFat',['../class_fat_volume.html#a25c6311b70fa274b3be94ff25fdebba7',1,'FatVolume']]],
@@ -37,7 +37,6 @@ var searchData=
   ['dirsize',['dirSize',['../class_fat_file.html#ae2ed15f05c9ccbce355e7a8d3ce8382d',1,'FatFile']]],
   ['dirty',['dirty',['../class_fat_cache.html#ab4d3b0c16bb6a116c7d01afff2dcb307',1,'FatCache']]],
   ['disksignature',['diskSignature',['../structmaster_boot_record.html#a77151c641444c0653ff71a253f0423ef',1,'masterBootRecord']]],
-  ['dmabusy',['dmaBusy',['../class_sdio_card.html#a9781b9b4f91366a69dd077ad8fb364c5',1,'SdioCard']]],
   ['dmpfile',['dmpFile',['../class_fat_file.html#a4f01d27954ae49aeb6888ac7302f55d9',1,'FatFile']]],
   ['drivenumber',['driveNumber',['../structfat__boot.html#aebd280b93563b75b9612d3db844b0d16',1,'fat_boot::driveNumber()'],['../structfat32__boot.html#aca415c1a6eb1c242d460a6d0ffa9ebec',1,'fat32_boot::driveNumber()']]]
 ];
