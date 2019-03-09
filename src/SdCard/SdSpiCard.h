@@ -56,10 +56,12 @@ class SdSpiCard {
   /**
    * Determine the size of an SD flash memory card.
    *
-   * \return The number of 512 byte data blocks in the card
+   * \return The number of 512 byte sectors in the card
    *         or zero if an error occurs.
    */
-  uint32_t cardSize();
+  uint32_t cardCapacity();
+  /** \return Card size in sectors or zero if an error occurs. */
+  uint32_t cardSize() {return cardCapacity();}
   /** Clear debug stats. */
   void dbgClearStats();
   /** Print debug stats. */

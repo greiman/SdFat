@@ -132,16 +132,23 @@ fail:
 }
 //------------------------------------------------------------------------------
 // find a contiguous group of clusters
-bool FatVolume::allocContiguous(uint32_t count, uint32_t* firstCluster) {
+bool FatVolume::allocContiguous(uint32_t count,
+                                uint32_t* firstCluster, uint32_t startCluster) {
   // flag to save place to start next search
-  bool setStart = true;
+  bool setStart;
   // start of group
   uint32_t bgnCluster;
   // end of group
   uint32_t endCluster;
-  // Start at cluster after last allocated cluster.
-  endCluster = bgnCluster = m_allocSearchStart + 1;
-
+  if (startCluster != 0) {
+    bgnCluster = startCluster;
+    setStart = false;
+  } else {
+    // Start at cluster after last allocated cluster.
+    bgnCluster = m_allocSearchStart + 1;
+    setStart = true;
+  }
+  endCluster = bgnCluster;
   // search the FAT for free clusters
   while (1) {
     if (endCluster > m_lastCluster) {
@@ -156,6 +163,10 @@ bool FatVolume::allocContiguous(uint32_t count, uint32_t* firstCluster) {
       goto fail;
     }
     if (f || fg == 0) {
+      if (startCluster) {
+        DBG_FAIL_MACRO;
+        goto fail;
+      }
       // don't update search start if unallocated clusters before endCluster.
       if (bgnCluster != endCluster) {
         setStart = false;

@@ -536,7 +536,7 @@ bool SdioCard::begin() {
   return true;
 }
 //-----------------------------------------------------------------------------
-uint32_t SdioCard::cardSize() {
+uint32_t SdioCard::cardCapacity() {
   return sdCardCapacity(&m_csd);
 }
 //-----------------------------------------------------------------------------

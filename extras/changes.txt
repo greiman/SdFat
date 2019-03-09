@@ -1,3 +1,9 @@
+9 Mar 2019
+
+Add startCluste argument to createContiguous().
+
+Functions to support SdFatLite library.
+
 28 Dec 2018
 
 Support for multiple SPI ports now uses a pointer to a SPIClass object.

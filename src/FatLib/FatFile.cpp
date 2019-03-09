@@ -129,8 +129,8 @@ fail:
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::createContiguous(FatFile* dirFile,
-                               const char* path, uint32_t size) {
+bool FatFile::createContiguous(FatFile* dirFile, const char* path,
+                               uint32_t size, uint32_t startCluster) {
   uint32_t count;
 
   // don't allow zero length file
@@ -146,7 +146,7 @@ bool FatFile::createContiguous(FatFile* dirFile,
   count = ((size - 1) >> (m_vol->clusterSizeShift() + 9)) + 1;
 
   // allocate clusters
-  if (!m_vol->allocContiguous(count, &m_firstCluster)) {
+  if (!m_vol->allocContiguous(count, &m_firstCluster, startCluster)) {
     remove();
     DBG_FAIL_MACRO;
     goto fail;
