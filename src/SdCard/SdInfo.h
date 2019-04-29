@@ -124,9 +124,9 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 #define SPI_SIXTEENTH_SPEED SD_SCK_HZ(F_CPU/32)
 #else
 // ESP8266 backward compatible options from old SD.h library
-#define SPI_FULL_SPEED       SD_SCK_HZ(80000000)
-#define SPI_HALF_SPEED       SD_SCK_HZ(40000000)
-#define SPI_QUARTER_SPEED    SD_SCK_HZ(20000000)
+#define SPI_FULL_SPEED       SD_SCK_HZ(8000000)
+#define SPI_HALF_SPEED       SD_SCK_HZ(4000000)
+#define SPI_QUARTER_SPEED    SD_SCK_HZ(2000000)
 #endif
 
 //------------------------------------------------------------------------------
