@@ -36,7 +36,7 @@
 
 #ifdef HOST_MOCK
 extern uint64_t _sdCardSizeB;
-extern uint8_t _sdCard[];
+extern uint8_t *_sdCard;
 #endif
 
 namespace sdfat {
@@ -328,6 +328,9 @@ class SdSpiCard {
   }
   uint32_t cardSize() { return _blocks; }
   bool erase(uint32_t firstBlock, uint32_t lastBlock) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+    if (!_data) return false;
     memset(_data + firstBlock * 512, 0, (lastBlock - firstBlock) * 512);
     return true;
   }
@@ -337,10 +340,16 @@ class SdSpiCard {
   int errorData() const { return m_status; }
   bool isBusy() { return false; }
   bool readBlock(uint32_t lba, uint8_t* dst) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+    if (!_data) return false;
     memcpy(dst, _data + lba * 512, 512);
     return true;
   }
   bool readBlocks(uint32_t lba, uint8_t* dst, size_t nb) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+    if (!_data) return false;
     memcpy(dst, _data + lba, 512 * nb);
     return true;
   }
@@ -357,10 +366,16 @@ class SdSpiCard {
   bool syncBlocks() { return true; }
   int type() const { return m_type; }
   bool writeBlock(uint32_t lba, const uint8_t* src) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+    if (!_data) return false;
     memcpy(_data + lba * 512, src, 512);
     return true;
   }
   bool writeBlocks(uint32_t lba, const uint8_t* src, size_t nb) {
+    _blocks = _sdCardSizeB / 512LL;
+    _data = _sdCard;
+    if (!_data) return false;
     memcpy(_data + lba * 512, src, 512 * nb);
     return true;
   }
