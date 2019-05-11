@@ -68,10 +68,8 @@ void SdSpiAltDriver::begin(uint8_t csPin) {
   pinMode(m_csPin, OUTPUT);
   digitalWrite(m_csPin, HIGH);
   m_spi->begin();
+
 #if USE_SAMD_DMA
-
-Serial.println("DMA init");
-
   // First channel and descriptor are for SPI read "dummy writes" (TX)
   DMAchannel[CHANNEL_READ_TX].allocate(); // Allocate DMA channel
   channelDescriptor[CHANNEL_READ_TX] =
