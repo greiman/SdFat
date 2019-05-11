@@ -68,7 +68,7 @@
  * These classes used extended multi-block SD I/O for better performance.
  * the SPI bus may not be shared with other devices in this mode.
  */
-#define ENABLE_EXTENDED_TRANSFER_CLASS 0
+#define ENABLE_EXTENDED_TRANSFER_CLASS 1
 //------------------------------------------------------------------------------
 /**
  * If the symbol USE_STANDARD_SPI_LIBRARY is zero, an optimized custom SPI
@@ -77,6 +77,7 @@
  * USE_STANDARD_SPI_LIBRARY is two, the SPI port can be selected with the
  * constructors SdFat(SPIClass* spiPort) and SdFatEX(SPIClass* spiPort).
  */
+//#define USE_STANDARD_SPI_LIBRARY 2
 #define USE_STANDARD_SPI_LIBRARY 0
 //------------------------------------------------------------------------------
 /**
@@ -209,7 +210,7 @@
 /**
  * Determine the default SPI configuration.
  */
-#if defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID)
+#if defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID) || defined(ARDUINO_ARCH_SAMD)
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
 #elif defined(__AVR__)\
