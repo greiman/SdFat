@@ -25,8 +25,10 @@
 #if defined(ARDUINO_ARCH_SAMD)
 #include "SdSpiDriver.h"
 /** Use Adafruit_ZeroDMA library if nonzero */
-#define USE_SAMD_DMA 1
-#if USE_SAMD_DMA
+#define USE_SAMD_DMA_RECV 1
+#define USE_SAMD_DMA_SEND 0
+
+#if USE_SAMD_DMA_RECV || USE_SAMD_DMA_SEND
 #include <Adafruit_ZeroDMA.h>
 #include "utility/dma.h"
 // Three DMA channels are used. SPI DMA read requires two channels,
@@ -68,7 +70,7 @@ void SdSpiAltDriver::begin(uint8_t csPin) {
   pinMode(m_csPin, OUTPUT);
   digitalWrite(m_csPin, HIGH);
   m_spi->begin();
-#if USE_SAMD_DMA
+#if USE_SAMD_DMA_RECV || USE_SAMD_DMA_SEND
 
 Serial.println("DMA init");
 
@@ -139,7 +141,7 @@ uint8_t SdSpiAltDriver::receive() {
  * \return Zero for no error or nonzero error code.
  */
 uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
-#if USE_SAMD_DMA
+#if USE_SAMD_DMA_RECV
   // Configure the SPI read "dummy write" (TX) length (n)
   DMAchannel[CHANNEL_READ_TX].changeDescriptor(
     channelDescriptor[CHANNEL_READ_TX], NULL, NULL, n);
@@ -152,9 +154,9 @@ uint8_t SdSpiAltDriver::receive(uint8_t* buf, size_t n) {
   DMAchannel[CHANNEL_READ_RX].startJob(); // Start the RX job BEFORE the
   DMAchannel[CHANNEL_READ_TX].startJob(); // TX job! That's the secret sauce.
   while(dma_busy);
-#else // USE_SAMD_DMA
+#else // USE_SAMD_DMA_RECV
   while(n--) *buf++ = m_spi->transfer(0xFF);
-#endif // USE_SAMD_DMA
+#endif // USE_SAMD_DMA_RECV
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -172,14 +174,14 @@ void SdSpiAltDriver::send(uint8_t b) {
  * \param[in] n Number of bytes to send.
  */
 void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
-#if USE_SAMD_DMA
+#if USE_SAMD_DMA_SEND
   DMAchannel[CHANNEL_WRITE].changeDescriptor(
     channelDescriptor[CHANNEL_WRITE], (void *)buf, NULL, n);
   dma_busy = true;
   DMAchannel[CHANNEL_WRITE].startJob();
   while(dma_busy);
-#else // USE_SAMD_DMA
+#else // USE_SAMD_DMA_SEND
   while(n--) m_spi->transfer(*buf++);
-#endif // USE_SAMD_DMA
+#endif // USE_SAMD_DMA_SEND
 }
 #endif  // defined(ARDUINO_ARCH_SAMD)
