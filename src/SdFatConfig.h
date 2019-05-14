@@ -77,7 +77,6 @@
  * USE_STANDARD_SPI_LIBRARY is two, the SPI port can be selected with the
  * constructors SdFat(SPIClass* spiPort) and SdFatEX(SPIClass* spiPort).
  */
-
 #define USE_STANDARD_SPI_LIBRARY 0
 //------------------------------------------------------------------------------
 /**
