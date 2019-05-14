@@ -209,7 +209,7 @@
 /**
  * Determine the default SPI configuration.
  */
-#if defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID)
+#if defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID) || defined(ARDUINO_ARCH_SAMD)
 // has multiple SPI ports
 #define SD_HAS_CUSTOM_SPI 2
 #elif defined(__AVR__)\
