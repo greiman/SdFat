@@ -68,7 +68,7 @@
  * These classes used extended multi-block SD I/O for better performance.
  * the SPI bus may not be shared with other devices in this mode.
  */
-#define ENABLE_EXTENDED_TRANSFER_CLASS 0
+#define ENABLE_EXTENDED_TRANSFER_CLASS 1
 //------------------------------------------------------------------------------
 /**
  * If the symbol USE_STANDARD_SPI_LIBRARY is zero, an optimized custom SPI
@@ -148,7 +148,7 @@
  * Set FAT12_SUPPORT nonzero to enable use if FAT12 volumes.
  * FAT12 has not been well tested and requires additional flash.
  */
-#define FAT12_SUPPORT 0
+#define FAT12_SUPPORT 1
 //------------------------------------------------------------------------------
 /**
  * Set DESTRUCTOR_CLOSES_FILE nonzero to close a file in its destructor.
