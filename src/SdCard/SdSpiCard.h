@@ -353,15 +353,15 @@ class SdSpiCard {
     memcpy(dst, _data + lba, 512 * nb);
     return true;
   }
-  bool readCID(cid_t* cid) { return true; }
-  bool readCSD(csd_t* csd) { return true; }
+  bool readCID(cid_t* cid) { (void) cid; return true; }
+  bool readCSD(csd_t* csd) { (void) csd; return true; }
   bool readData(uint8_t *dst) { return readBlock(_multi++, dst); }
-  bool readOCR(uint32_t* ocr) { return true; }
+  bool readOCR(uint32_t* ocr) { (void) ocr; return true; }
   bool readStart(uint32_t blockNumber) {
     _multi = blockNumber;
     return true;
   }
-  bool readStatus(uint8_t* status) { return true; }
+  bool readStatus(uint8_t* status) { (void) status; return true; }
   bool readStop() { return true; }
   bool syncBlocks() { return true; }
   int type() const { return m_type; }
