@@ -25,7 +25,7 @@
 #if defined(ARDUINO_ARCH_SAMD)
 #include "SdSpiDriver.h"
 /** Use Adafruit_ZeroDMA library if nonzero */
-#define USE_SAMD_DMA_RECV 1
+#define USE_SAMD_DMA_RECV 0
 #define USE_SAMD_DMA_SEND 0
 
 #if USE_SAMD_DMA_RECV || USE_SAMD_DMA_SEND
