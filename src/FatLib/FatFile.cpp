@@ -667,7 +667,8 @@ bool FatFile::openParent(FatFile* dirFile) {
       goto fail;
     }
   } else {
-    memset(&dotdot, 0, sizeof(FatFile));
+    //memset(&dotdot, 0, sizeof(FatFile));
+    new (&dotdot) FatFile; // Use placement new to ensure the existing object is properly cleared
     dotdot.m_attr = FILE_ATTR_SUBDIR;
     dotdot.m_flags = F_READ;
     dotdot.m_vol = dirFile->m_vol;
@@ -1218,7 +1219,10 @@ bool FatFile::sync() {
 
     // set modify time if user supplied a callback date/time function
     if (m_dateTime) {
-      m_dateTime(&dir->lastWriteDate, &dir->lastWriteTime);
+      uint16_t date, time;
+      m_dateTime(&date, &time);
+      dir->lastWriteDate = date;
+      dir->lastWriteTime = time;
       dir->lastAccessDate = dir->lastWriteDate;
     }
     // clear directory dirty
