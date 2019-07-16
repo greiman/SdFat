@@ -487,7 +487,8 @@ bool FatVolume::init(uint8_t part) {
   }
   fbs = &(pc->fbs32);
   if (fbs->bytesPerSector != 512 ||
-      fbs->fatCount != 2 ||
+      fbs->fatCount < 1 ||
+      fbs->fatCount > 2 ||
       fbs->reservedSectorCount == 0) {
     // not valid FAT volume
     DBG_FAIL_MACRO;
