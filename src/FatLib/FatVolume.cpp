@@ -513,7 +513,7 @@ bool FatVolume::init(uint8_t part) {
   m_rootDirEntryCount = fbs->rootDirEntryCount;
 
   // directory start for FAT16 dataStart for FAT32
-  m_rootDirStart = m_fatStartBlock + 2 * m_blocksPerFat;
+  m_rootDirStart = m_fatStartBlock + fbs->fatCount * m_blocksPerFat;
   // data start for FAT16 and FAT32
   m_dataStartBlock = m_rootDirStart + ((32 * fbs->rootDirEntryCount + 511)/512);
 
@@ -577,7 +577,7 @@ bool FatVolume::wipe(print_t* pr) {
     }
   }
   // Clear FATs.
-  count = 2*m_blocksPerFat;
+  count = fbs->fatCount*m_blocksPerFat;
   lbn = m_fatStartBlock;
   for (uint32_t nb = 0; nb < count; nb++) {
     if (pr && (nb & 0XFF) == 0) {
@@ -602,7 +602,7 @@ bool FatVolume::wipe(print_t* pr) {
     goto fail;
   }
   if (!writeBlock(m_fatStartBlock, cache->data) ||
-      !writeBlock(m_fatStartBlock + m_blocksPerFat, cache->data)) {
+      (fbs->fatCount == 2 && !writeBlock(m_fatStartBlock + m_blocksPerFat, cache->data))) {
     DBG_FAIL_MACRO;
     goto fail;
   }
