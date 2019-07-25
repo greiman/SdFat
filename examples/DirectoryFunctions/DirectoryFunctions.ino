@@ -1,7 +1,7 @@
 /*
  * Example use of chdir(), ls(), mkdir(), and  rmdir().
  */
-#include <SPI.h> 
+#include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
 
@@ -34,8 +34,8 @@ ArduinoInStream cin(Serial, cinBuf, sizeof(cinBuf));
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -45,22 +45,22 @@ void setup() {
   // Wait for input line and discard.
   cin.readline();
   cout << endl;
-  
+
   // Initialize at the highest speed supported by the board that is
   // not over 50 MHz. Try a lower speed if SPI errors occur.
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     sd.initErrorHalt();
   }
-  if (sd.exists("Folder1") 
+  if (sd.exists("Folder1")
     || sd.exists("Folder1/file1.txt")
     || sd.exists("Folder1/File2.txt")) {
     error("Please remove existing Folder1, file1.txt, and File2.txt");
   }
 
   int rootFileCount = 0;
-  if (!root.open("/")){
+  if (!root.open("/")) {
     error("open root failed");
-  }    
+  }
   while (file.openNext(&root, O_RDONLY)) {
     if (!file.isHidden()) {
       rootFileCount++;

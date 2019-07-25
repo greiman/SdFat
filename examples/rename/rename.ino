@@ -55,7 +55,6 @@ void setup() {
   file.println("A test line for Name1.txt");
 
   // rename the file name2.txt and add a line.
-  // Use current working directory, root.
   if (!file.rename("name2.txt")) {
     error("name2.txt");
   }

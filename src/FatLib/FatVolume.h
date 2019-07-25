@@ -202,12 +202,20 @@ class FatVolume {
   uint32_t dataStartBlock() const {
     return m_dataStartBlock;
   }
+  /** \return The sector number for the start of file data. */
+  uint32_t dataStartSector() const {
+    return m_dataStartBlock;
+  }
   /** \return The number of File Allocation Tables. */
   uint8_t fatCount() {
     return 2;
   }
   /** \return The logical block number for the start of the first FAT. */
   uint32_t fatStartBlock() const {
+    return m_fatStartBlock;
+  }
+  /** \return The sector number for the start of the first FAT. */
+  uint32_t fatStartSector() const {
     return m_fatStartBlock;
   }
   /** \return The FAT type of the volume. Values are 12, 16 or 32. */
@@ -239,6 +247,10 @@ class FatVolume {
    * the value false is returned for failure.
    */
   bool init(uint8_t part);
+  /** \return The cluster number of last cluster in the volume. */
+  uint32_t lastCluster() const {
+    return m_lastCluster;
+  }
   /** \return The number of entries in the root directory for FAT16 volumes. */
   uint16_t rootDirEntryCount() const {
     return m_rootDirEntryCount;
@@ -248,9 +260,17 @@ class FatVolume {
   uint32_t rootDirStart() const {
     return m_rootDirStart;
   }
+  /** \return The volume's cluster size in sectors. */
+  uint8_t sectorsPerCluster() const {
+    return m_blocksPerCluster;
+  }
   /** \return The number of blocks in the volume */
   uint32_t volumeBlockCount() const {
     return blocksPerCluster()*clusterCount();
+  }
+  /** \return The number of sectors in the volume */
+  uint32_t volumeSectorCount() const {
+    return sectorsPerCluster()*clusterCount();
   }
   /** Wipe all data from the volume.
    * \param[in] pr print stream for status dots.
@@ -363,7 +383,8 @@ class FatVolume {
   }
 //------------------------------------------------------------------------------
   bool allocateCluster(uint32_t current, uint32_t* next);
-  bool allocContiguous(uint32_t count, uint32_t* firstCluster);
+  bool allocContiguous(uint32_t count,
+                       uint32_t* firstCluster, uint32_t startCluster = 0);
   uint8_t blockOfCluster(uint32_t position) const {
     return (position >> 9) & m_clusterBlockMask;
   }

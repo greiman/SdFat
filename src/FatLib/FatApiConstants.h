@@ -112,21 +112,21 @@ inline bool isWriteMode(oflag_t oflag) {
 // FatFile class static and const definitions
 // flags for ls()
 /** ls() flag for list all files including hidden. */
-const uint8_t LS_A = 1;
+#define LS_A 1
 /** ls() flag to print modify. date */
-const uint8_t LS_DATE = 2;
+#define LS_DATE 2
 /** ls() flag to print file size. */
-const uint8_t LS_SIZE = 4;
+#define LS_SIZE 4
 /** ls() flag for recursive list of subdirectories */
-const uint8_t LS_R = 8;
+#define LS_R 8
 
 // flags for timestamp
 /** set the file's last access date */
-const uint8_t T_ACCESS = 1;
+#define T_ACCESS 1
 /** set the file's creation date and time */
-const uint8_t T_CREATE = 2;
+#define T_CREATE 2
 /** Set the file's write date and time */
-const uint8_t T_WRITE = 4;
+#define T_WRITE 4
 
 }; // namespace sdfat
 

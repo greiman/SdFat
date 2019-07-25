@@ -227,24 +227,27 @@ class FatFile {
   /** Create and open a new contiguous file of a specified size.
    *
    * \param[in] dirFile The directory where the file will be created.
-   * \param[in] path A path with a validfile name.
+   * \param[in] path A path with a valid file name.
    * \param[in] size The desired file size.
+   * \param[in] startCluster The desired startCluster.
    *
    * \return The value true is returned for success and
    * the value false, is returned for failure.
    */
-  bool createContiguous(FatFile* dirFile,
-                        const char* path, uint32_t size);
+  bool createContiguous(FatFile* dirFile, const char* path,
+                        uint32_t size, uint32_t startCluster = 0);
   /** Create and open a new contiguous file of a specified size.
    *
-   * \param[in] path A path with a validfile name.
+   * \param[in] path A path with a valid file name.
    * \param[in] size The desired file size.
+   * \param[in] startCluster The desired startCluster.
    *
    * \return The value true is returned for success and
    * the value false, is returned for failure.
    */
-  bool createContiguous(const char* path, uint32_t size) {
-    return createContiguous(m_cwd, path, size);
+  bool createContiguous(const char* path,
+                        uint32_t size, uint32_t startCluster = 0) {
+    return createContiguous(m_cwd, path, size, startCluster);
   }
   /** \return The current cluster number for a file or directory. */
   uint32_t curCluster() const {

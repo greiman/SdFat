@@ -42,10 +42,12 @@ class SdioCard : public BaseBlockDriver {
   /**
    * Determine the size of an SD flash memory card.
    *
-   * \return The number of 512 byte data blocks in the card
+   * \return The number of 512 byte sectors in the card
    *         or zero if an error occurs.
    */
-  uint32_t cardSize();
+  uint32_t cardCapacity();
+  /** \return Card size in sectors or zero if an error occurs. */
+  uint32_t cardSize() {return cardCapacity();}
   /** Erase a range of blocks.
    *
    * \param[in] firstBlock The address of the first block in the range.
