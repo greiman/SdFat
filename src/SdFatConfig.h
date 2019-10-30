@@ -90,7 +90,7 @@
  * O_WRONLY, O_RDWR and the open modifiers O_APPEND, O_CREAT, O_EXCL, O_SYNC
  * will be defined by including the system file fcntl.h.
  */
-#if defined(__AVR__)
+#if defined(__AVR__) || defined(ARDUINO_ARCH_MBED)
 // AVR fcntl.h does not define open flags.
 #define USE_FCNTL_H 0
 #elif defined(PLATFORM_ID)

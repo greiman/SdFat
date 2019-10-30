@@ -44,6 +44,18 @@
 #define O_AT_END O_NONBLOCK  ///< Open at EOF.
 typedef int oflag_t;
 #else  // USE_FCNTL_H
+#if defined(ARDUINO_ARCH_MBED)
+#undef O_RDONLY
+#undef O_WRONLY
+#undef O_RDWR
+#undef O_NONBLOCK
+#undef O_APPEND
+#undef O_CREAT
+#undef O_TRUNC
+#undef O_EXCL
+#undef O_BINARY
+#undef O_ACCMODE
+#endif
 #define O_RDONLY  0X00  ///< Open for reading only.
 #define O_WRONLY  0X01  ///< Open for writing only.
 #define O_RDWR    0X02  ///< Open for reading and writing.
