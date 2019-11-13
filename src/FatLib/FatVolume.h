@@ -31,7 +31,7 @@
 #include <stddef.h>
 #include "FatLibConfig.h"
 #include "FatStructs.h"
-#include "BlockDriver.h"
+#include "../BlockDriver.h"
 //------------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /** Macro for debug. */

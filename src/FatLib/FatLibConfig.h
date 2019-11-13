@@ -30,7 +30,7 @@
 #define FatLibConfig_h
 #include <stdint.h>
 // Allow this file to override defaults.
-#include "SdFatConfig.h"
+#include "../SdFatConfig.h"
 
 #ifdef __AVR__
 #include <avr/io.h>

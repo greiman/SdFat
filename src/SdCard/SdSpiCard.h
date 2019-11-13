@@ -29,7 +29,7 @@
  * \brief SdSpiCard class for V2 SD/SDHC cards
  */
 #include <stddef.h>
-#include "SysCall.h"
+#include "../SysCall.h"
 #include "SdInfo.h"
 #include "../FatLib/BaseBlockDriver.h"
 #include "../SpiDriver/SdSpiDriver.h"

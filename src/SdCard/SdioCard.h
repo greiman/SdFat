@@ -24,8 +24,8 @@
  */
 #ifndef SdioCard_h
 #define SdioCard_h
-#include "SysCall.h"
-#include "BlockDriver.h"
+#include "../SysCall.h"
+#include "../BlockDriver.h"
 /**
  * \class SdioCard
  * \brief Raw SDIO access to SD and SDHC flash memory cards.
