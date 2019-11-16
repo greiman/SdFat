@@ -42,13 +42,7 @@ namespace sdfat {
 
 //------------------------------------------------------------------------------
 #ifdef ESP8266
-// undefine F macro if ESP8266.
-#undef F
-#endif  // ESP8266
-//------------------------------------------------------------------------------
-#ifndef F
-/** Define macro for strings stored in flash. */
-#define F(str) (str)
+#include <pgmspace.h>
 #endif  // F
 //------------------------------------------------------------------------------
 /** \return the time in milliseconds. */
