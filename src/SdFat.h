@@ -330,6 +330,13 @@ class SdFat : public SdFileSystem<SdSpiCard> {
     return m_card.begin(&m_spi, csPin, spiSettings) &&
            SdFileSystem::begin();
   }
+  
+  bool begin(void (*ext_sdcs_func)(bool sdcs_state), SPISettings spiSettings = SPI_FULL_SPEED) {
+	  ext_sdcs = ext_sdcs_func;		// callback function for CS manipulation
+	  return m_card.begin(&m_spi, ext_sdcs, spiSettings) &&
+	  SdFileSystem::begin();
+  }
+  
   /** Initialize SD card for diagnostic use only.
    *
    * \param[in] csPin SD card chip select pin.
@@ -339,6 +346,12 @@ class SdFat : public SdFileSystem<SdSpiCard> {
   bool cardBegin(uint8_t csPin = SS, SPISettings settings = SPI_FULL_SPEED) {
     return m_card.begin(&m_spi, csPin, settings);
   }
+  
+  bool cardBegin(void (*ext_sdcs_func)(bool sdcs_state), SPISettings settings = SPI_FULL_SPEED) {
+	  ext_sdcs = ext_sdcs_func;		// callback function for CS manipulation
+	  return m_card.begin(&m_spi, ext_sdcs, settings);
+  }
+  
   /** Initialize file system for diagnostic use only.
    * \return true for success else false.
    */
@@ -348,6 +361,7 @@ class SdFat : public SdFileSystem<SdSpiCard> {
 
  private:
   SdFatSpiDriver m_spi;
+  void (*ext_sdcs)(bool sdcs_state);
 };
 //==============================================================================
 #if ENABLE_SDIO_CLASS || defined(DOXYGEN)

@@ -53,6 +53,8 @@ class SdSpiCard {
    * \return true for success else false.
    */
   bool begin(SdSpiDriver* spi, uint8_t csPin, SPISettings spiSettings);
+  bool begin(SdSpiDriver* spi, void (*cs_func)(bool cs_state), SPISettings spiSettings);
+  
   /**
    * Determine the size of an SD flash memory card.
    *
@@ -277,7 +279,7 @@ class SdSpiCard {
   //---------------------------------------------------------------------------
   // functions defined in SdSpiDriver.h
   void spiActivate() {
-    m_spiDriver->activate();
+   m_spiDriver->activate();
   }
   void spiDeactivate() {
     m_spiDriver->deactivate();
@@ -295,7 +297,7 @@ class SdSpiCard {
     m_spiDriver->send(buf, n);
   }
   void spiSelect() {
-    m_spiDriver->select();
+	m_spiDriver->select();
   }
   void spiUnselect() {
     m_spiDriver->unselect();
@@ -305,6 +307,7 @@ class SdSpiCard {
   bool    m_spiActive;
   uint8_t m_status;
   uint8_t m_type;
+  void (*m_cs_func)(bool cs_state);
 };
 //==============================================================================
 /**

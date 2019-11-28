@@ -317,6 +317,100 @@ fail:
   spiStop();
   return false;
 }
+
+bool SdSpiCard::begin(SdSpiDriver* spi, void (*cs_func)(bool cs_state), SPISettings settings) {
+	m_spiActive = false;
+	m_errorCode = SD_CARD_ERROR_NONE;
+	m_type = 0;
+	m_spiDriver = spi;
+	m_cs_func = cs_func;
+	uint16_t t0 = curTimeMS();
+	uint32_t arg;
+	m_spiDriver->begin(m_cs_func);
+	m_spiDriver->setSpiSettings(SD_SCK_HZ(250000));
+	spiStart();
+
+	// must supply min of 74 clock cycles with CS high.
+	spiUnselect();
+	for (uint8_t i = 0; i < 10; i++) {
+		spiSend(0XFF);
+	}
+	spiSelect();
+
+	DBG_BEGIN_TIME(DBG_CMD0_TIME);
+	// command to go idle in SPI mode
+	for (uint8_t i = 1;; i++) {
+		DBG_EVENT_COUNT(DBG_CMD0_COUNT);
+		if (cardCommand(CMD0, 0) == R1_IDLE_STATE) {
+			break;
+		}
+		if (i == SD_CMD0_RETRY) {
+			error(SD_CARD_ERROR_CMD0);
+			goto fail;
+		}
+		// stop multi-block write
+		spiSend(STOP_TRAN_TOKEN);
+		// finish block transfer
+		for (int i = 0; i < 520; i++) {
+			spiReceive();
+		}
+	}
+	DBG_END_TIME(DBG_CMD0_TIME);
+	#if USE_SD_CRC
+	if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
+		error(SD_CARD_ERROR_CMD59);
+		goto fail;
+	}
+	#endif  // USE_SD_CRC
+	// check SD version
+	if (cardCommand(CMD8, 0x1AA) == (R1_ILLEGAL_COMMAND | R1_IDLE_STATE)) {
+		type(SD_CARD_TYPE_SD1);
+		} else {
+		for (uint8_t i = 0; i < 4; i++) {
+			m_status = spiReceive();
+		}
+		if (m_status == 0XAA) {
+			type(SD_CARD_TYPE_SD2);
+			} else {
+			error(SD_CARD_ERROR_CMD8);
+			goto fail;
+		}
+	}
+	// initialize card and send host supports SDHC if SD2
+	arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
+	DBG_BEGIN_TIME(DBG_ACMD41_TIME);
+	while (cardAcmd(ACMD41, arg) != R1_READY_STATE) {
+		DBG_EVENT_COUNT(DBG_ACMD41_COUNT);
+		// check for timeout
+		if (isTimedOut(t0, SD_INIT_TIMEOUT)) {
+			error(SD_CARD_ERROR_ACMD41);
+			goto fail;
+		}
+	}
+	DBG_END_TIME(DBG_ACMD41_TIME);
+	// if SD2 read OCR register to check for SDHC card
+	if (type() == SD_CARD_TYPE_SD2) {
+		if (cardCommand(CMD58, 0)) {
+			error(SD_CARD_ERROR_CMD58);
+			goto fail;
+		}
+		if ((spiReceive() & 0XC0) == 0XC0) {
+			type(SD_CARD_TYPE_SDHC);
+		}
+		// Discard rest of ocr - contains allowed voltage range.
+		for (uint8_t i = 0; i < 3; i++) {
+			spiReceive();
+		}
+	}
+	spiStop();
+	m_spiDriver->setSpiSettings(settings);
+	return true;
+
+	fail:
+	spiStop();
+	return false;
+}
+
 //------------------------------------------------------------------------------
 // send command and return error code.  Return zero for OK
 uint8_t SdSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
