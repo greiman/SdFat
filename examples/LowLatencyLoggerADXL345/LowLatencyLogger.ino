@@ -20,9 +20,12 @@
 
 #ifdef __AVR_ATmega328P__
 #include "MinimumSerial.h"
-MinimumSerial MinSerial;
+sdfat::MinimumSerial MinSerial;
 #define Serial MinSerial
 #endif  // __AVR_ATmega328P__
+
+using namespace sdfat;
+
 //==============================================================================
 // Start of configuration constants.
 //==============================================================================

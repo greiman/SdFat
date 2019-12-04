@@ -27,6 +27,9 @@
 #include "FatVolume.h"
 #include "FatFile.h"
 #include "ArduinoFiles.h"
+
+namespace sdfat {
+
 /**
  * \file
  * \brief FatFileSystem class
@@ -329,4 +332,7 @@ fail:
  private:
   FatFile m_vwd;
 };
+
+}; // namespace sdfat
+
 #endif  // FatFileSystem_h

@@ -20,6 +20,9 @@
 #include <SPI.h>
 //#include <SD.h>
 #include "SdFat.h"
+
+using namespace sdfat;
+
 SdFat SD;
 
 #define SD_CS_PIN SS

@@ -27,6 +27,8 @@
 // SPI definitions
 #include "kinetis.h"
 
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 void SdSpiAltDriver::activate() {
   SPI.beginTransaction(m_spiSettings);
@@ -230,4 +232,7 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   }
 }
 #endif  // KINETISK
+
+}; // namespace sdfat
+
 #endif  // defined(__arm__) && defined(CORE_TEENSY)

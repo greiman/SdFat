@@ -9,6 +9,8 @@
 #include "SdFat.h"
 #include "sdios.h"
 
+using namespace sdfat;
+
 // SD chip select pin
 const uint8_t chipSelect = SS;
 

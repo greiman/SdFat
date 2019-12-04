@@ -5,6 +5,8 @@
 #include <SPI.h>
 #include <SD.h>
 
+using namespace sdfat;
+
 // SD chip select pin
 const uint8_t chipSelect = SS;
 

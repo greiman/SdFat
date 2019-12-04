@@ -28,6 +28,9 @@
 #include <avr/pgmspace.h>
 #define USE_STIMMER
 #endif  // __AVR__
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 // Stimmer div/mod 10 for AVR
 // this code fragment works out i/10 and i%10 by calculating
@@ -457,4 +460,4 @@ fail:
   return 0;
 }
 
-
+}; // namespace sdfat

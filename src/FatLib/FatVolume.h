@@ -32,6 +32,9 @@
 #include "FatLibConfig.h"
 #include "FatStructs.h"
 #include "BlockDriver.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /** Macro for debug. */
@@ -95,6 +98,9 @@ union cache_t {
  */
 class FatCache {
  public:
+
+  FatCache() { invalidate(); }
+
   /** Cached block is dirty */
   static const uint8_t CACHE_STATUS_DIRTY = 1;
   /** Cashed block is FAT entry and must be mirrored in second FAT. */
@@ -393,4 +399,7 @@ class FatVolume {
     return cluster > m_lastCluster;
   }
 };
+
+}; // namespace sdfat
+
 #endif  // FatVolume

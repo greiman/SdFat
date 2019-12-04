@@ -5,6 +5,8 @@
 #include "SdFat.h"
 #include "FreeStack.h"
 
+using namespace sdfat;
+
 // SD card chip select pin.
 const uint8_t SD_CS_PIN = SS;
 

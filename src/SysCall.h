@@ -24,6 +24,7 @@
  */
 #ifndef SysCall_h
 #define SysCall_h
+
 /**
  * \file
  * \brief SysCall class
@@ -36,15 +37,12 @@
 #else  // defined(ARDUINO)
 #error "Unknown system"
 #endif  // defined(ARDUINO)
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 #ifdef ESP8266
-// undefine F macro if ESP8266.
-#undef F
-#endif  // ESP8266
-//------------------------------------------------------------------------------
-#ifndef F
-/** Define macro for strings stored in flash. */
-#define F(str) (str)
+#include <pgmspace.h>
 #endif  // F
 //------------------------------------------------------------------------------
 /** \return the time in milliseconds. */
@@ -85,4 +83,7 @@ inline void SysCall::yield() {
 #else  // ESP8266
 inline void SysCall::yield() {}
 #endif  // ESP8266
+
+}; // namespace sdfat
+
 #endif  // SysCall_h

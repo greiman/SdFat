@@ -31,6 +31,9 @@
 #else  // defined(__STM32F1__)
 #error Unknown STM32 type
 #endif  // defined(__STM32F1__)
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 /** Set SPI options for access to SD/SDHC cards.
  *
@@ -102,4 +105,7 @@ void SdSpiAltDriver::send(const uint8_t* buf , size_t n) {
   m_spi->write(const_cast<uint8*>(buf), n);
 #endif  // USE_STM32_DMA
 }
+
+}; // namespace sdfat
+
 #endif  // defined(__STM32F1__) || defined(__STM32F4__)

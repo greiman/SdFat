@@ -30,6 +30,9 @@
  */
 #include "FatFile.h"
 #include "iostream.h"
+
+namespace sdfat {
+
 //==============================================================================
 /**
  * \class FatStreamBase
@@ -316,5 +319,8 @@ class ofstream : public ostream, FatStreamBase {
   }
   /// @endcond
 };
+
+}; // namespace sdfat
+
 //------------------------------------------------------------------------------
 #endif  // fstream_h

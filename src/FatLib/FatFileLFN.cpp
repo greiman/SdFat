@@ -23,6 +23,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "FatFile.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 //
 uint8_t FatFile::lfnChecksum(uint8_t* name) {
@@ -475,7 +478,10 @@ create:
   // set timestamps
   if (m_dateTime) {
     // call user date/time function
-    m_dateTime(&dir->creationDate, &dir->creationTime);
+    uint16_t date, time;
+    m_dateTime(&date, &time);
+    dir->creationDate = date;
+    dir->creationTime = time;
   } else {
     // use default date/time
     dir->creationDate = FAT_DEFAULT_DATE;
@@ -686,3 +692,5 @@ done:
   return true;
 }
 #endif  // #if USE_LONG_FILE_NAMES
+
+}; // namespace sdfat

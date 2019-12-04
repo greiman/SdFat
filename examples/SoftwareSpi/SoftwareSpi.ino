@@ -5,6 +5,9 @@
 //
 #include <SPI.h>
 #include "SdFat.h"
+
+using namespace sdfat;
+
 #if ENABLE_SOFTWARE_SPI_CLASS  // Must be set in SdFat/SdFatConfig.h
 //
 // Pin numbers in templates must be constants.

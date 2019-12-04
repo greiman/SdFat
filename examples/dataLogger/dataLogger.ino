@@ -4,6 +4,8 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+using namespace sdfat;
+
 // SD chip select pin.  Be sure to disable any other SPI devices such as Enet.
 const uint8_t chipSelect = SS;
 

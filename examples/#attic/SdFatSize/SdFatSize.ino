@@ -6,6 +6,8 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+using namespace sdfat;
+
 SdFat sd;
 
 SdFile file;

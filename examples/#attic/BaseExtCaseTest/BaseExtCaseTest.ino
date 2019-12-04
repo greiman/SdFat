@@ -4,6 +4,8 @@
 #include <SPI.h>
 #include "SdFat.h"
 
+using namespace sdfat;
+
 const uint8_t chipSelect = SS;
 
 SdFat sd;

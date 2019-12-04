@@ -5,6 +5,8 @@
 #include <SPI.h>
 #include <SD.h>
 
+using namespace sdfat;
+
 File file;
 //------------------------------------------------------------------------------
 void setup() {

@@ -24,6 +24,9 @@
  */
 #include <string.h>
 #include "FatVolume.h"
+
+namespace sdfat {
+
 //------------------------------------------------------------------------------
 cache_t* FatCache::read(uint32_t lbn, uint8_t option) {
   if (m_lbn != lbn) {
@@ -81,7 +84,15 @@ bool FatVolume::allocateCluster(uint32_t current, uint32_t* next) {
     find = m_allocSearchStart;
     setStart = true;
   }
+  // Following loop may iterate over up to 268 million clusters, so we need to allow
+  // the OS/hardware to do its work occasionally during the search or a WDT error will
+  // occur on the ESP8266.
+  int yieldCnt = 5000;
   while (1) {
+    if (!(--yieldCnt)) {
+        yieldCnt = 5000;
+        SysCall::yield();
+    }
     find++;
     if (find > m_lastCluster) {
       if (setStart) {
@@ -150,7 +161,15 @@ bool FatVolume::allocContiguous(uint32_t count,
   }
   endCluster = bgnCluster;
   // search the FAT for free clusters
+  // Following loop may iterate over up to 268 million clusters, so we need to allow
+  // the OS/hardware to do its work occasionally during the search or a WDT error will
+  // occur on the ESP8266.
+  int yieldCnt = 5000;
   while (1) {
+    if (!(--yieldCnt)) {
+        yieldCnt = 5000;
+        SysCall::yield();
+    }
     if (endCluster > m_lastCluster) {
       // Can't find space.
       DBG_FAIL_MACRO;
@@ -623,3 +642,5 @@ fail:
   m_fatType = 0;
   return false;
 }
+
+}; // namespace sdfat

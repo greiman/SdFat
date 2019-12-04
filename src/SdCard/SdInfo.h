@@ -25,6 +25,9 @@
 #ifndef SdInfo_h
 #define SdInfo_h
 #include <stdint.h>
+
+namespace sdfat {
+
 // Based on the document:
 //
 // SD Specifications
@@ -104,6 +107,7 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 #define SD_SCK_HZ(maxSpeed) SPISettings(maxSpeed, MSBFIRST, SPI_MODE0)
 #define SD_SCK_MHZ(maxMhz) SPISettings(1000000UL*maxMhz, MSBFIRST, SPI_MODE0)
 // SPI divisor constants
+#ifndef ESP8266
 /** Set SCK to max rate of F_CPU/2. */
 #define SPI_FULL_SPEED SD_SCK_MHZ(50)
 /** Set SCK rate to F_CPU/3 for Due */
@@ -118,6 +122,13 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 #define SPI_EIGHTH_SPEED SD_SCK_HZ(F_CPU/16)
 /** Set SCK rate to F_CPU/32. */
 #define SPI_SIXTEENTH_SPEED SD_SCK_HZ(F_CPU/32)
+#else
+// ESP8266 backward compatible options from old SD.h library
+#define SPI_FULL_SPEED       SD_SCK_HZ(8000000)
+#define SPI_HALF_SPEED       SD_SCK_HZ(4000000)
+#define SPI_QUARTER_SPEED    SD_SCK_HZ(2000000)
+#endif
+
 //------------------------------------------------------------------------------
 // SD operation timeouts
 /** CMD0 retry count */
@@ -482,4 +493,7 @@ inline uint32_t sdCardCapacity(csd_t* csd) {
     return 0;
   }
 }
+
+}; // namespace sdfat
+
 #endif  // SdInfo_h

@@ -23,6 +23,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "SdSpiCard.h"
+
+namespace sdfat {
+
 //==============================================================================
 // debug trace macro
 #define SD_TRACE(m, b)
@@ -466,9 +469,9 @@ uint32_t SdSpiCard::cardCapacity() {
   return readCSD(&csd) ? sdCardCapacity(&csd) : 0;
 }
 //------------------------------------------------------------------------------
-void SdSpiCard::dbgClearStats() {::dbgClearStats();}
+void SdSpiCard::dbgClearStats() {sdfat::dbgClearStats();}
 //------------------------------------------------------------------------------
-void SdSpiCard::dbgPrintStats() {::dbgPrintStats();}
+void SdSpiCard::dbgPrintStats() {sdfat::dbgPrintStats();}
 //------------------------------------------------------------------------------
 bool SdSpiCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
   csd_t csd;
@@ -894,3 +897,5 @@ fail:
   spiStop();
   return false;
 }
+
+}; // namespace sdfat

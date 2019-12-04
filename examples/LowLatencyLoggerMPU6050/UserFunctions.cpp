@@ -3,6 +3,9 @@
 #include "Wire.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
+
+using namespace sdfat;
+
 //------------------------------------------------------------------------------
 MPU6050 mpu;
 static uint32_t startMicros;

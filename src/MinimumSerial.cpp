@@ -25,6 +25,9 @@
 #include "SysCall.h"
 #if defined(UDR0) || defined(DOXYGEN)
 #include "MinimumSerial.h"
+
+namespace sdfat {
+
 const uint16_t MIN_2X_BAUD = F_CPU/(4*(2*0XFFF + 1)) + 1;
 //------------------------------------------------------------------------------
 int MinimumSerial::available() {
@@ -68,4 +71,7 @@ size_t MinimumSerial::write(uint8_t b) {
   UDR0 = b;
   return 1;
 }
+
+}; // namespace sdfat
+
 #endif  //  defined(UDR0) || defined(DOXYGEN)
