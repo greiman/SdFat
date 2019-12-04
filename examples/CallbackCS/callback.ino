@@ -10,9 +10,12 @@
 #define SD_CS		2															// I2C bit
 #define TP_CS		1															// I2C bit
 
+using namespace sdfat;
+
 PCF857x		pcf8575(I2C_EXP_A, &Wire, true);
 SdFat		sd;
-File		sdfile;
+SdFile		sdfile;
+SdFile		root;
 
 
 void tft_sdcs(bool enabled)
@@ -30,53 +33,26 @@ void setup()
 	Wire.begin(SDA_PAD, SCL_PAD);												// Init I2C
 	pcf8575.begin();															// PCF8575
 
-	if (!sd.begin(tft_sdcs))
+	if (!sd.begin(tft_sdcs)) sd.initErrorHalt();
+
+	if (!root.open("/")) sd.errorHalt("open root failed");
+
+	while (sdfile.openNext(&root, O_RDONLY))
 	{
-		Serial.println("initialization failed!");
-	}
-	else
-	{
-	sdfile = sd.open("test.txt", FILE_WRITE);
-	// if the file opened okay, write to it:
-		if (sdfile)
-		{
-			Serial.print("Writing to test.txt...");
-			sdfile.println("testing 1, 2, 3.");
-			// close the file:
-			sdfile.close();
-			Serial.println("done.");
-		}
-		else
-		{
-			// if the file didn't open, print an error:
-			Serial.println("error opening test.txt");
-		}
+		sdfile.printFileSize(&Serial);
+		Serial.write(' ');
+		sdfile.printModifyDateTime(&Serial);
+		Serial.write(' ');
+		sdfile.printName(&Serial);
 
-		// re-open the file for reading:
-		sdfile = sd.open("test.txt");
+		if (sdfile.isDir())	Serial.write('/');
 
-		if (sdfile)
-		{
-			Serial.println("test.txt:");
-
-			// read from the file until there's nothing else in it:
-			while (sdfile.available())
-			{
-				Serial.write(sdfile.read());
-			}
-
-			// close the file:
-			sdfile.close();
-		}
-		else
-		{
-			// if the file didn't open, print an error:
-			Serial.println("error opening test.txt");
-		}
+		Serial.println();
+		sdfile.close();
 	}
 
+	if (root.getError()) Serial.println("openNext failed");
+	else Serial.println("Done!");
 }
 
-void loop()
-{
-}
+void loop() {}
