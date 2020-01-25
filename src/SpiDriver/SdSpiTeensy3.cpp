@@ -25,7 +25,7 @@
 #include "SdSpiDriver.h"
 #if defined(__arm__) && defined(CORE_TEENSY)
 // SPI definitions
-#include "kinetis.h"
+// #include "kinetis.h"
 
 //------------------------------------------------------------------------------
 void SdSpiAltDriver::activate() {

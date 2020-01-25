@@ -357,7 +357,7 @@ fail:
 //------------------------------------------------------------------------------
 // free a cluster chain
 bool FatVolume::freeChain(uint32_t cluster) {
-  uint32_t next;
+  uint32_t next = 0;
   int8_t fg;
   do {
     fg = fatGet(cluster, &next);
