@@ -99,6 +99,8 @@
 #elif defined(__arm__)
 // ARM gcc defines open flags.
 #define USE_FCNTL_H 1
+#elif defined(ESP32)
+#define USE_FCNTL_H 1
 #else  // defined(__AVR__)
 #define USE_FCNTL_H 0
 #endif  // defined(__AVR__)
