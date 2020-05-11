@@ -6,16 +6,21 @@
  * 
   */
 #include "SdFat.h"
-SdFatSdio sd;
 SdFatSdioEX sdEx;
 File file;
   #include <MTP.h>
   MTPStorage_SD storage;
   MTPD          mtpd(&storage);
-  #define usbVisible true
   bool checkSDInstalled(){
+    if (!SD.begin()) {
+      Serial.println("MTP failed");
+      delay(5000);
+      return false;
+    } else {
+      return true;
+    }
     if (!sdEx.begin()) {
-      sd.initErrorHalt("SdFatSdioEX begin() failed");
+      Serial.print("SdFatSdioEX begin() failed");
       return false;
     } else {
       return true;
@@ -83,16 +88,14 @@ void loop() {
 
 void viewSDonUSB(){
   if(sdfound == true){ // if an SD card is found and working
-    if(usbVisible == true){// if the software has enabled SD view on PC
-      outputString = ("usb storage enabled, system will run slower");
       if(digitalRead(23) == HIGH){ // if the hardware pin for SD view is enabled
+        outputString = ("usb storage enabled, system will run slower");
         enableUSB(); //448473 cycles no pin check//
         digitalWriteFast(LED_BUILTIN,HIGH);
       } else { 
         outputString = ("HARDWARE SD TO PC DISABLED"); digitalWriteFast(LED_BUILTIN,LOW);
         runTest();
       } //377873 no pincheck
-    } else {  outputString = ("LIBRARY SD TO PC DISABLED"); }
   } else { outputString = ("NO SD CARD DETECTED"); } 
 }
 
@@ -105,7 +108,12 @@ void runTest() {
     Serial.println("FILE NOT FOUND");
     delay(1000);
   }
-  if (!file.open("TeensyDemo.txt", O_WRITE | O_CREAT | O_AT_END)) {
+  /*String fileString = String(millis());
+  fileString += ".txt";
+  char fileNameStore[20];
+  fileString.toCharArray(fileNameStore, 20);
+  Serial.print("FILE NAME ");Serial.println(fileString);*/
+  if (!sdEx.open("teensyDemo.txt", O_WRITE | O_CREAT | O_AT_END)) {
         Serial.println("SD CARD FILE NOT OPENED");
   } else {
     Serial.println("SD CARD FILE OPENED");
@@ -116,6 +124,6 @@ void runTest() {
     Serial.println("write success");
     delay(1000);
   }
-  file.close();
+  sdEx.close();
 }
   
