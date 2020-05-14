@@ -262,7 +262,7 @@ bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
   fname_t fname;
   FatFile tmpDir;
 
-  if (isOpen() || !parent->isDir()) {
+  if (!parent || isOpen() || !parent->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -379,7 +379,7 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
   fname_t fname;
 
   // error if already open
-  if (isOpen() || !dirFile->isDir()) {
+  if (!dirFile || isOpen() || !dirFile->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -425,7 +425,7 @@ bool FatFile::open(FatFile* dirFile, uint16_t index, oflag_t oflag) {
   ldir_t*ldir;
 
   // Error if already open.
-  if (isOpen() || !dirFile->isDir()) {
+  if (!dirFile || isOpen() || !dirFile->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -582,7 +582,7 @@ bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint16_t index;
 
   // Check for not open and valid directory..
-  if (isOpen() || !dirFile->isDir() || (dirFile->curPosition() & 0X1F)) {
+  if (!dirFile || isOpen() || !dirFile->isDir() || (dirFile->curPosition() & 0X1F)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -643,7 +643,7 @@ bool FatFile::openParent(FatFile* dirFile) {
   uint32_t ddc;
   cache_t* cb;
 
-  if (isOpen() || !dirFile->isOpen()) {
+  if (!dirFile || isOpen() || !dirFile->isOpen()) {
     goto fail;
   }
   if (dirFile->m_dirCluster == 0) {

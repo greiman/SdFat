@@ -571,6 +571,10 @@ class FatFile {
    * the value false is returned for failure.
    */
   bool open(const char* path, oflag_t oflag = O_RDONLY) {
+    if (!m_cwd) {
+      DBG_FAIL_MACRO;
+      return false;
+    }
     return open(m_cwd, path, oflag);
   }
   /** Open current working directory.
