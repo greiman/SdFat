@@ -262,7 +262,7 @@ bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
   fname_t fname;
   FatFile tmpDir;
 
-  if (isOpen() || !parent->isDir()) {
+  if (isOpen() || !parent || !parent->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -306,7 +306,7 @@ bool FatFile::mkdir(FatFile* parent, fname_t* fname) {
   dir_t* dir;
   cache_t* pc;
 
-  if (!parent->isDir()) {
+  if (!parent || !parent->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -379,7 +379,7 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
   fname_t fname;
 
   // error if already open
-  if (isOpen() || !dirFile->isDir()) {
+  if (isOpen() || !dirFile || !dirFile->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -425,7 +425,7 @@ bool FatFile::open(FatFile* dirFile, uint16_t index, oflag_t oflag) {
   ldir_t*ldir;
 
   // Error if already open.
-  if (isOpen() || !dirFile->isDir()) {
+  if (isOpen() || !dirFile || !dirFile->isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -581,8 +581,9 @@ bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint8_t lfnOrd = 0;
   uint16_t index;
 
-  // Check for not open and valid directory..
-  if (isOpen() || !dirFile->isDir() || (dirFile->curPosition() & 0X1F)) {
+  // Check for not open and valid directory.
+  if (isOpen() || !dirFile || !dirFile->isDir() 
+    || (dirFile->curPosition() & 0X1F)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -643,7 +644,7 @@ bool FatFile::openParent(FatFile* dirFile) {
   uint32_t ddc;
   cache_t* cb;
 
-  if (isOpen() || !dirFile->isOpen()) {
+  if (isOpen() || !dirFile || !dirFile->isOpen()) {
     goto fail;
   }
   if (dirFile->m_dirCluster == 0) {
@@ -1235,8 +1236,8 @@ bool FatFile::timestamp(FatFile* file) {
   dir_t* dir;
   dir_t srcDir;
 
-  // most be files get timestamps
-  if (!isFile() || !file->isFile() || !file->dirEntry(&srcDir)) {
+  // must be files to get timestamps
+  if (!isFile() || !file || !file->isFile() || !file->dirEntry(&srcDir)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
