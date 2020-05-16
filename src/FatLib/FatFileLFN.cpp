@@ -303,7 +303,7 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   ldir_t* ldir;
   size_t len = fname->len;
 
-  if (!dirFile || dirFile->isDir() || isOpen()) {
+  if (!dirFile || !dirFile->isDir() || isOpen()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
