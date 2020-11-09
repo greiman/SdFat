@@ -3,6 +3,10 @@
 #include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
+
+// SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
+// 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
+#define SD_FAT_TYPE 3
 //
 // Set DISABLE_CHIP_SELECT to disable a second SPI device.
 // For example, with the Ethernet shield, set DISABLE_CHIP_SELECT
@@ -14,9 +18,21 @@ const int8_t DISABLE_CHIP_SELECT = -1;
 // Change SPI_SPEED to SD_SCK_MHZ(50) for best performance.
 #define SPI_SPEED SD_SCK_MHZ(4)
 //------------------------------------------------------------------------------
-// File system object.
+#if SD_FAT_TYPE == 0
 SdFat sd;
-
+File file;
+#elif SD_FAT_TYPE == 1
+SdFat32 sd;
+File32 file;
+#elif SD_FAT_TYPE == 2
+SdExFat sd;
+ExFile file;
+#elif SD_FAT_TYPE == 3
+SdFs sd;
+FsFile file;
+#else  // SD_FAT_TYPE
+#error Invalid SD_FAT_TYPE
+#endif  // SD_FAT_TYPE
 // Serial streams
 ArduinoOutStream cout(Serial);
 
@@ -50,6 +66,9 @@ void setup() {
   cout << F("MOSI: ") << int(MOSI) << endl;
   cout << F("SCK:  ") << int(SCK) << endl;
   cout << F("SS:   ") << int(SS) << endl;
+#ifdef SDCARD_SS_PIN
+  cout << F("SDCARD_SS_PIN:   ") << int(SDCARD_SS_PIN) << endl;
+#endif  // SDCARD_SS_PIN
 
   if (DISABLE_CHIP_SELECT < 0) {
     cout << F(
@@ -114,18 +133,19 @@ void loop() {
       cout << dec << noshowbase << endl;
       return;
     }
+    cout << F("\nCard successfully initialized.\n");
     if (sd.vol()->fatType() == 0) {
       cout << F("Can't find a valid FAT16/FAT32 partition.\n");
       reformatMsg();
       return;
     }
-    cout << F("begin failed, can't determine error type\n");
+    cout << F("Can't determine error type\n");
     return;
   }
   cout << F("\nCard successfully initialized.\n");
   cout << endl;
 
-  uint32_t size = sd.card()->cardSize();
+  uint32_t size = sd.card()->sectorCount();
   if (size == 0) {
     cout << F("Can't determine the card size.\n");
     cardOrSpeed();
@@ -136,13 +156,13 @@ void loop() {
   cout << F(" MB (MB = 1,000,000 bytes)\n");
   cout << endl;
   cout << F("Volume is FAT") << int(sd.vol()->fatType());
-  cout << F(", Cluster size (bytes): ") << 512L * sd.vol()->blocksPerCluster();
+  cout << F(", Cluster size (bytes): ") << sd.vol()->bytesPerCluster();
   cout << endl << endl;
 
   cout << F("Files found (date time size name):\n");
   sd.ls(LS_R | LS_DATE | LS_SIZE);
 
-  if ((sizeMB > 1100 && sd.vol()->blocksPerCluster() < 64)
+  if ((sizeMB > 1100 && sd.vol()->sectorsPerCluster() < 64)
       || (sizeMB < 2200 && sd.vol()->fatType() == 32)) {
     cout << F("\nThis card should be reformatted for best performance.\n");
     cout << F("Use a cluster size of 32 KB for cards larger than 1 GB.\n");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 Bill Greiman
+ * Copyright (c) 2011-2020 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "SysCall.h"
+#include "common/SysCall.h"
 #if defined(UDR0) || defined(DOXYGEN)
 #include "MinimumSerial.h"
 const uint16_t MIN_2X_BAUD = F_CPU/(4*(2*0XFFF + 1)) + 1;

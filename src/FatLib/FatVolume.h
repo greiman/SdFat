@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 Bill Greiman
+ * Copyright (c) 2011-2020 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,373 +24,317 @@
  */
 #ifndef FatVolume_h
 #define FatVolume_h
+#include "FatPartition.h"
+#include "FatFile.h"
 /**
  * \file
  * \brief FatVolume class
  */
-#include <stddef.h>
-#include "FatLibConfig.h"
-#include "FatStructs.h"
-#include "BlockDriver.h"
 //------------------------------------------------------------------------------
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-/** Macro for debug. */
-#define DEBUG_MODE 0
-#if DEBUG_MODE
-#define DBG_FAIL_MACRO Serial.print(F(__FILE__)); Serial.println(__LINE__);
-#define DBG_PRINT_IF(b) if (b) {Serial.println(F(#b)); DBG_FAIL_MACRO;}
-#define DBG_HALT_IF(b) if (b) {Serial.println(F(#b));\
-                               DBG_FAIL_MACRO; while (1);}
-#else  // DEBUG_MODE
-#define DBG_FAIL_MACRO
-#define DBG_PRINT_IF(b)
-#define DBG_HALT_IF(b)
-#endif  // DEBUG_MODE
-#endif  // DOXYGEN_SHOULD_SKIP_THIS
-//------------------------------------------------------------------------------
-#if ENABLE_ARDUINO_FEATURES
-/** Use Print for Arduino */
-typedef Print print_t;
-#else  // ENABLE_ARDUINO_FEATURES
-/**
- * \class CharWriter
- * \brief Character output - often serial port.
- */
-class CharWriter {
- public:
-  virtual size_t write(char c) = 0;
-  virtual size_t write(const char* s) = 0;
-};
-typedef CharWriter print_t;
-#endif  // ENABLE_ARDUINO_FEATURES
-//------------------------------------------------------------------------------
-// Forward declaration of FatVolume.
-class FatVolume;
-//------------------------------------------------------------------------------
-/**
- * \brief Cache for an raw data block.
- */
-union cache_t {
-  /** Used to access cached file data blocks. */
-  uint8_t  data[512];
-  /** Used to access cached FAT16 entries. */
-  uint16_t fat16[256];
-  /** Used to access cached FAT32 entries. */
-  uint32_t fat32[128];
-  /** Used to access cached directory entries. */
-  dir_t    dir[16];
-  /** Used to access a cached Master Boot Record. */
-  mbr_t    mbr;
-  /** Used to access to a cached FAT boot sector. */
-  fat_boot_t fbs;
-  /** Used to access to a cached FAT32 boot sector. */
-  fat32_boot_t fbs32;
-  /** Used to access to a cached FAT32 FSINFO sector. */
-  fat32_fsinfo_t fsinfo;
-};
-//==============================================================================
-/**
- * \class FatCache
- * \brief Block cache.
- */
-class FatCache {
- public:
-  /** Cached block is dirty */
-  static const uint8_t CACHE_STATUS_DIRTY = 1;
-  /** Cashed block is FAT entry and must be mirrored in second FAT. */
-  static const uint8_t CACHE_STATUS_MIRROR_FAT = 2;
-  /** Cache block status bits */
-  static const uint8_t CACHE_STATUS_MASK
-    = CACHE_STATUS_DIRTY | CACHE_STATUS_MIRROR_FAT;
-  /** Sync existing block but do not read new block. */
-  static const uint8_t CACHE_OPTION_NO_READ = 4;
-  /** Cache block for read. */
-  static const uint8_t CACHE_FOR_READ = 0;
-  /** Cache block for write. */
-  static const uint8_t CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
-  /** Reserve cache block for write - do not read from block device. */
-  static const uint8_t CACHE_RESERVE_FOR_WRITE
-    = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
-  /** \return Cache block address. */
-  cache_t* block() {
-    return &m_block;
-  }
-  /** Set current block dirty. */
-  void dirty() {
-    m_status |= CACHE_STATUS_DIRTY;
-  }
-  /** Initialize the cache.
-   * \param[in] vol FatVolume that owns this FatCache.
-   */
-  void init(FatVolume *vol) {
-    m_vol = vol;
-    invalidate();
-  }
-  /** Invalidate current cache block. */
-  void invalidate() {
-    m_status = 0;
-    m_lbn = 0XFFFFFFFF;
-  }
-  /** \return dirty status */
-  bool isDirty() {
-    return m_status & CACHE_STATUS_DIRTY;
-  }
-  /** \return Logical block number for cached block. */
-  uint32_t lbn() {
-    return m_lbn;
-  }
-  /** Read a block into the cache.
-   * \param[in] lbn Block to read.
-   * \param[in] option mode for cached block.
-   * \return Address of cached block. */
-  cache_t* read(uint32_t lbn, uint8_t option);
-  /** Write current block if dirty.
-   * \return true for success else false.
-   */
-  bool sync();
-
- private:
-  uint8_t m_status;
-  FatVolume* m_vol;
-  uint32_t m_lbn;
-  cache_t m_block;
-};
-//==============================================================================
 /**
  * \class FatVolume
- * \brief Access FAT16 and FAT32 volumes on raw file devices.
+ * \brief Integration class for the FatLib library.
  */
-class FatVolume {
+class FatVolume : public  FatPartition {
  public:
-  /** Create an instance of FatVolume
+  /**
+   * Initialize an FatVolume object.
+   * \param[in] dev Device block driver.
+   * \param[in] setCwv Set current working volume if true.
+   * \param[in] part partition to initialize.
+   * \return true for success or false for failure.
    */
-  FatVolume() : m_fatType(0) {}
-
-  /** \return The volume's cluster size in blocks. */
-  uint8_t blocksPerCluster() const {
-    return m_blocksPerCluster;
-  }
-  /** \return The number of blocks in one FAT. */
-  uint32_t blocksPerFat()  const {
-    return m_blocksPerFat;
-  }
-  /** Clear the cache and returns a pointer to the cache.  Not for normal apps.
-   * \return A pointer to the cache buffer or zero if an error occurs.
-   */
-  cache_t* cacheClear() {
-    if (!cacheSync()) {
-      return 0;
+  bool begin(BlockDevice* dev, bool setCwv = true, uint8_t part = 1) {
+    if (!init(dev, part)) {
+      return false;
     }
-    m_cache.invalidate();
-    return m_cache.block();
+    if (!chdir()) {
+      return false;
+    }
+    if (setCwv) {
+      m_cwv = this;
+    }
+    return true;
   }
-  /** \return The total number of clusters in the volume. */
-  uint32_t clusterCount() const {
-    return m_lastCluster - 1;
-  }
-  /** \return The shift count required to multiply by blocksPerCluster. */
-  uint8_t clusterSizeShift() const {
-    return m_clusterSizeShift;
-  }
-  /** \return The logical block number for the start of file data. */
-  uint32_t dataStartBlock() const {
-    return m_dataStartBlock;
-  }
-  /** \return The sector number for the start of file data. */
-  uint32_t dataStartSector() const {
-    return m_dataStartBlock;
-  }
-  /** \return The number of File Allocation Tables. */
-  uint8_t fatCount() {
-    return 2;
-  }
-  /** \return The logical block number for the start of the first FAT. */
-  uint32_t fatStartBlock() const {
-    return m_fatStartBlock;
-  }
-  /** \return The sector number for the start of the first FAT. */
-  uint32_t fatStartSector() const {
-    return m_fatStartBlock;
-  }
-  /** \return The FAT type of the volume. Values are 12, 16 or 32. */
-  uint8_t fatType() const {
-    return m_fatType;
-  }
-  /** Volume free space in clusters.
-   *
-   * \return Count of free clusters for success or -1 if an error occurs.
+  /** Change global current working volume to this volume. */
+  void chvol() {m_cwv = this;}
+  /** \return current working volume. */
+  static FatVolume* cwv() {return m_cwv;}
+  /**
+   * Set volume working directory to root.
+   * \return true for success or false for failure.
    */
-  int32_t freeClusterCount();
-  /** Initialize a FAT volume.  Try partition one first then try super
-   * floppy format.
-   *
-   * \return The value true is returned for success and
-   * the value false is returned for failure.
-   */
-  bool init() {
-    return init(1) || init(0);
+  bool chdir() {
+    m_vwd.close();
+    return m_vwd.openRoot(this);
   }
-  /** Initialize a FAT volume.
+  /**
+   * Set volume working directory.
+   * \param[in] path Path for volume working directory.
+   * \return true for success or false for failure.
+   */
+  bool chdir(const char *path);
 
-   * \param[in] part The partition to be used.  Legal values for \a part are
-   * 1-4 to use the corresponding partition on a device formatted with
-   * a MBR, Master Boot Record, or zero if the device is formatted as
-   * a super floppy with the FAT boot sector in block zero.
+  //----------------------------------------------------------------------------
+  /**
+   * Test for the existence of a file.
    *
-   * \return The value true is returned for success and
-   * the value false is returned for failure.
-   */
-  bool init(uint8_t part);
-  /** \return The cluster number of last cluster in the volume. */
-  uint32_t lastCluster() const {
-    return m_lastCluster;
-  }
-  /** \return The number of entries in the root directory for FAT16 volumes. */
-  uint16_t rootDirEntryCount() const {
-    return m_rootDirEntryCount;
-  }
-  /** \return The logical block number for the start of the root directory
-       on FAT16 volumes or the first cluster number on FAT32 volumes. */
-  uint32_t rootDirStart() const {
-    return m_rootDirStart;
-  }
-  /** \return The volume's cluster size in sectors. */
-  uint8_t sectorsPerCluster() const {
-    return m_blocksPerCluster;
-  }
-  /** \return The number of blocks in the volume */
-  uint32_t volumeBlockCount() const {
-    return blocksPerCluster()*clusterCount();
-  }
-  /** \return The number of sectors in the volume */
-  uint32_t volumeSectorCount() const {
-    return sectorsPerCluster()*clusterCount();
-  }
-  /** Wipe all data from the volume.
-   * \param[in] pr print stream for status dots.
-   * \return true for success else false.
-   */
-  bool wipe(print_t* pr = 0);
-  /** Debug access to FAT table
+   * \param[in] path Path of the file to be tested for.
    *
-   * \param[in] n cluster number.
-   * \param[out] v value of entry
-   * \return -1 error, 0 EOC, else 1.
+   * \return true if the file exists else false.
    */
-  int8_t dbgFat(uint32_t n, uint32_t* v) {
-    return fatGet(n, v);
+  bool exists(const char* path) {
+    FatFile tmp;
+    return tmp.open(this, path, O_RDONLY);
   }
-//------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  /** List the directory contents of the volume root directory.
+   *
+   * \param[in] pr Print stream for list.
+   *
+   * \param[in] flags The inclusive OR of
+   *
+   * LS_DATE - %Print file modification date
+   *
+   * LS_SIZE - %Print file size.
+   *
+   * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false for failure.
+   */
+  bool ls(print_t* pr, uint8_t flags = 0) {
+    return m_vwd.ls(pr, flags);
+  }
+  //----------------------------------------------------------------------------
+  /** List the contents of a directory.
+   *
+   * \param[in] pr Print stream for list.
+   *
+   * \param[in] path directory to list.
+   *
+   * \param[in] flags The inclusive OR of
+   *
+   * LS_DATE - %Print file modification date
+   *
+   * LS_SIZE - %Print file size.
+   *
+   * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false for failure.
+   */
+  bool ls(print_t* pr, const char* path, uint8_t flags) {
+    FatFile dir;
+    return dir.open(this, path, O_RDONLY) && dir.ls(pr, flags);
+  }
+  //----------------------------------------------------------------------------
+  /** Make a subdirectory in the volume root directory.
+   *
+   * \param[in] path A path with a valid name for the subdirectory.
+   *
+   * \param[in] pFlag Create missing parent directories if true.
+   *
+   * \return true for success or false for failure.
+   */
+  bool mkdir(const char* path, bool pFlag = true) {
+    FatFile sub;
+    return sub.mkdir(vwd(), path, pFlag);
+  }
+  //----------------------------------------------------------------------------
+  /** open a file
+   *
+   * \param[in] path location of file to be opened.
+   * \param[in] oflag open flags.
+   * \return a File32 object.
+   */
+  File32 open(const char *path, oflag_t oflag = O_RDONLY) {
+    File32 tmpFile;
+    tmpFile.open(this, path, oflag);
+    return tmpFile;
+  }
+  //----------------------------------------------------------------------------
+  /** Remove a file from the volume root directory.
+   *
+   * \param[in] path A path with a valid name for the file.
+   *
+   * \return true for success or false for failure.
+   */
+  bool remove(const char* path) {
+    FatFile tmp;
+    return tmp.open(this, path, O_WRONLY) && tmp.remove();
+  }
+  //----------------------------------------------------------------------------
+  /** Rename a file or subdirectory.
+   *
+   * \param[in] oldPath Path name to the file or subdirectory to be renamed.
+   *
+   * \param[in] newPath New path name of the file or subdirectory.
+   *
+   * The \a newPath object must not exist before the rename call.
+   *
+   * The file to be renamed must not be open.  The directory entry may be
+   * moved and file system corruption could occur if the file is accessed by
+   * a file object that was opened before the rename() call.
+   *
+   * \return true for success or false for failure.
+   */
+  bool rename(const char *oldPath, const char *newPath) {
+    FatFile file;
+    return file.open(vwd(), oldPath, O_RDONLY) && file.rename(vwd(), newPath);
+  }
+  //----------------------------------------------------------------------------
+  /** Remove a subdirectory from the volume's working directory.
+   *
+   * \param[in] path A path with a valid name for the subdirectory.
+   *
+   * The subdirectory file will be removed only if it is empty.
+   *
+   * \return true for success or false for failure.
+   */
+  bool rmdir(const char* path) {
+    FatFile sub;
+    return sub.open(this, path, O_RDONLY) && sub.rmdir();
+  }
+  //----------------------------------------------------------------------------
+  /** Truncate a file to a specified length.  The current file position
+   * will be at the new EOF.
+   *
+   * \param[in] path A path with a valid name for the file.
+   * \param[in] length The desired length for the file.
+   *
+   * \return true for success or false for failure.
+   */
+  bool truncate(const char* path, uint32_t length) {
+    FatFile file;
+    return file.open(this, path, O_WRONLY) && file.truncate(length);
+  }
+#if ENABLE_ARDUINO_SERIAL
+   /** List the directory contents of the root directory to Serial.
+   *
+   * \param[in] flags The inclusive OR of
+   *
+   * LS_DATE - %Print file modification date
+   *
+   * LS_SIZE - %Print file size.
+   *
+   * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false for failure.
+   */
+  bool ls(uint8_t flags = 0) {
+    return ls(&Serial, flags);
+  }
+  /** List the directory contents of a directory to Serial.
+   *
+   * \param[in] path directory to list.
+   *
+   * \param[in] flags The inclusive OR of
+   *
+   * LS_DATE - %Print file modification date
+   *
+   * LS_SIZE - %Print file size.
+   *
+   * LS_R - Recursive list of subdirectories.
+   *
+   * \return true for success or false for failure.
+   */
+  bool ls(const char* path, uint8_t flags = 0) {
+    return ls(&Serial, path, flags);
+  }
+#endif  // ENABLE_ARDUINO_SERIAL
+#if ENABLE_ARDUINO_STRING
+  //----------------------------------------------------------------------------
+  /**
+   * Set volume working directory.
+   * \param[in] path Path for volume working directory.
+   * \return true for success or false for failure.
+   */
+  bool chdir(const String& path) {
+    return chdir(path.c_str());
+  }
+   /**
+   * Test for the existence of a file.
+   *
+   * \param[in] path Path of the file to be tested for.
+   *
+   * \return true if the file exists else false.
+   */
+  bool exists(const String& path) {
+    return exists(path.c_str());
+  }
+  /** Make a subdirectory in the volume root directory.
+   *
+   * \param[in] path A path with a valid name for the subdirectory.
+   *
+   * \param[in] pFlag Create missing parent directories if true.
+   *
+   * \return true for success or false for failure.
+   */
+  bool mkdir(const String& path, bool pFlag = true) {
+    return mkdir(path.c_str(), pFlag);
+  }
+  /** open a file
+   *
+   * \param[in] path location of file to be opened.
+   * \param[in] oflag open flags.
+   * \return a File32 object.
+   */
+  File32 open(const String& path, oflag_t oflag = O_RDONLY) {
+    return open(path.c_str(), oflag );
+  }
+  /** Remove a file from the volume root directory.
+   *
+   * \param[in] path A path with a valid name for the file.
+   *
+   * \return true for success or false for failure.
+   */
+  bool remove(const String& path) {
+    return remove(path.c_str());
+  }
+  /** Rename a file or subdirectory.
+   *
+   * \param[in] oldPath Path name to the file or subdirectory to be renamed.
+   *
+   * \param[in] newPath New path name of the file or subdirectory.
+   *
+   * The \a newPath object must not exist before the rename call.
+   *
+   * The file to be renamed must not be open.  The directory entry may be
+   * moved and file system corruption could occur if the file is accessed by
+   * a file object that was opened before the rename() call.
+   *
+   * \return true for success or false for failure.
+   */
+  bool rename(const String& oldPath, const String& newPath) {
+    return rename(oldPath.c_str(), newPath.c_str());
+  }
+  /** Remove a subdirectory from the volume's working directory.
+   *
+   * \param[in] path A path with a valid name for the subdirectory.
+   *
+   * The subdirectory file will be removed only if it is empty.
+   *
+   * \return true for success or false for failure.
+   */
+  bool rmdir(const String& path) {
+    return rmdir(path.c_str());
+  }
+  /** Truncate a file to a specified length.  The current file position
+   * will be at the new EOF.
+   *
+   * \param[in] path A path with a valid name for the file.
+   * \param[in] length The desired length for the file.
+   *
+   * \return true for success or false for failure.
+   */
+  bool truncate(const String& path, uint32_t length) {
+    return truncate(path.c_str(), length);
+  }
+#endif  // ENABLE_ARDUINO_STRING
+
  private:
-  // Allow FatFile and FatCache access to FatVolume private functions.
-  friend class FatCache;       ///< Allow access to FatVolume.
-  friend class FatFile;        ///< Allow access to FatVolume.
-  friend class FatFileSystem;  ///< Allow access to FatVolume.
-//------------------------------------------------------------------------------
-  BlockDriver* m_blockDev;      // block device
-  uint8_t  m_blocksPerCluster;     // Cluster size in blocks.
-  uint8_t  m_clusterBlockMask;     // Mask to extract block of cluster.
-  uint8_t  m_clusterSizeShift;     // Cluster count to block count shift.
-  uint8_t  m_fatType;              // Volume type (12, 16, OR 32).
-  uint16_t m_rootDirEntryCount;    // Number of entries in FAT16 root dir.
-  uint32_t m_allocSearchStart;     // Start cluster for alloc search.
-  uint32_t m_blocksPerFat;         // FAT size in blocks
-  uint32_t m_dataStartBlock;       // First data block number.
-  uint32_t m_fatStartBlock;        // Start block for first FAT.
-  uint32_t m_lastCluster;          // Last cluster number in FAT.
-  uint32_t m_rootDirStart;         // Start block for FAT16, cluster for FAT32.
-//------------------------------------------------------------------------------
-  // block I/O functions.
-  bool readBlock(uint32_t block, uint8_t* dst) {
-    return m_blockDev->readBlock(block, dst);
-  }
-  bool syncBlocks() {
-    return m_blockDev->syncBlocks();
-  }
-  bool writeBlock(uint32_t block, const uint8_t* src) {
-    return m_blockDev->writeBlock(block, src);
-  }
-#if USE_MULTI_BLOCK_IO
-  bool readBlocks(uint32_t block, uint8_t* dst, size_t nb) {
-    return m_blockDev->readBlocks(block, dst, nb);
-  }
-  bool writeBlocks(uint32_t block, const uint8_t* src, size_t nb) {
-    return m_blockDev->writeBlocks(block, src, nb);
-  }
-#endif  // USE_MULTI_BLOCK_IO
-#if MAINTAIN_FREE_CLUSTER_COUNT
-  int32_t  m_freeClusterCount;     // Count of free clusters in volume.
-  void setFreeClusterCount(int32_t value) {
-    m_freeClusterCount = value;
-  }
-  void updateFreeClusterCount(int32_t change) {
-    if (m_freeClusterCount >= 0) {
-      m_freeClusterCount += change;
-    }
-  }
-#else  // MAINTAIN_FREE_CLUSTER_COUNT
-  void setFreeClusterCount(int32_t value) {
-    (void)value;
-  }
-  void updateFreeClusterCount(int32_t change) {
-    (void)change;
-  }
-#endif  // MAINTAIN_FREE_CLUSTER_COUNT
-
-// block caches
-  FatCache m_cache;
-#if USE_SEPARATE_FAT_CACHE
-  FatCache m_fatCache;
-  cache_t* cacheFetchFat(uint32_t blockNumber, uint8_t options) {
-    return m_fatCache.read(blockNumber,
-                           options | FatCache::CACHE_STATUS_MIRROR_FAT);
-  }
-  bool cacheSync() {
-    return m_cache.sync() && m_fatCache.sync() && syncBlocks();
-  }
-#else  //
-  cache_t* cacheFetchFat(uint32_t blockNumber, uint8_t options) {
-    return cacheFetchData(blockNumber,
-                          options | FatCache::CACHE_STATUS_MIRROR_FAT);
-  }
-  bool cacheSync() {
-    return m_cache.sync() && syncBlocks();
-  }
-#endif  // USE_SEPARATE_FAT_CACHE
-  cache_t* cacheFetchData(uint32_t blockNumber, uint8_t options) {
-    return m_cache.read(blockNumber, options);
-  }
-  void cacheInvalidate() {
-    m_cache.invalidate();
-  }
-  bool cacheSyncData() {
-    return m_cache.sync();
-  }
-  cache_t *cacheAddress() {
-    return m_cache.block();
-  }
-  uint32_t cacheBlockNumber() {
-    return m_cache.lbn();
-  }
-  void cacheDirty() {
-    m_cache.dirty();
-  }
-//------------------------------------------------------------------------------
-  bool allocateCluster(uint32_t current, uint32_t* next);
-  bool allocContiguous(uint32_t count,
-                       uint32_t* firstCluster, uint32_t startCluster = 0);
-  uint8_t blockOfCluster(uint32_t position) const {
-    return (position >> 9) & m_clusterBlockMask;
-  }
-  uint32_t clusterFirstBlock(uint32_t cluster) const;
-  int8_t fatGet(uint32_t cluster, uint32_t* value);
-  bool fatPut(uint32_t cluster, uint32_t value);
-  bool fatPutEOC(uint32_t cluster) {
-    return fatPut(cluster, 0x0FFFFFFF);
-  }
-  bool freeChain(uint32_t cluster);
-  bool isEOC(uint32_t cluster) const {
-    return cluster > m_lastCluster;
-  }
+  FatFile* vwd() {return &m_vwd;}
+  friend FatFile;
+  FatFile m_vwd;
+  static FatVolume* m_cwv;
 };
-#endif  // FatVolume
+#endif  // FatVolume_h

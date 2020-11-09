@@ -1,16 +1,47 @@
 /*
  * This program is a simple binary write/read benchmark.
  */
-#include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
 #include "FreeStack.h"
 
-// Set USE_SDIO to zero for SPI card access. 
-#define USE_SDIO 0
+// SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
+// 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
+#define SD_FAT_TYPE 0
+/*
+  Change the value of SD_CS_PIN if you are using SPI and
+  your hardware does not use the default value, SS.
+  Common values are:
+  Arduino Ethernet shield: pin 4
+  Sparkfun SD shield: pin 8
+  Adafruit SD shields and modules: pin 10
+*/
+// SDCARD_SS_PIN is defined for the built-in SD on some boards.
+#ifndef SDCARD_SS_PIN
+const uint8_t SD_CS_PIN = SS;
+#else  // SDCARD_SS_PIN
+// Assume built-in SD is used.
+const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
+#endif  // SDCARD_SS_PIN
 
-// SD chip select pin
-const uint8_t chipSelect = SS;
+// Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
+#define SPI_CLOCK SD_SCK_MHZ(50)
+
+// Try to select the best SD card configuration.
+#if HAS_SDIO_CLASS
+#define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif ENABLE_DEDICATED_SPI
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
+#else  // HAS_SDIO_CLASS
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
+#endif  // HAS_SDIO_CLASS
+
+// Set PRE_ALLOCATE true to pre-allocate file clusters.
+const bool PRE_ALLOCATE = true;
+
+// Set SKIP_FIRST_LATENCY true if the first read/write to the SD can
+// be avoid by writing a file header or reading the first record.
+const bool SKIP_FIRST_LATENCY = true;
 
 // Size of read/write.
 const size_t BUF_SIZE = 512;
@@ -29,38 +60,36 @@ const uint8_t READ_COUNT = 2;
 // File size in bytes.
 const uint32_t FILE_SIZE = 1000000UL*FILE_SIZE_MB;
 
-uint8_t buf[BUF_SIZE];
+// Insure 4-byte alignment.
+uint32_t buf32[(BUF_SIZE + 3)/4];
+uint8_t* buf = (uint8_t*)buf32;
 
-// file system
-#if USE_SDIO
-// Traditional DMA version.
-// SdFatSdio sd;
-// Faster version.
-SdFatSdioEX sd;
-#else  // USE_SDIO
+#if SD_FAT_TYPE == 0
 SdFat sd;
-#endif  // USE_SDIO
-
-// Set ENABLE_EXTENDED_TRANSFER_CLASS to use extended SD I/O.
-// Requires dedicated use of the SPI bus.
-// SdFatEX sd;
-
-// Set ENABLE_SOFTWARE_SPI_CLASS to use software SPI.
-// Args are misoPin, mosiPin, sckPin.
-// SdFatSoftSpi<6, 7, 5> sd;
-
-// test file
-SdFile file;
+File file;
+#elif SD_FAT_TYPE == 1
+SdFat32 sd;
+File32 file;
+#elif SD_FAT_TYPE == 2
+SdExFat sd;
+ExFile file;
+#elif SD_FAT_TYPE == 3
+SdFs sd;
+FsFile file;
+#else  // SD_FAT_TYPE
+#error Invalid SD_FAT_TYPE
+#endif  // SD_FAT_TYPE
 
 // Serial output stream
 ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
 // Store error strings in flash to save RAM.
-#define error(s) sd.errorHalt(F(s))
+#define error(s) sd.errorHalt(&Serial, F(s))
 //------------------------------------------------------------------------------
 void cidDmp() {
   cid_t cid;
   if (!sd.card()->readCID(&cid)) {
+
     error("readCID failed");
   }
   cout << F("\nManufacturer ID: ");
@@ -81,13 +110,18 @@ void cidDmp() {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
   delay(1000);
   cout << F("\nUse a freshly formatted SD for best performance.\n");
+  if (!ENABLE_DEDICATED_SPI) {
+    cout << F(
+      "\nSet ENABLE_DEDICATED_SPI nonzero in\n"
+      "SdFatConfig.h for best SPI performance.\n");
+  }
 
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
@@ -99,33 +133,32 @@ void loop() {
   uint32_t maxLatency;
   uint32_t minLatency;
   uint32_t totalLatency;
+  bool skipLatency;
 
   // Discard any input.
   do {
     delay(10);
   } while (Serial.available() && Serial.read() >= 0);
 
-  // F( stores strings in flash to save RAM
+  // F() stores strings in flash to save RAM
   cout << F("Type any character to start\n");
   while (!Serial.available()) {
     SysCall::yield();
   }
-  cout << F("chipSelect: ") << int(chipSelect) << endl;
+#if HAS_UNUSED_STACK
   cout << F("FreeStack: ") << FreeStack() << endl;
+#endif  // HAS_UNUSED_STACK
 
-#if USE_SDIO
-  if (!sd.begin()) {
-    sd.initErrorHalt();
+  if (!sd.begin(SD_CONFIG)) {
+    sd.initErrorHalt(&Serial);
   }
-#else  // USE_SDIO  
-  // Initialize at the highest speed supported by the board that is
-  // not over 50 MHz. Try a lower speed if SPI errors occur.
-  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
-    sd.initErrorHalt();
+  if (sd.fatType() == FAT_TYPE_EXFAT) {
+    cout << F("Type is exFAT") << endl;
+  } else {
+    cout << F("Type is FAT") << int(sd.fatType()) << endl;
   }
-#endif  // USE_SDIO  
-  cout << F("Type is FAT") << int(sd.vol()->fatType()) << endl;
-  cout << F("Card size: ") << sd.card()->cardSize()*512E-9;
+
+  cout << F("Card size: ") << sd.card()->sectorCount()*512E-9;
   cout << F(" GB (GB = 1E9 bytes)") << endl;
 
   cidDmp();
@@ -136,42 +169,53 @@ void loop() {
   }
 
   // fill buf with known data
-  for (size_t i = 0; i < (BUF_SIZE-2); i++) {
-    buf[i] = 'A' + (i % 26);
+  if (BUF_SIZE > 1) {
+    for (size_t i = 0; i < (BUF_SIZE - 2); i++) {
+      buf[i] = 'A' + (i % 26);
+    }
+    buf[BUF_SIZE-2] = '\r';
   }
-  buf[BUF_SIZE-2] = '\r';
   buf[BUF_SIZE-1] = '\n';
 
-  cout << F("File size ") << FILE_SIZE_MB << F(" MB\n");
-  cout << F("Buffer size ") << BUF_SIZE << F(" bytes\n");
+  cout << F("FILE_SIZE_MB = ") << FILE_SIZE_MB << endl;
+  cout << F("BUF_SIZE = ") << BUF_SIZE << F(" bytes\n");
   cout << F("Starting write test, please wait.") << endl << endl;
 
   // do write test
-  uint32_t n = FILE_SIZE/sizeof(buf);
+  uint32_t n = FILE_SIZE/BUF_SIZE;
   cout <<F("write speed and latency") << endl;
   cout << F("speed,max,min,avg") << endl;
   cout << F("KB/Sec,usec,usec,usec") << endl;
   for (uint8_t nTest = 0; nTest < WRITE_COUNT; nTest++) {
     file.truncate(0);
+    if (PRE_ALLOCATE) {
+      if (!file.preAllocate(FILE_SIZE)) {
+        error("preAllocate failed");
+      }
+    }
     maxLatency = 0;
     minLatency = 9999999;
     totalLatency = 0;
+    skipLatency = SKIP_FIRST_LATENCY;
     t = millis();
     for (uint32_t i = 0; i < n; i++) {
       uint32_t m = micros();
-      if (file.write(buf, sizeof(buf)) != sizeof(buf)) {
-        sd.errorPrint("write failed");
-        file.close();
-        return;
+      if (file.write(buf, BUF_SIZE) != BUF_SIZE) {
+        error("write failed");
       }
       m = micros() - m;
-      if (maxLatency < m) {
-        maxLatency = m;
-      }
-      if (minLatency > m) {
-        minLatency = m;
-      }
       totalLatency += m;
+      if (skipLatency) {
+        // Wait until first write to SD, not just a copy to the cache.
+        skipLatency = file.curPosition() < 512;
+      } else {
+        if (maxLatency < m) {
+          maxLatency = m;
+        }
+        if (minLatency > m) {
+          minLatency = m;
+        }
+      }
     }
     file.sync();
     t = millis() - t;
@@ -190,26 +234,30 @@ void loop() {
     maxLatency = 0;
     minLatency = 9999999;
     totalLatency = 0;
+    skipLatency = SKIP_FIRST_LATENCY;
     t = millis();
     for (uint32_t i = 0; i < n; i++) {
       buf[BUF_SIZE-1] = 0;
       uint32_t m = micros();
-      int32_t nr = file.read(buf, sizeof(buf)); 
-      if (nr != sizeof(buf)) {   
-        sd.errorPrint("read failed");
-        file.close();
-        return;
+      int32_t nr = file.read(buf, BUF_SIZE);
+      if (nr != BUF_SIZE) {
+        error("read failed");
       }
       m = micros() - m;
-      if (maxLatency < m) {
-        maxLatency = m;
-      }
-      if (minLatency > m) {
-        minLatency = m;
-      }
       totalLatency += m;
       if (buf[BUF_SIZE-1] != '\n') {
-        error("data check");
+
+        error("data check error");
+      }
+      if (skipLatency) {
+        skipLatency = false;
+      } else {
+        if (maxLatency < m) {
+          maxLatency = m;
+        }
+        if (minLatency > m) {
+          minLatency = m;
+        }
       }
     }
     s = file.fileSize();

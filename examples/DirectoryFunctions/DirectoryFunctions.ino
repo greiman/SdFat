@@ -1,33 +1,62 @@
 /*
  * Example use of chdir(), ls(), mkdir(), and  rmdir().
  */
-#include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
-// SD card chip select pin.
-const uint8_t chipSelect = SS;
+
+// SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
+// 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
+#define SD_FAT_TYPE 0
+/*
+  Change the value of SD_CS_PIN if you are using SPI and
+  your hardware does not use the default value, SS.
+  Common values are:
+  Arduino Ethernet shield: pin 4
+  Sparkfun SD shield: pin 8
+  Adafruit SD shields and modules: pin 10
+*/
+
+// SDCARD_SS_PIN is defined for the built-in SD on some boards.
+#ifndef SDCARD_SS_PIN
+const uint8_t SD_CS_PIN = SS;
+#else  // SDCARD_SS_PIN
+// Assume built-in SD is used.
+const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
+#endif  // SDCARD_SS_PIN
+
+// Try to select the best SD card configuration.
+#if HAS_SDIO_CLASS
+#define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif ENABLE_DEDICATED_SPI
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI)
+#else  // HAS_SDIO_CLASS
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI)
+#endif  // HAS_SDIO_CLASS
 //------------------------------------------------------------------------------
 
-// File system object.
+#if SD_FAT_TYPE == 0
 SdFat sd;
-
-// Directory file.
-SdFile root;
-
-// Use for file creation in folders.
-SdFile file;
+File file;
+File root;
+#elif SD_FAT_TYPE == 1
+SdFat32 sd;
+File32 file;
+File32 root;
+#elif SD_FAT_TYPE == 2
+SdExFat sd;
+ExFile file;
+ExFile root;
+#elif SD_FAT_TYPE == 3
+SdFs sd;
+FsFile file;
+FsFile root;
+#endif  // SD_FAT_TYPE
 
 // Create a Serial output stream.
 ArduinoOutStream cout(Serial);
-
-// Buffer for Serial input.
-char cinBuf[40];
-
-// Create a serial input stream.
-ArduinoInStream cin(Serial, cinBuf, sizeof(cinBuf));
-//==============================================================================
-// Error messages stored in flash.
-#define error(msg) sd.errorHalt(F(msg))
+//------------------------------------------------------------------------------
+// Store error strings in flash to save RAM.
+#define error(s) sd.errorHalt(&Serial, F(s))
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
@@ -39,14 +68,13 @@ void setup() {
   delay(1000);
 
   cout << F("Type any character to start\n");
-  // Wait for input line and discard.
-  cin.readline();
-  cout << endl;
+  while (!Serial.available()) {
+    SysCall::yield();
+  }
 
-  // Initialize at the highest speed supported by the board that is
-  // not over 50 MHz. Try a lower speed if SPI errors occur.
-  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
-    sd.initErrorHalt();
+  // Initialize the SD card.
+  if (!sd.begin(SD_CONFIG)) {
+    sd.initErrorHalt(&Serial);
   }
   if (sd.exists("Folder1")
     || sd.exists("Folder1/file1.txt")
@@ -56,7 +84,7 @@ void setup() {
 
   int rootFileCount = 0;
   if (!root.open("/")) {
-    error("open root failed");
+    error("open root");
   }
   while (file.openNext(&root, O_RDONLY)) {
     if (!file.isHidden()) {
@@ -118,7 +146,6 @@ void setup() {
   if (!sd.rmdir("Folder1")) {
     error("rmdir for Folder1 failed\n");
   }
-
   cout << F("\nFolder1 removed.\n");
   cout << F("\nList of files on the SD.\n");
   sd.ls(LS_R);

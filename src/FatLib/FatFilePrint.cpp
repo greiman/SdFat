@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 Bill Greiman
+ * Copyright (c) 2011-2020 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -23,28 +23,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <math.h>
+#define DBG_FILE "FatFilePrint.cpp"
+#include "../common/DebugMacros.h"
 #include "FatFile.h"
-#include "FmtNumber.h"
-//------------------------------------------------------------------------------
-// print uint8_t with width 2
-static void print2u(print_t* pr, uint8_t v) {
-  char c0 = '?';
-  char c1 = '?';
-  if (v < 100) {
-    c1 = v/10;
-    c0 = v - 10*c1 + '0';
-    c1 += '0';
-  }
-  pr->write(c1);
-  pr->write(c0);
-}
-//------------------------------------------------------------------------------
-static void printU32(print_t* pr, uint32_t v) {
-  char buf[11];
-  char* ptr = buf + sizeof(buf);
-  *--ptr = 0;
-  pr->write(fmtDec(v, ptr));
-}
 //------------------------------------------------------------------------------
 static void printHex(print_t* pr, uint8_t w, uint16_t h) {
   char buf[5];
@@ -98,14 +79,14 @@ void FatFile::dmpFile(print_t* pr, uint32_t pos, size_t n) {
 //------------------------------------------------------------------------------
 bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
   FatFile file;
-  if (!isDir() || getError()) {
+  if (!isDir()) {
     DBG_FAIL_MACRO;
     goto fail;
   }
   rewind();
   while (file.openNext(this, O_RDONLY)) {
-    if (!file.isHidden() || (flags & LS_A)) {
     // indent for dir level
+    if (!file.isHidden() || (flags & LS_A)) {
       for (uint8_t i = 0; i < indent; i++) {
         pr->write(' ');
       }
@@ -124,10 +105,7 @@ bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
       pr->write('\r');
       pr->write('\n');
       if ((flags & LS_R) && file.isDir()) {
-        if (!file.ls(pr, flags, indent + 2)) {
-          DBG_FAIL_MACRO;
-          goto fail;
-        }
+        file.ls(pr, flags, indent + 2);
       }
     }
     file.close();
@@ -142,124 +120,47 @@ bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::printCreateDateTime(print_t* pr) {
-  dir_t dir;
+size_t FatFile::printAccessDate(print_t* pr) {
+  DirFat_t dir;
   if (!dirEntry(&dir)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  printFatDate(pr, dir.creationDate);
-  pr->write(' ');
-  printFatTime(pr, dir.creationTime);
-  return true;
+  return fsPrintDate(pr, getLe16(dir.accessDate));
 
 fail:
-  return false;
+  return 0;
 }
 //------------------------------------------------------------------------------
-void FatFile::printFatDate(print_t* pr, uint16_t fatDate) {
-  printU32(pr, FAT_YEAR(fatDate));
-  pr->write('-');
-  print2u(pr, FAT_MONTH(fatDate));
-  pr->write('-');
-  print2u(pr, FAT_DAY(fatDate));
-}
-//------------------------------------------------------------------------------
-void FatFile::printFatTime(print_t* pr, uint16_t fatTime) {
-  print2u(pr, FAT_HOUR(fatTime));
-  pr->write(':');
-  print2u(pr, FAT_MINUTE(fatTime));
-  pr->write(':');
-  print2u(pr, FAT_SECOND(fatTime));
-}
-//------------------------------------------------------------------------------
-/** Template for FatFile::printField() */
-template <typename Type>
-static int printFieldT(FatFile* file, char sign, Type value, char term) {
-  char buf[3*sizeof(Type) + 3];
-  char* str = &buf[sizeof(buf)];
-
-  if (term) {
-    *--str = term;
-    if (term == '\n') {
-      *--str = '\r';
-    }
-  }
-#ifdef OLD_FMT
-  do {
-    Type m = value;
-    value /= 10;
-    *--str = '0' + m - 10*value;
-  } while (value);
-#else  // OLD_FMT
-  str = fmtDec(value, str);
-#endif  // OLD_FMT
-  if (sign) {
-    *--str = sign;
-  }
-  return file->write(str, &buf[sizeof(buf)] - str);
-}
-//------------------------------------------------------------------------------
-
-int FatFile::printField(float value, char term, uint8_t prec) {
-  char buf[24];
-  char* str = &buf[sizeof(buf)];
-  if (term) {
-    *--str = term;
-    if (term == '\n') {
-      *--str = '\r';
-    }
-  }
-  str = fmtFloat(value, str, prec);
-  return write(str, buf + sizeof(buf) - str);
-}
-//------------------------------------------------------------------------------
-int FatFile::printField(uint16_t value, char term) {
-  return printFieldT(this, 0, value, term);
-}
-//------------------------------------------------------------------------------
-int FatFile::printField(int16_t value, char term) {
-  char sign = 0;
-  if (value < 0) {
-    sign = '-';
-    value = -value;
-  }
-  return printFieldT(this, sign, (uint16_t)value, term);
-}
-//------------------------------------------------------------------------------
-int FatFile::printField(uint32_t value, char term) {
-  return printFieldT(this, 0, value, term);
-}
-//------------------------------------------------------------------------------
-int FatFile::printField(int32_t value, char term) {
-  char sign = 0;
-  if (value < 0) {
-    sign = '-';
-    value = -value;
-  }
-  return printFieldT(this, sign, (uint32_t)value, term);
-}
-//------------------------------------------------------------------------------
-bool FatFile::printModifyDateTime(print_t* pr) {
-  dir_t dir;
+size_t FatFile::printCreateDateTime(print_t* pr) {
+  DirFat_t dir;
   if (!dirEntry(&dir)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  printFatDate(pr, dir.lastWriteDate);
-  pr->write(' ');
-  printFatTime(pr, dir.lastWriteTime);
-  return true;
+  return fsPrintDateTime(pr, getLe16(dir.createDate), getLe16(dir.createTime));
 
 fail:
-  return false;
+  return 0;
+}
+//------------------------------------------------------------------------------
+size_t FatFile::printModifyDateTime(print_t* pr) {
+  DirFat_t dir;
+  if (!dirEntry(&dir)) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  return fsPrintDateTime(pr, getLe16(dir.modifyDate), getLe16(dir.modifyTime));
+
+fail:
+  return 0;
 }
 //------------------------------------------------------------------------------
 size_t FatFile::printFileSize(print_t* pr) {
   char buf[11];
   char *ptr = buf + sizeof(buf);
   *--ptr = 0;
-  ptr = fmtDec(fileSize(), ptr);
+  ptr = fmtBase10(ptr, fileSize());
   while (ptr > buf) {
     *--ptr = ' ';
   }

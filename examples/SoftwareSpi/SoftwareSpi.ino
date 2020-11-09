@@ -1,25 +1,43 @@
-// An example of the SdFatSoftSpi template class.
-// This example is for an Adafruit Data Logging Shield on a Mega.
+// An example of the SoftSpiDriver template class.
+// This example is for an old Adafruit Data Logging Shield on a Mega.
 // Software SPI is required on Mega since this shield connects to pins 10-13.
 // This example will also run on an Uno and other boards using software SPI.
 //
-#include <SPI.h>
 #include "SdFat.h"
-#if ENABLE_SOFTWARE_SPI_CLASS  // Must be set in SdFat/SdFatConfig.h
+#if SPI_DRIVER_SELECT == 2  // Must be set in SdFat/SdFatConfig.h
+
+// SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
+// 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
+#define SD_FAT_TYPE 0
+//
+// Chip select may be constant or RAM variable.
+const uint8_t SD_CS_PIN = 10;
 //
 // Pin numbers in templates must be constants.
 const uint8_t SOFT_MISO_PIN = 12;
 const uint8_t SOFT_MOSI_PIN = 11;
 const uint8_t SOFT_SCK_PIN  = 13;
-//
-// Chip select may be constant or RAM variable.
-const uint8_t SD_CHIP_SELECT_PIN = 10;
 
 // SdFat software SPI template
-SdFatSoftSpi<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> sd;
+SoftSpiDriver<SOFT_MISO_PIN, SOFT_MOSI_PIN, SOFT_SCK_PIN> softSpi;
+// Speed argument is ignored for software SPI.
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SD_SCK_MHZ(0), &softSpi)
 
-// Test file.
-SdFile file;
+#if SD_FAT_TYPE == 0
+SdFat sd;
+File file;
+#elif SD_FAT_TYPE == 1
+SdFat32 sd;
+File32 file;
+#elif SD_FAT_TYPE == 2
+SdExFat sd;
+ExFile file;
+#elif SD_FAT_TYPE == 3
+SdFs sd;
+FsFile file;
+#else  // SD_FAT_TYPE
+#error Invalid SD_FAT_TYPE
+#endif  // SD_FAT_TYPE
 
 void setup() {
   Serial.begin(9600);
@@ -32,7 +50,7 @@ void setup() {
     SysCall::yield();
   }
 
-  if (!sd.begin(SD_CHIP_SELECT_PIN)) {
+  if (!sd.begin(SD_CONFIG)) {
     sd.initErrorHalt();
   }
 
@@ -53,6 +71,6 @@ void setup() {
 }
 //------------------------------------------------------------------------------
 void loop() {}
-#else  // ENABLE_SOFTWARE_SPI_CLASS
-#error ENABLE_SOFTWARE_SPI_CLASS must be set non-zero in SdFat/SdFatConfig.h
-#endif  //ENABLE_SOFTWARE_SPI_CLASS
+#else  // SPI_DRIVER_SELECT
+#error SPI_DRIVER_SELECT must be two in SdFat/SdFatConfig.h
+#endif  //SPI_DRIVER_SELECT
