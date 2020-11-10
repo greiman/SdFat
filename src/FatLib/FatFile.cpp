@@ -764,7 +764,7 @@ int FatFile::read(void* buf, size_t nbyte) {
       n = ns << m_vol->bytesPerSectorShift();
       // Check for cache sector in read range.
       if (sector <= m_vol->cacheSectorNumber()
-          && sector < (m_vol->cacheSectorNumber() + ns)) {
+          && m_vol->cacheSectorNumber() < (sector + ns)) {
         // Flush cache if cache sector is in the range.
         if (!m_vol->cacheSyncData()) {
           DBG_FAIL_MACRO;
@@ -1402,7 +1402,7 @@ size_t FatFile::write(const void* buf, size_t nbyte) {
       n = nSector << m_vol->bytesPerSectorShift();
       // Check for cache sector in write range.
       if (sector <= m_vol->cacheSectorNumber()
-          && sector < (m_vol->cacheSectorNumber() + nSector)) {
+          && m_vol->cacheSectorNumber() < (sector + nSector)) {
         // Invalidate cache if cache sector is in the range.
         m_vol->cacheInvalidate();
       }
