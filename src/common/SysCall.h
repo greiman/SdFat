@@ -79,7 +79,10 @@ inline SdMillis_t SysCall::curTimeMS() {
 //------------------------------------------------------------------------------
 #if defined(PLATFORM_ID)  // Only defined if a Particle device
 inline void SysCall::yield() {
-  Particle.process();
+  // Recommended to only call Particle.process() if system threading is disabled
+  if (system_thread_get_state(NULL) == spark::feature::DISABLED) {
+    Particle.process();
+  }
 }
 #elif defined(ARDUINO)
 inline void SysCall::yield() {
