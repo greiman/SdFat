@@ -143,8 +143,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a166b5ff04754cc925f2aee71bf92f800"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac042c43d41ecfff4e101b88f3f82086e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#ac042c43d41ecfff4e101b88f3f82086e">fsetpos</a> (const fspos_t *pos)</td></tr>
 <tr class="separator:ac042c43d41ecfff4e101b88f3f82086e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d085c695e920b658a1505e480bc467f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#a5d085c695e920b658a1505e480bc467f">getAccessDate</a> (uint16_t *pdate)</td></tr>
+<tr class="separator:a5d085c695e920b658a1505e480bc467f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af70c42baeb45e0d7047ae63de568d0d2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#af70c42baeb45e0d7047ae63de568d0d2">getAccessDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:af70c42baeb45e0d7047ae63de568d0d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94d484b5198032a9e00194e72182cc57"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#a94d484b5198032a9e00194e72182cc57">getCreateDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:a94d484b5198032a9e00194e72182cc57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0dbbd083180f44c7a3ce7124d4ce19c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#ad0dbbd083180f44c7a3ce7124d4ce19c">getError</a> ()</td></tr>
 <tr class="separator:ad0dbbd083180f44c7a3ce7124d4ce19c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28537b48ed2cb886c5f22984d07492b7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#a28537b48ed2cb886c5f22984d07492b7">getModifyDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:a28537b48ed2cb886c5f22984d07492b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafa565e286440aab612cdb430fc01da5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#aafa565e286440aab612cdb430fc01da5">getName</a> (char *name, size_t size)</td></tr>
 <tr class="separator:aafa565e286440aab612cdb430fc01da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba30e92a66f8e0d2f815c85662772a58"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fat_file.html#aba30e92a66f8e0d2f815c85662772a58">getSFN</a> (char *name)</td></tr>
@@ -513,7 +521,7 @@ Friends</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+<p>Set the contiguous flag if the file is contiguous. The parameters may be nullptr to only set the flag. </p><dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
 
 </div>
 </div>
@@ -545,7 +553,7 @@ Friends</h2></td></tr>
 <p>Create and open a new contiguous file of a specified size.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>A path with a validfile name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>A path with a valid file name. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The desired file size.</td></tr>
   </table>
   </dd>
@@ -589,7 +597,7 @@ Friends</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">dirFile</td><td>The directory where the file will be created. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>A path with a validfile name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>A path with a valid file name. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The desired file size.</td></tr>
   </table>
   </dd>
@@ -934,7 +942,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>first sector of file or zero for empty file. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Address of first sector or zero for empty file. </dd></dl>
 
 </div>
 </div>
@@ -988,6 +996,115 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="a5d085c695e920b658a1505e480bc467f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d085c695e920b658a1505e480bc467f">&#9670;&nbsp;</a></span>getAccessDate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FatFile::getAccessDate </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get a file's access date.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+
+</div>
+</div>
+<a id="af70c42baeb45e0d7047ae63de568d0d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af70c42baeb45e0d7047ae63de568d0d2">&#9670;&nbsp;</a></span>getAccessDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FatFile::getAccessDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get a file's access date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>return zero since FAT has no time.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>This function is for comparability in <a class="el" href="class_fs_file.html" title="FsBaseFile file with Arduino Stream.">FsFile</a>.</p>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+
+</div>
+</div>
+<a id="a94d484b5198032a9e00194e72182cc57"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94d484b5198032a9e00194e72182cc57">&#9670;&nbsp;</a></span>getCreateDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FatFile::getCreateDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get a file's create date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>Packed time for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+
+</div>
+</div>
 <a id="ad0dbbd083180f44c7a3ce7124d4ce19c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad0dbbd083180f44c7a3ce7124d4ce19c">&#9670;&nbsp;</a></span>getError()</h2>
 
@@ -1011,6 +1128,43 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>All error bits. </dd></dl>
+
+</div>
+</div>
+<a id="a28537b48ed2cb886c5f22984d07492b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28537b48ed2cb886c5f22984d07492b7">&#9670;&nbsp;</a></span>getModifyDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FatFile::getModifyDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get a file's modify date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>Packed time for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
 
 </div>
 </div>
@@ -3054,16 +3208,16 @@ Modify and access timestamps may be overwritten if a date time callback function
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>ArduinoSdFat/libraries/SdFat/src/FatLib/<a class="el" href="_fat_file_8h.html">FatFile.h</a></li>
-<li>ArduinoSdFat/libraries/SdFat/src/FatLib/FatFile.cpp</li>
-<li>ArduinoSdFat/libraries/SdFat/src/FatLib/FatFileLFN.cpp</li>
-<li>ArduinoSdFat/libraries/SdFat/src/FatLib/FatFilePrint.cpp</li>
-<li>ArduinoSdFat/libraries/SdFat/src/FatLib/FatFileSFN.cpp</li>
+<li>Arduino/libraries/SdFat/src/FatLib/<a class="el" href="_fat_file_8h.html">FatFile.h</a></li>
+<li>Arduino/libraries/SdFat/src/FatLib/FatFile.cpp</li>
+<li>Arduino/libraries/SdFat/src/FatLib/FatFileLFN.cpp</li>
+<li>Arduino/libraries/SdFat/src/FatLib/FatFilePrint.cpp</li>
+<li>Arduino/libraries/SdFat/src/FatLib/FatFileSFN.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 9 2020 08:03:47 for SdFat by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Dec 5 2020 05:21:24 for SdFat by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.16
 </small></address>

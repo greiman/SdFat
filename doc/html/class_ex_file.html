@@ -108,6 +108,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abc0d3863895c17df53930bdfa84cb06f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ba9e04099bdf8fd34220ebfdde72867"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#a7ba9e04099bdf8fd34220ebfdde72867">close</a> ()</td></tr>
 <tr class="separator:a7ba9e04099bdf8fd34220ebfdde72867"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add39a8c7f7961321ba647e8da8f3d461"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#add39a8c7f7961321ba647e8da8f3d461">contiguousRange</a> (uint32_t *bgnSector, uint32_t *endSector)</td></tr>
+<tr class="separator:add39a8c7f7961321ba647e8da8f3d461"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab49396aad3f6500aa19f75490dc26719"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#ab49396aad3f6500aa19f75490dc26719">curPosition</a> () const</td></tr>
 <tr class="separator:ab49396aad3f6500aa19f75490dc26719"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada4dde9f2eed36bf556fcf1bd3d28ccf"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#ada4dde9f2eed36bf556fcf1bd3d28ccf">dataLength</a> ()</td></tr>
@@ -122,12 +124,20 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abc69c9dfc8fdb4ebf9db3bc37c879dc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2c08909b62b01f3edc4ee0c51ea7435"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#af2c08909b62b01f3edc4ee0c51ea7435">fileSize</a> ()</td></tr>
 <tr class="separator:af2c08909b62b01f3edc4ee0c51ea7435"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a883a36174d7753abbbdb7547e44b1739"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#a883a36174d7753abbbdb7547e44b1739">firstSector</a> ()</td></tr>
+<tr class="separator:a883a36174d7753abbbdb7547e44b1739"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32f813e659414892a58aa5157fe14f82"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_stream_file.html#a32f813e659414892a58aa5157fe14f82">flush</a> ()</td></tr>
 <tr class="separator:a32f813e659414892a58aa5157fe14f82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea1e4d0c0981081774dc3c7cd3c55264"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#aea1e4d0c0981081774dc3c7cd3c55264">fsetpos</a> (const fspos_t *pos)</td></tr>
 <tr class="separator:aea1e4d0c0981081774dc3c7cd3c55264"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d935161fde4a3f8d2fcd13140073adc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#a0d935161fde4a3f8d2fcd13140073adc">getAccessDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:a0d935161fde4a3f8d2fcd13140073adc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a703397b32592631c189a23047cc44c09"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#a703397b32592631c189a23047cc44c09">getCreateDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:a703397b32592631c189a23047cc44c09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac697224450ca216c60585d25f5f6e310"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#ac697224450ca216c60585d25f5f6e310">getError</a> ()</td></tr>
 <tr class="separator:ac697224450ca216c60585d25f5f6e310"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0c15cff235937cdfd7860d5fb441728"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#ac0c15cff235937cdfd7860d5fb441728">getModifyDateTime</a> (uint16_t *pdate, uint16_t *ptime)</td></tr>
+<tr class="separator:ac0c15cff235937cdfd7860d5fb441728"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba93e2c18be9fa4df7e067b7d6ac5906"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#aba93e2c18be9fa4df7e067b7d6ac5906">getName</a> (ExChar_t *<a class="el" href="class_stream_file.html#a8792c863080576eb65ce6cacbe1dd931">name</a>, size_t <a class="el" href="class_stream_file.html#a5813d451e7f7ba57a04d177caffc5a9f">size</a>)</td></tr>
 <tr class="separator:aba93e2c18be9fa4df7e067b7d6ac5906"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01da9896a59671a61f90dd20c3ac5d07"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_ex_fat_file.html#a01da9896a59671a61f90dd20c3ac5d07">getWriteError</a> ()</td></tr>
@@ -351,7 +361,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Set writeError to zero </p>
+<p>Clear writeError. </p>
 
 </div>
 </div>
@@ -378,6 +388,52 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>Close a file and force cached data and directory information to be written to the storage device.</p>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+
+</div>
+</div>
+<a id="add39a8c7f7961321ba647e8da8f3d461"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add39a8c7f7961321ba647e8da8f3d461">&#9670;&nbsp;</a></span>contiguousRange()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ExFatFile::contiguousRange </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>bgnSector</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>endSector</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Check for contiguous file and return its raw sector range.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">bgnSector</td><td>the first sector address for the file. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">endSector</td><td>the last sector address for the file.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Parameters may be nullptr.</p>
 <dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
 
 </div>
@@ -608,6 +664,32 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a883a36174d7753abbbdb7547e44b1739"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a883a36174d7753abbbdb7547e44b1739">&#9670;&nbsp;</a></span>firstSector()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t ExFatFile::firstSector </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Address of first sector or zero for empty file. </dd></dl>
+
+</div>
+</div>
 <a id="a32f813e659414892a58aa5157fe14f82"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a32f813e659414892a58aa5157fe14f82">&#9670;&nbsp;</a></span>flush()</h2>
 
@@ -657,12 +739,102 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>set position for streams </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set position for streams </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pos</td><td>struct with value for new position </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a0d935161fde4a3f8d2fcd13140073adc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d935161fde4a3f8d2fcd13140073adc">&#9670;&nbsp;</a></span>getAccessDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ExFatFile::getAccessDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get a file's access date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>Packed time for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
+
+</div>
+</div>
+<a id="a703397b32592631c189a23047cc44c09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a703397b32592631c189a23047cc44c09">&#9670;&nbsp;</a></span>getCreateDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ExFatFile::getCreateDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get a file's create date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>Packed time for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
 
 </div>
 </div>
@@ -689,6 +861,51 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>All error bits. </dd></dl>
+
+</div>
+</div>
+<a id="ac0c15cff235937cdfd7860d5fb441728"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0c15cff235937cdfd7860d5fb441728">&#9670;&nbsp;</a></span>getModifyDateTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ExFatFile::getModifyDateTime </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>pdate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t *&#160;</td>
+          <td class="paramname"><em>ptime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get a file's modify date and time.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">pdate</td><td>Packed date for directory entry. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ptime</td><td>Packed time for directory entry.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for success or false for failure. </dd></dl>
 
 </div>
 </div>
@@ -2537,7 +2754,7 @@ template&lt;typename Type &gt; </div>
   </table>
   </dd>
 </dl>
-<p>T_ACCESS - Set the file's last access date.</p>
+<p>T_ACCESS - Set the file's last access date and time.</p>
 <p>T_CREATE - Set the file's creation date and time.</p>
 <p>T_WRITE - Set the file's last write/modification date and time.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -2804,12 +3021,12 @@ Modify and access timestamps may be overwritten if a date time callback function
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>ArduinoSdFat/libraries/SdFat/src/ExFatLib/<a class="el" href="_ex_fat_file_8h.html">ExFatFile.h</a></li>
+<li>Arduino/libraries/SdFat/src/ExFatLib/<a class="el" href="_ex_fat_file_8h.html">ExFatFile.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 9 2020 08:03:47 for SdFat by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Dec 5 2020 05:21:24 for SdFat by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.16
 </small></address>

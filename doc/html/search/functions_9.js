@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['khzsdclk_731',['kHzSdClk',['../class_sdio_card.html#a3532a1a4b8a43a51ed9b5853186203cb',1,'SdioCard']]]
+  ['khzsdclk_741',['kHzSdClk',['../class_sdio_card.html#a3532a1a4b8a43a51ed9b5853186203cb',1,'SdioCard']]]
 ];
