@@ -24,7 +24,7 @@ SdFile file;
 
 void setup() {
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -43,7 +43,7 @@ void setup() {
   file.println(F("This line was printed using software SPI."));
 
   file.rewind();
-  
+
   while (file.available()) {
     Serial.write(file.read());
   }

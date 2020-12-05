@@ -110,7 +110,7 @@ class FsCache {
   uint32_t m_sector;
   uint8_t m_cacheBuffer[512];
 };
-//=============================================================================
+//==============================================================================
 /**
  * \class ExFatPartition
  * \brief Access exFat partitions on raw file devices.
@@ -119,15 +119,15 @@ class ExFatPartition {
  public:
   ExFatPartition() : m_fatType(0) {}
   /** \return the number of bytes in a cluster. */
-  uint32_t bytesPerCluster() {return m_bytesPerCluster;}
+  uint32_t bytesPerCluster() const {return m_bytesPerCluster;}
   /** \return the power of two for bytesPerCluster. */
-  uint8_t bytesPerClusterShift() {
+  uint8_t bytesPerClusterShift() const {
     return m_bytesPerSectorShift + m_sectorsPerClusterShift;
   }
   /** \return the number of bytes in a sector. */
-  uint16_t bytesPerSector() {return m_bytesPerSector;}
+  uint16_t bytesPerSector() const {return m_bytesPerSector;}
   /** \return the power of two for bytesPerSector. */
-  uint8_t bytesPerSectorShift() {return m_bytesPerSectorShift;}
+  uint8_t bytesPerSectorShift() const {return m_bytesPerSectorShift;}
 
   /** Clear the cache and returns a pointer to the cache.  Not for normal apps.
    * \return A pointer to the cache buffer or zero if an error occurs.
@@ -136,13 +136,13 @@ class ExFatPartition {
     return m_dataCache.clear();
   }
   /** \return the cluster count for the partition. */
-  uint32_t clusterCount() {return m_clusterCount;}
+  uint32_t clusterCount() const {return m_clusterCount;}
   /** \return the cluster heap start sector. */
-  uint32_t clusterHeapStartSector() {return m_clusterHeapStartSector;}
+  uint32_t clusterHeapStartSector() const {return m_clusterHeapStartSector;}
   /** \return the FAT length in sectors */
-  uint32_t fatLength() {return m_fatLength;}
+  uint32_t fatLength() const {return m_fatLength;}
   /** \return the FAT start sector number. */
-  uint32_t fatStartSector() {return m_fatStartSector;}
+  uint32_t fatStartSector() const {return m_fatStartSector;}
   /** \return Type FAT_TYPE_EXFAT for exFAT partition or zero for error. */
   uint8_t fatType() const {return m_fatType;}
   /** \return the free cluster count. */
@@ -158,17 +158,17 @@ class ExFatPartition {
    */
   bool init(BlockDevice* dev, uint8_t part);
   /** \return the root directory start cluster number. */
-  uint32_t rootDirectoryCluster() {return m_rootDirectoryCluster;}
+  uint32_t rootDirectoryCluster() const {return m_rootDirectoryCluster;}
   /** \return the root directory length. */
   uint32_t rootLength();
   /** \return the number of sectors in a cluster. */
-  uint32_t sectorsPerCluster() {return 1UL << m_sectorsPerClusterShift;}
+  uint32_t sectorsPerCluster() const {return 1UL << m_sectorsPerClusterShift;}
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   // Use sectorsPerCluster(). blocksPerCluster() will be removed in the future.
   uint32_t blocksPerCluster() __attribute__ ((deprecated)) {return sectorsPerCluster();} //NOLINT
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** \return the power of two for sectors per cluster. */
-  uint8_t  sectorsPerClusterShift() {return m_sectorsPerClusterShift;}
+  uint8_t  sectorsPerClusterShift() const {return m_sectorsPerClusterShift;}
   //----------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   void checkUpcase(print_t* pr);

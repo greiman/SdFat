@@ -217,7 +217,7 @@
 #define SDHC_MMCBOOT_BOOTMODE   MAKE_REG_MASK(0x1,5)  //((uint32_t)0x00000020)    // Boot Mode Select
 #define SDHC_MMCBOOT_BOOTACK    MAKE_REG_MASK(0x1,4)  //((uint32_t)0x00000010)    // Boot Ack Mode Select
 #define SDHC_MMCBOOT_DTOCVACK(n)  MAKE_REG_MASK(0xF,0)  //(uint32_t)(((n) & 0xF)<<0)  // Boot ACK Time Out Counter Value
-//#define SDHC_HOSTVER    (*(volatile uint32_t *)0x400B10FC) // Host Controller Version
+//#define SDHC_HOSTVER    (*(volatile uint32_t*)0x400B10FC) // Host Controller Version
 
 #define CCM_ANALOG_PFD_528_PFD0_FRAC_MASK 0x3f
 #define CCM_ANALOG_PFD_528_PFD0_FRAC(n) ((n) & CCM_ANALOG_PFD_528_PFD0_FRAC_MASK)

@@ -17,7 +17,7 @@ void setup() {
   }
   Serial.println(F("Type any character to start"));
   while (!Serial.available()) {
-    SysCall::yield(); 
+    SysCall::yield();
   }
   // Initialize the SD.
   if (!SD.begin(csPin)) {

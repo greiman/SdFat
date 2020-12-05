@@ -339,7 +339,7 @@ class FatPartition {
   bool cacheSyncData() {
     return m_cache.sync();
   }
-  cache_t *cacheAddress() {
+  cache_t* cacheAddress() {
     return m_cache.buffer();
   }
   uint32_t cacheSectorNumber() {

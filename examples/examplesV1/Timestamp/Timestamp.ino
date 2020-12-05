@@ -53,7 +53,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 void printTimestamps(SdFile& f) {
   cout << F("Creation: ");
   f.printCreateDateTime(&Serial);
-  cout << endl << F("Modify: ");  
+  cout << endl << F("Modify: ");
   f.printModifyDateTime(&Serial);
   cout << endl << F("Access: ");
   f.printAccessDateTime(&Serial);
@@ -68,7 +68,7 @@ void setup(void) {
   }
   cout << F("Type any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();  
+    SysCall::yield();
   }
   // Initialize at the highest speed supported by the board that is
   // not over 50 MHz. Try a lower speed if SPI errors occur.

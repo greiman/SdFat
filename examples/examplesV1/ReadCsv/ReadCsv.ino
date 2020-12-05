@@ -30,7 +30,7 @@ File file;
  * delim - csv delimiter.
  *
  * return - negative value for failure.
- *          delimiter, '\n' or zero(EOF) for success.           
+ *          delimiter, '\n' or zero(EOF) for success.
  */
 int csvReadText(File* file, char* str, size_t size, char delim) {
   char ch;
@@ -129,8 +129,8 @@ int csvReadFloat(File* file, float* num, char delim) {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     yield();
   }
@@ -144,8 +144,8 @@ void setup() {
     return;
   }
   // Remove existing file.
-   SD.remove("READTEST.TXT"); 
-   
+   SD.remove("READTEST.TXT");
+
   // Create the file.
   file = SD.open("READTEST.TXT", FILE_WRITE);
   if (!file) {
@@ -169,7 +169,7 @@ void setup() {
   file.seek(0);
 
   // Read the file and print fields.
-  int16_t tcalc; 
+  int16_t tcalc;
   float t1, t2, h1, h2;
   // Must be dim 9 to allow for zero byte.
   char timeS[9], dateS[9];
@@ -188,7 +188,7 @@ void setup() {
       while ((ch = file.read()) > 0 && nr++ < 100) {
         Serial.write(ch);
       }
-      break;            
+      break;
     }
     Serial.print(tcalc);
     Serial.print(CSV_DELIM);

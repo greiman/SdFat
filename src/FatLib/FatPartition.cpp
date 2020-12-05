@@ -46,7 +46,7 @@ cache_t* FatCache::read(uint32_t sector, uint8_t option) {
   m_status |= option & CACHE_STATUS_MASK;
   return &m_buffer;
 
-fail:
+ fail:
 
   return nullptr;
 }
@@ -69,7 +69,7 @@ bool FatCache::sync() {
   }
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ bool FatPartition::allocateCluster(uint32_t current, uint32_t* next) {
   *next = find;
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -195,7 +195,7 @@ bool FatPartition::allocContiguous(uint32_t count, uint32_t* firstCluster) {
   *firstCluster = bgnCluster;
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
   *value = next;
   return 1;
 
-fail:
+ fail:
   return -1;
 }
 //------------------------------------------------------------------------------
@@ -343,7 +343,7 @@ bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
     goto fail;
   }
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -372,7 +372,7 @@ bool FatPartition::freeChain(uint32_t cluster) {
 
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -434,7 +434,7 @@ int32_t FatPartition::freeClusterCount() {
   setFreeClusterCount(free);
   return free;
 
-fail:
+ fail:
   return -1;
 }
 //------------------------------------------------------------------------------
@@ -462,7 +462,7 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
     }
     mbr = reinterpret_cast<MbrSector_t*>
           (cacheFetchData(0, FatCache::CACHE_FOR_READ));
-    MbrPart_t *mp = mbr->part + part - 1;
+    MbrPart_t* mp = mbr->part + part - 1;
 
     if (!mbr || mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
       DBG_FAIL_MACRO;
@@ -533,6 +533,6 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
   }
   return true;
 
-fail:
+ fail:
   return false;
 }

@@ -216,7 +216,7 @@ bool istream::getDouble(double* value) {
   *value = neg ? -v : v;
   return true;
 
-fail:
+ fail:
   // error restore position to last good place
   setpos(&endPos);
   setstate(failbit);

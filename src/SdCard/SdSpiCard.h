@@ -171,7 +171,7 @@ class SdSpiCard {
    *
    * \return true for success or false for failure.
    */
-  bool readData(uint8_t *dst);
+  bool readData(uint8_t* dst);
   /** Read OCR register.
    *
    * \param[out] ocr Value of OCR register.

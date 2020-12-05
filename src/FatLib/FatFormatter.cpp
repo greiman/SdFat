@@ -35,7 +35,7 @@ const uint16_t SECTORS_PER_MB = 0X100000/BYTES_PER_SECTOR;
 const uint16_t FAT16_ROOT_ENTRY_COUNT = 512;
 const uint16_t FAT16_ROOT_SECTOR_COUNT =
                32*FAT16_ROOT_ENTRY_COUNT/BYTES_PER_SECTOR;
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 #define PRINT_FORMAT_PROGRESS 1
 #if !PRINT_FORMAT_PROGRESS
 #define writeMsg(str)
@@ -44,7 +44,7 @@ const uint16_t FAT16_ROOT_SECTOR_COUNT =
 #else  // PRINT_FORMAT_PROGRESS
 #define writeMsg(str) if (m_pr) m_pr->write(str)
 #endif  // PRINT_FORMAT_PROGRESS
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   bool rtn;
   m_dev = dev;
@@ -80,7 +80,7 @@ bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   }
   return rtn;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool FatFormatter::initFatDir(uint8_t fatType, uint32_t sectorCount) {
   size_t n;
   memset(m_secBuf, 0, BYTES_PER_SECTOR);
@@ -103,7 +103,7 @@ bool FatFormatter::initFatDir(uint8_t fatType, uint32_t sectorCount) {
   return m_dev->writeSector(m_fatStart, m_secBuf) &&
          m_dev->writeSector(m_fatStart + m_fatSize, m_secBuf);
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void FatFormatter::initPbs() {
   PbsFat_t* pbs = reinterpret_cast<PbsFat_t*>(m_secBuf);
   memset(m_secBuf, 0, BYTES_PER_SECTOR);
@@ -128,7 +128,7 @@ void FatFormatter::initPbs() {
   // skip rest of bpb
   setLe16(pbs->signature, PBR_SIGNATURE);
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool FatFormatter::makeFat16() {
   uint32_t nc;
   uint32_t r;
@@ -180,7 +180,7 @@ bool FatFormatter::makeFat16() {
   }
   return initFatDir(16, m_dataStart - m_fatStart);
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool FatFormatter::makeFat32() {
   uint32_t nc;
   uint32_t r;

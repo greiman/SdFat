@@ -5,7 +5,7 @@
 #include "SdFat.h"
 #include "sdios.h"
 #error Use new Version 2 SdInfo
-// Set USE_SDIO to zero for SPI card access. 
+// Set USE_SDIO to zero for SPI card access.
 #define USE_SDIO 0
 /*
  * SD chip select pin.  Common values are:
@@ -143,8 +143,8 @@ void volDmp() {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -154,7 +154,7 @@ void setup() {
 
   // F stores strings in flash to save RAM
   cout << F("SdFat version: ") << SD_FAT_VERSION << endl;
-#if !USE_SDIO  
+#if !USE_SDIO
   if (DISABLE_CHIP_SELECT < 0) {
     cout << F(
            "\nAssuming the SD is the only SPI device.\n"
@@ -167,7 +167,7 @@ void setup() {
   }
   cout << F("\nAssuming the SD chip select pin is: ") <<int(SD_CHIP_SELECT);
   cout << F("\nEdit SD_CHIP_SELECT to change the SD chip select pin.\n");
-#endif  // !USE_SDIO  
+#endif  // !USE_SDIO
 }
 //------------------------------------------------------------------------------
 void loop() {
@@ -195,7 +195,7 @@ void loop() {
     sdErrorMsg("cardBegin failed");
     return;
   }
- #endif  // USE_SDIO 
+ #endif  // USE_SDIO
   t = millis() - t;
 
   cardSize = sd.card()->cardSize();

@@ -9,7 +9,7 @@ static uint32_t startMicros;
 // Acquire a data record.
 void acquireData(data_t* data) {
   data->time = micros();
-  mpu.getMotion6(&data->ax, &data->ay, &data->az, 
+  mpu.getMotion6(&data->ax, &data->ay, &data->az,
                  &data->gx, &data->gy, &data->gz);
 }
 
@@ -21,7 +21,7 @@ void userSetup() {
 #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
   Fastwire::setup(400, true);
 #endif
-  mpu.initialize();  
+  mpu.initialize();
 }
 
 // Print a data record.

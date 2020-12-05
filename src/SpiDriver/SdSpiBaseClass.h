@@ -36,7 +36,7 @@ class SdSpiBaseClass {
  public:
   /** Activate SPI hardware. */
   virtual void activate() {}
-  /** Initialize the SPI bus. 
+  /** Initialize the SPI bus.
    *
    * \param[in] config SPI configuration.
    */

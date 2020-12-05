@@ -108,6 +108,15 @@ void cidDmp() {
   cout << endl;
 }
 //------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
+//------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
 
@@ -122,7 +131,6 @@ void setup() {
       "\nSet ENABLE_DEDICATED_SPI nonzero in\n"
       "SdFatConfig.h for best SPI performance.\n");
   }
-
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
 }
@@ -136,9 +144,7 @@ void loop() {
   bool skipLatency;
 
   // Discard any input.
-  do {
-    delay(10);
-  } while (Serial.available() && Serial.read() >= 0);
+  clearSerialInput();
 
   // F() stores strings in flash to save RAM
   cout << F("Type any character to start\n");

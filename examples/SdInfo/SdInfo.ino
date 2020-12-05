@@ -59,6 +59,15 @@ bool cidDmp() {
   return true;
 }
 //------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
+//------------------------------------------------------------------------------
 bool csdDmp() {
   bool eraseSingleBlock;
   if (m_csd.v1.csd_ver == 0) {
@@ -206,9 +215,7 @@ void setup() {
 //------------------------------------------------------------------------------
 void loop() {
   // Read any existing Serial data.
-  do {
-    delay(10);
-  } while (Serial.available() && Serial.read() >= 0);
+  clearSerialInput();
 
   // F stores strings in flash to save RAM
   cout << F("\ntype any character to start\n");

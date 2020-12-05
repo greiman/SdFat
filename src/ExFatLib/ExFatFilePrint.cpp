@@ -27,59 +27,6 @@
 #include "ExFatFile.h"
 #include "upcase.h"
 #include "ExFatVolume.h"
-//-----------------------------------------------------------------------------
-size_t ExFatFile::printFileSize(print_t* pr) {
-  uint64_t n = m_validLength;
-  char buf[21];
-  char *str = &buf[sizeof(buf) - 1];
-  char *bgn = str - 12;
-  *str = '\0';
-  do {
-    uint64_t m = n;
-    n /= 10;
-    *--str = m - 10*n + '0';
-  } while (n);
-  while (str > bgn) {
-    *--str = ' ';
-  }
-  return pr->write(str);
-}
-//-----------------------------------------------------------------------------
-size_t ExFatFile::printAccessDateTime(print_t* pr) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>
-                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
-  if (!df) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  return fsPrintDateTime(pr, getLe32(df->accessTime));
-fail:
-  return 0;
-}
-//-----------------------------------------------------------------------------
-size_t ExFatFile::printCreateDateTime(print_t* pr) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>
-                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
-  if (!df) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  return fsPrintDateTime(pr, getLe32(df->createTime));
-fail:
-  return 0;
-}
-//-----------------------------------------------------------------------------
-size_t ExFatFile::printModifyDateTime(print_t* pr) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>
-                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
-  if (!df) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  return fsPrintDateTime(pr, getLe32(df->modifyTime));
-fail:
-  return 0;
-}
 //------------------------------------------------------------------------------
 bool ExFatFile::ls(print_t* pr) {
   ExFatFile file;
@@ -151,6 +98,84 @@ bool ExFatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
  fail:
   return false;
 }
+//------------------------------------------------------------------------------
+size_t ExFatFile::printAccessDateTime(print_t* pr) {
+  uint16_t date;
+  uint16_t time;
+  if (getAccessDateTime(&date, &time)) {
+    return fsPrintDateTime(pr, date, time);
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
+size_t ExFatFile::printCreateDateTime(print_t* pr) {
+  uint16_t date;
+  uint16_t time;
+  if (getCreateDateTime(&date, &time)) {
+    return fsPrintDateTime(pr, date, time);
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
+size_t ExFatFile::printFileSize(print_t* pr) {
+  uint64_t n = m_validLength;
+  char buf[21];
+  char *str = &buf[sizeof(buf) - 1];
+  char *bgn = str - 12;
+  *str = '\0';
+  do {
+    uint64_t m = n;
+    n /= 10;
+    *--str = m - 10*n + '0';
+  } while (n);
+  while (str > bgn) {
+    *--str = ' ';
+  }
+  return pr->write(str);
+}
+//------------------------------------------------------------------------------
+size_t ExFatFile::printModifyDateTime(print_t* pr) {
+  uint16_t date;
+  uint16_t time;
+  if (getModifyDateTime(&date, &time)) {
+    return fsPrintDateTime(pr, date, time);
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
+size_t ExFatFile::printName(print_t* pr) {
+  DirName_t* dn;
+  DirPos_t pos = m_dirPos;
+  size_t n = 0;
+  uint8_t in;
+  uint8_t buf[15];
+  if (!isOpen()) {
+      DBG_FAIL_MACRO;
+      goto fail;
+  }
+  for (uint8_t is = 1; is < m_setCount; is++) {
+    if (m_vol->dirSeek(&pos, is == 1 ? 64: 32) != 1) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    dn = reinterpret_cast<DirName_t*>
+         (m_vol->dirCache(&pos, FsCache::CACHE_FOR_READ));
+    if (!dn || dn->type != EXFAT_TYPE_NAME) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    for (in = 0; in < 15; in++) {
+      uint16_t c = getLe16(dn->unicode + 2*in);
+      if (!c) {
+        break;;
+      }
+      buf[in] = c < 0X7f ? c : '?';
+      n++;
+    }
+    pr->write(buf, in);
+  }
+  return n;
 
-
-
+ fail:
+  return 0;
+}

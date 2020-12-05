@@ -52,6 +52,15 @@ uint32_t yieldCalls = 0;
 // Max busy time for single yield call.
 uint32_t yieldMaxUsec = 0;
 //------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
+//------------------------------------------------------------------------------
 void errorHalt(const char* msg) {
   Serial.print("Error: ");
   Serial.println(msg);
@@ -63,7 +72,7 @@ void errorHalt(const char* msg) {
     Serial.print(", ErrorData: 0X");
     Serial.println(sd.sdErrorData(), HEX);
   }
-  while (true) {} 
+  while (true) {}
 }
 bool ready = false;
 //------------------------------------------------------------------------------
@@ -94,14 +103,14 @@ void runTest() {
   totalMicros = 0;
   yieldMicros = 0;
   yieldCalls = 0;
-  yieldMaxUsec = 0; 
+  yieldMaxUsec = 0;
   if (!file.open("TeensyDemo.bin", O_RDWR | O_CREAT)) {
     errorHalt("open failed");
   }
   Serial.println("\nsize,write,read");
   Serial.println("bytes,KB/sec,KB/sec");
   for (size_t nb = 512; nb <= BUF_DIM; nb *= 2) {
-    uint32_t nRdWr = FILE_SIZE/nb;   
+    uint32_t nRdWr = FILE_SIZE/nb;
     if (!file.truncate(0)) {
       errorHalt("truncate failed");
     }
@@ -123,19 +132,19 @@ void runTest() {
     Serial.print(',');
     file.rewind();
     t = micros();
-    
+
     for (uint32_t n = 0; n < nRdWr; n++) {
       if ((int)nb != file.read(buf, nb)) {
         errorHalt("read failed");
       }
-      // crude check of data.     
+      // crude check of data.
       if (buf32[0] != n || buf32[nb/4 - 1] != n) {
         errorHalt("data check");
       }
     }
     t = micros() - t;
-    totalMicros += t;   
-    Serial.println(1000.0*FILE_SIZE/t);    
+    totalMicros += t;
+    Serial.println(1000.0*FILE_SIZE/t);
   }
   file.close();
   Serial.print("\ntotalMicros  ");
@@ -145,7 +154,7 @@ void runTest() {
   Serial.print("yieldCalls   ");
   Serial.println(yieldCalls);
   Serial.print("yieldMaxUsec ");
-  Serial.println(yieldMaxUsec); 
+  Serial.println(yieldMaxUsec);
 //  Serial.print("kHzSdClk     ");
 //  Serial.println(kHzSdClk());
   Serial.println("Done");
@@ -166,9 +175,7 @@ void loop() {
       "SPI mode so do SDIO tests first.\n"
       "\nCycle power on the card if an error occurs.");
   }
-  do {
-    delay(10);
-  } while (Serial.available() && Serial.read());
+  clearSerialInput();
 
   Serial.println(
     "\nType '1' for FIFO SDIO"
@@ -198,7 +205,7 @@ void loop() {
     if (!sd.begin(SdSpiConfig(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(50)))) {
       errorHalt("begin failed");
     }
-    Serial.println("\nShared SPI mode - slow for small transfers.");    
+    Serial.println("\nShared SPI mode - slow for small transfers.");
   } else {
     Serial.println("Invalid input");
     return;

@@ -25,7 +25,7 @@
 /**
  * \file
  * \brief iostreams for files.
- */ 
+ */
 #ifndef fstream_h
 #define fstream_h
 #include "iostream.h"
@@ -41,7 +41,7 @@ class StreamBaseClass : protected StreamBaseFile, virtual public ios {
   }
   /* Internal do not use
    * \return mode
-   */  
+   */
   int16_t getch();
   bool getWriteError() {
     return StreamBaseFile::getWriteError();

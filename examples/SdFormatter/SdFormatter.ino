@@ -73,6 +73,15 @@ void sdErrorHalt() {
   SysCall::halt();
 }
 //------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
+//------------------------------------------------------------------------------
 // flash erase all data
 uint32_t const ERASE_SIZE = 262144L;
 void eraseCard() {
@@ -154,9 +163,8 @@ void setup() {
     SysCall::yield();
   }
   // Discard any extra characters.
-  do {
-    delay(10);
-  } while (Serial.available() && Serial.read() >= 0);
+  clearSerialInput();
+
   cout << F(
          "\n"
          "This program can erase and/or format SD/SDHC/SDXC cards.\n"
@@ -181,9 +189,7 @@ void setup() {
     return;
   }
   // Read any existing Serial data.
-  do {
-    delay(10);
-  } while (Serial.available() && Serial.read() >= 0);
+  clearSerialInput();
 
   // Select and initialize proper card driver.
   m_card = cardFactory.newCard(SD_CONFIG);

@@ -51,8 +51,8 @@ size_t readField(File* file, char* str, size_t size, const char* delim) {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -63,7 +63,7 @@ void setup() {
   // Initialize the SD.
   if (!SD.begin(CS_PIN)) {
     errorHalt("begin failed");
-  } 
+  }
   // Create or open the file.
   file = SD.open("READNUM.TXT", FILE_WRITE);
   if (!file) {
@@ -93,7 +93,7 @@ void setup() {
   char *ptr;     // Test for valid field.
 
   // Read the file and store the data.
-  
+
   for (i = 0; i < ROW_DIM; i++) {
     for (j = 0; j < COL_DIM; j++) {
       n = readField(&file, str, sizeof(str), ",\n");
@@ -117,7 +117,7 @@ void setup() {
     // Allow missing endl at eof.
     if (str[n-1] != '\n' && file.available()) {
       errorHalt("missing endl");
-    }    
+    }
   }
 
   // Print the array.

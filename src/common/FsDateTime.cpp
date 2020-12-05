@@ -43,7 +43,7 @@ namespace FsDateTime {
     callback2 = dateTime;
   }
   void setCallback(
-    void (*dateTime)(uint16_t* date, uint16_t* time, uint8_t *ms10)) {
+    void (*dateTime)(uint16_t* date, uint16_t* time, uint8_t* ms10)) {
     callback = dateTime;
   }
 }  // namespace FsDateTime

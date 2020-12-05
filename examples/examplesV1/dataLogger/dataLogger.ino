@@ -67,8 +67,8 @@ void setup() {
   char fileName[13] = FILE_BASE_NAME "00.csv";
 
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -78,7 +78,7 @@ void setup() {
   while (!Serial.available()) {
     SysCall::yield();
   }
-  
+
   // Initialize at the highest speed supported by the board that is
   // not over 50 MHz. Try a lower speed if SPI errors occur.
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {

@@ -61,8 +61,8 @@ void makeTestFile() {
 //------------------------------------------------------------------------------
 void setup(void) {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }

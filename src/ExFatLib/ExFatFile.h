@@ -118,7 +118,7 @@ class ExFatFile {
   /** \return The number of bytes available from the current position
    * to EOF for normal files.  INT_MAX is returned for very large files.
    *
-   * available64() is recomended for very large files.
+   * available64() is recommended for very large files.
    *
    * Zero is returned for directory files.
    *
@@ -133,6 +133,16 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool close();
+  /** Check for contiguous file and return its raw sector range.
+   *
+   * \param[out] bgnSector the first sector address for the file.
+   * \param[out] endSector the last  sector address for the file.
+   *
+   * Parameters may be nullptr.
+   *
+   * \return true for success or false for failure.
+   */
+  bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector);
   /** \return The current position for a file or directory. */
   uint64_t curPosition() const {return m_curPosition;}
 
@@ -163,8 +173,8 @@ class ExFatFile {
    * Get a string from a file.
    *
    * fgets() reads bytes from a file into the array pointed to by \a str, until
-   * \a num - 1 bytes are read, or a delimiter is read and transferred to \a str,
-   * or end-of-file is encountered. The string is then terminated
+   * \a num - 1 bytes are read, or a delimiter is read and transferred to
+   * \a str, or end-of-file is encountered. The string is then terminated
    * with a null byte.
    *
    * fgets() deletes CR, '\\r', from the string.  This insures only a '\\n'
@@ -177,12 +187,15 @@ class ExFatFile {
    * \param[in] delim Optional set of delimiters. The default is "\n".
    *
    * \return For success fgets() returns the length of the string in \a str.
-   * If no data is read, fgets() returns zero for EOF or -1 if an error occurred.
+   * If no data is read, fgets() returns zero for EOF or -1 if an error
+   * occurred.
    */
   int fgets(char* str, int num, char* delim = nullptr);
   /** \return The total number of bytes in a file. */
   uint64_t fileSize() {return m_validLength;}
-  /** set position for streams
+  /** \return Address of first sector or zero for empty file. */
+  uint32_t firstSector();
+  /** Set position for streams
    * \param[in] pos struct with value for new position
    */
   void fsetpos(const fspos_t* pos);
@@ -195,19 +208,43 @@ class ExFatFile {
    * \param[in] size The size of the array in characters.
    * \return the name length.
    */
-  size_t getName(ExChar_t *name, size_t size);
+  size_t getName(ExChar_t* name, size_t size);
   /** Clear all error bits. */
   void clearError() {
     m_error = 0;
   }
-  /** Set writeError to zero */
+  /** Clear writeError. */
   void clearWriteError() {
     m_error &= ~WRITE_ERROR;
   }
+  /** Get a file's access date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getAccessDateTime(uint16_t* pdate, uint16_t* ptime);
+  /** Get a file's create date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return All error bits. */
   uint8_t getError() {
     return isOpen() ? m_error : 0XFF;
   }
+  /** Get a file's modify date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return value of writeError */
   bool getWriteError() {
     return isOpen() ? m_error & WRITE_ERROR : true;
@@ -297,10 +334,12 @@ class ExFatFile {
    * O_CREAT - If the file exists, this flag has no effect except as noted
    * under O_EXCL below. Otherwise, the file shall be created
    *
-   * O_EXCL - If O_CREAT and O_EXCL are set, open() shall fail if the file exists.
+   * O_EXCL - If O_CREAT and O_EXCL are set, open() shall fail if the file
+   * exists.
    *
    * O_TRUNC - If the file exists and is a regular file, and the file is
-   * successfully opened and is not read only, its length shall be truncated to 0.
+   * successfully opened and is not read only, its length shall be truncated
+   * to 0.
    *
    * WARNING: A given file must not be opened by more than one file object
    * or file corruption may occur.
@@ -586,10 +625,10 @@ class ExFatFile {
    */
   /** Set a file's timestamps in its directory entry.
    *
-   * \param[in] flags Values for \a flags are constructed by a bitwise-inclusive
-   * OR of flags from the following list
+   * \param[in] flags Values for \a flags are constructed by a
+   * bitwise-inclusive OR of flags from the following list
    *
-   * T_ACCESS - Set the file's last access date.
+   * T_ACCESS - Set the file's last access date and time.
    *
    * T_CREATE - Set the file's creation date and time.
    *

@@ -45,8 +45,8 @@ ArduinoOutStream cout(Serial);
 //------------------------------------------------------------------------------
 void setup(void) {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -101,7 +101,7 @@ void loop(void) {
   cout << F("Start raw write of ") << file.fileSize()/1000UL << F(" KB\n");
   cout << F("Target rate: ") << RATE_KB_PER_SEC << F(" KB/sec\n");
   cout << F("Target time: ") << TEST_TIME_SEC << F(" seconds\n");
-  
+
   // tell card to setup for multiple block write with pre-erase
   if (!sd.card()->writeStart(bgnBlock, BLOCK_COUNT)) {
     error("writeStart failed");
@@ -173,7 +173,7 @@ void loop(void) {
   cout << F(" seconds\n");
   cout << F("Min block write time: ") << minWriteTime << F(" micros\n");
   cout << F("Max block write time: ") << maxWriteTime << F(" micros\n");
-  cout << F("Avg block write time: ") << avgWriteTime << F(" micros\n");  
+  cout << F("Avg block write time: ") << avgWriteTime << F(" micros\n");
   // close file for next pass of loop
   file.close();
   Serial.println();

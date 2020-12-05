@@ -146,7 +146,7 @@ bool StdioStream::fopen(const char* path, const char* mode) {
   m_p = m_buf;
   return true;
 
-fail:
+ fail:
   m_status = 0;
   return false;
 }
@@ -216,7 +216,7 @@ int StdioStream::fseek(int32_t offset, int origin) {
   m_p = m_buf;
   return 0;
 
-fail:
+ fail:
   return EOF;
 }
 //------------------------------------------------------------------------------

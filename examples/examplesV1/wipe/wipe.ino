@@ -9,7 +9,7 @@ SdFat sd;
 void setup() {
   int c;
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -22,7 +22,7 @@ void setup() {
     sd.errorHalt("Quitting, you did not type 'Y'.");
   }
   // Initialize at the highest speed supported by the board that is
-  // not over 50 MHz. Try a lower speed if SPI errors occur. 
+  // not over 50 MHz. Try a lower speed if SPI errors occur.
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     sd.initErrorHalt();
   }
@@ -32,7 +32,7 @@ void setup() {
   }
   // Must reinitialize after wipe.
   // Initialize at the highest speed supported by the board that is
-  // not over 50 MHz. Try a lower speed if SPI errors occur.  
+  // not over 50 MHz. Try a lower speed if SPI errors occur.
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     sd.errorHalt("Second init failed.");
   }

@@ -27,11 +27,8 @@
 #include "ExFatFile.h"
 #include "ExFatVolume.h"
 #include "upcase.h"
-//=============================================================================
+//==============================================================================
 #if READ_ONLY
-bool ExFatFile::sync() {
-  return false;
-}
 bool ExFatFile::mkdir(ExFatFile* parent, const ExChar_t* path, bool pFlag) {
   (void) parent;
   (void)path;
@@ -51,18 +48,20 @@ bool ExFatFile::rename(ExFatFile* dirFile, const ExChar_t* newPath) {
   (void)newPath;
   return false;
 }
+bool ExFatFile::sync() {
+  return false;
+}
 bool ExFatFile::truncate() {
   return false;
 }
-
 size_t ExFatFile::write(const void* buf, size_t nbyte) {
   (void)buf;
   (void)nbyte;
   return false;
 }
-//=============================================================================
+//==============================================================================
 #else  // READ_ONLY
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 static uint16_t exFatDirChecksum(const uint8_t* data, uint16_t checksum) {
   bool skip = data[0] == EXFAT_TYPE_FILE;
   for (size_t i = 0; i < 32; i += i == 1 && skip ? 3 : 1) {
@@ -70,7 +69,7 @@ static uint16_t exFatDirChecksum(const uint8_t* data, uint16_t checksum) {
   }
   return checksum;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::addCluster() {
   uint32_t find = m_vol->bitmapFind(m_curCluster ?  m_curCluster + 1 : 0, 1);
   if (find < 2) {
@@ -119,7 +118,7 @@ bool ExFatFile::addCluster() {
  fail:
   return false;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::addDirCluster() {
   uint32_t sector;
   uint32_t dl = isRoot() ? m_vol->rootLength() : m_dataLength;
@@ -195,7 +194,7 @@ bool ExFatFile::mkdir(ExFatFile* parent, const ExChar_t* path, bool pFlag) {
   }
   return mkdir(parent, &fname);
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -225,7 +224,7 @@ bool ExFatFile::mkdir(ExFatFile* parent, ExName_t* fname) {
   m_flags = FILE_FLAG_READ | FILE_FLAG_CONTIGUOUS | FILE_FLAG_DIR_DIRTY;
   return sync();
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -342,7 +341,7 @@ bool ExFatFile::rename(ExFatFile* dirFile, const ExChar_t* newPath) {
   oldFile.m_attributes = FILE_ATTR_FILE;
   return oldFile.remove();
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -375,10 +374,10 @@ bool ExFatFile::rmdir() {
   m_flags |= FILE_FLAG_WRITE;
   return remove();
 
-fail:
+ fail:
   return false;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::sync() {
   if (!isOpen()) {
     return true;
@@ -420,7 +419,6 @@ bool ExFatFile::syncDir() {
         setCount = df->setCount;
         setLe16(df->attributes, m_attributes & FILE_ATTR_COPY);
         if (FsDateTime::callback) {
-          m_vol->dataCacheDirty();
           uint16_t date, time;
           uint8_t ms10;
           FsDateTime::callback(&date, &time, &ms10);
@@ -430,6 +428,7 @@ bool ExFatFile::syncDir() {
           setLe16(df->accessTime, time);
           setLe16(df->accessDate, date);
         }
+        m_vol->dataCacheDirty();
         break;
 
       case EXFAT_TYPE_STREAM:
@@ -460,7 +459,7 @@ bool ExFatFile::syncDir() {
       goto fail;
     }
   }
-  df = reinterpret_cast<DirFile_t *>
+  df = reinterpret_cast<DirFile_t*>
        (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_WRITE));
   if (!df) {
     DBG_FAIL_MACRO;
@@ -559,7 +558,7 @@ bool ExFatFile::timestamp(uint8_t flags, uint16_t year, uint8_t month,
       goto fail;
     }
   }
-  df = reinterpret_cast<DirFile_t *>
+  df = reinterpret_cast<DirFile_t*>
        (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_WRITE));
   if (!df) {
     DBG_FAIL_MACRO;
@@ -778,10 +777,9 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
       m_validLength = m_curPosition;
     }
   }
-
   if (m_curPosition > m_dataLength) {
     m_dataLength = m_curPosition;
-    // update fileSize and insure sync will update dir entr
+    // update fileSize and insure sync will update dir entry
     m_flags |= FILE_FLAG_DIR_DIRTY;
   } else if (FsDateTime::callback) {
     // insure sync will update modified date and time
@@ -789,7 +787,7 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
   }
   return nbyte;
 
-fail:
+ fail:
   // return for write error
   m_error |= WRITE_ERROR;
   return -1;

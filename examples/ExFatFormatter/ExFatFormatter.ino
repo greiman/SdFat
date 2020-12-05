@@ -3,7 +3,7 @@
 
 /*
   Change the value of SD_CS_PIN if you are using SPI and
-  your hardware does not use the default value, SS.  
+  your hardware does not use the default value, SS.
   Common values are:
   Arduino Ethernet shield: pin 4
   Sparkfun SD shield: pin 8
@@ -31,6 +31,15 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 
 SdExFat sd;
 //------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
+//------------------------------------------------------------------------------
 void errorHalt() {
   sd.printSdError(&Serial);
   SysCall::halt();
@@ -41,20 +50,17 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) {}
   Serial.println(F("Type any character to begin"));
-  
+
   while (!Serial.available()) {
     yield();
   }
-  do {
-    delay(10);
-  } while(Serial.read() >= 0);
-  
+  clearSerialInput();
   Serial.println();
   Serial.println(F(
     "Your SD will be formated exFAT.\r\n"
     "All data on the SD will be lost.\r\n"
     "Type 'Y' to continue.\r\n"));
-    
+
   while (!Serial.available()) {
     yield();
   }
@@ -64,7 +70,7 @@ void setup() {
   }
   if (!sd.cardBegin(SD_CONFIG)) {
     error("cardBegin failed");
-  }    
+  }
   if(!sd.format(&Serial)) {
     error("format failed");
   }

@@ -46,7 +46,7 @@ uint8_t SdSpiArduinoDriver::receive() {
   return m_spi->transfer(0XFF);
 }
 //------------------------------------------------------------------------------
-uint8_t SdSpiArduinoDriver::receive(uint8_t *buf, size_t count) {
+uint8_t SdSpiArduinoDriver::receive(uint8_t* buf, size_t count) {
   m_spi->transferIn(buf, count);
   return 0;
 }
@@ -55,7 +55,7 @@ void SdSpiArduinoDriver::send(uint8_t data) {
   m_spi->transfer(data);
 }
 //------------------------------------------------------------------------------
-void SdSpiArduinoDriver::send(const uint8_t *buf, size_t count) {
+void SdSpiArduinoDriver::send(const uint8_t* buf, size_t count) {
   // If not a multiple of four.  Command with CRC used six byte send.
   while (count%4) {
     send(*buf++);

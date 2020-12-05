@@ -183,6 +183,22 @@ class ostream : public virtual ios {
     putNum((uint32_t)arg);
     return *this;
   }
+  /** Output signed long long
+   * \param[in] arg value to output
+   * \return the stream
+   */
+  ostream &operator<< (long long arg) {  // NOLINT
+    putNum((int64_t)arg);
+    return *this;
+  }
+  /** Output unsigned long long
+   * \param[in] arg value to output
+   * \return the stream
+   */
+  ostream &operator<< (unsigned long long arg) {  // NOLINT
+    putNum((uint64_t)arg);
+    return *this;
+  }
   /** Output pointer
    * \param[in] arg value to output
    * \return the stream
@@ -266,19 +282,67 @@ class ostream : public virtual ios {
   virtual bool seekoff(off_type pos, seekdir way) = 0;
   virtual bool seekpos(pos_type pos) = 0;
   virtual bool sync() = 0;
-
   virtual pos_type tellpos() = 0;
   /// @endcond
  private:
   void do_fill(unsigned len);
   void fill_not_left(unsigned len);
-  char* fmtNum(uint32_t n, char *ptr, uint8_t base);
   void putBool(bool b);
   void putChar(char c);
   void putDouble(double n);
-  void putNum(uint32_t n, bool neg = false);
   void putNum(int32_t n);
+  void putNum(int64_t n);
+  void putNum(uint32_t n) {putNum(n, false);}
+  void putNum(uint64_t n) {putNum(n, false);}
   void putPgm(const char* str);
   void putStr(const char* str);
+
+  template<typename T>
+  char* fmtNum(T n, char *ptr, uint8_t base) {
+    char a = flags() & uppercase ? 'A' - 10 : 'a' - 10;
+    do {
+      T m = n;
+      n /= base;
+      char c = m - base * n;
+      *--ptr = c < 10 ? c + '0' : c + a;
+    } while (n);
+    return ptr;
+  }
+
+  template<typename T>
+  void putNum(T n, bool neg) {
+    char buf[(8*sizeof(T) + 2)/3 + 2];
+    char* ptr = buf + sizeof(buf) - 1;
+    char* num;
+    char* str;
+    uint8_t base = flagsToBase();
+    *ptr = '\0';
+    str = num = fmtNum(n, ptr, base);
+    if (base == 10) {
+      if (neg) {
+        *--str = '-';
+      } else if (flags() & showpos) {
+        *--str = '+';
+      }
+    } else if (flags() & showbase) {
+      if (flags() & hex) {
+        *--str = flags() & uppercase ? 'X' : 'x';
+      }
+      *--str = '0';
+    }
+    uint8_t len = ptr - str;
+    fmtflags adj = flags() & adjustfield;
+    if (adj == internal) {
+      while (str < num) {
+        putch(*str++);
+      }
+      do_fill(len);
+    } else {
+      // do fill for right
+      fill_not_left(len);
+    }
+    putstr(str);
+    do_fill(len);
+  }
 };
 #endif  // ostream_h

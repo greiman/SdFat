@@ -121,38 +121,28 @@ bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
 }
 //------------------------------------------------------------------------------
 size_t FatFile::printAccessDate(print_t* pr) {
-  DirFat_t dir;
-  if (!dirEntry(&dir)) {
-    DBG_FAIL_MACRO;
-    goto fail;
+  uint16_t date;
+  if (getAccessDate(&date)) {
+    return fsPrintDate(pr, date);
   }
-  return fsPrintDate(pr, getLe16(dir.accessDate));
-
-fail:
   return 0;
 }
 //------------------------------------------------------------------------------
 size_t FatFile::printCreateDateTime(print_t* pr) {
-  DirFat_t dir;
-  if (!dirEntry(&dir)) {
-    DBG_FAIL_MACRO;
-    goto fail;
+  uint16_t date;
+  uint16_t time;
+  if (getCreateDateTime(&date, &time)) {
+    return fsPrintDateTime(pr, date, time);
   }
-  return fsPrintDateTime(pr, getLe16(dir.createDate), getLe16(dir.createTime));
-
-fail:
   return 0;
 }
 //------------------------------------------------------------------------------
 size_t FatFile::printModifyDateTime(print_t* pr) {
-  DirFat_t dir;
-  if (!dirEntry(&dir)) {
-    DBG_FAIL_MACRO;
-    goto fail;
+  uint16_t date;
+  uint16_t time;
+  if (getModifyDateTime(&date, &time)) {
+    return fsPrintDateTime(pr, date, time);
   }
-  return fsPrintDateTime(pr, getLe16(dir.modifyDate), getLe16(dir.modifyTime));
-
-fail:
   return 0;
 }
 //------------------------------------------------------------------------------

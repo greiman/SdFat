@@ -27,12 +27,26 @@
 #include "ExFatFile.h"
 #include "ExFatVolume.h"
 #include "upcase.h"
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::close() {
   bool rtn = sync();
   m_attributes = FILE_ATTR_CLOSED;
   m_flags = 0;
   return rtn;
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::contiguousRange(uint32_t* bgnSector, uint32_t* endSector) {
+  if (!isContiguous()) {
+    return false;
+  }
+  if (bgnSector) {
+    *bgnSector = firstSector();
+  }
+  if (endSector) {
+    *endSector = firstSector() +
+                 ((m_validLength - 1) >> m_vol->bytesPerSectorShift());
+  }
+  return true;
 }
 //------------------------------------------------------------------------------
 void ExFatFile::fgetpos(fspos_t* pos) {
@@ -68,12 +82,61 @@ int ExFatFile::fgets(char* str, int num, char* delim) {
   return n;
 }
 //------------------------------------------------------------------------------
+uint32_t ExFatFile::firstSector() {
+  return m_firstCluster ? m_vol->clusterStartSector(m_firstCluster) : 0;
+}
+//------------------------------------------------------------------------------
 void ExFatFile::fsetpos(const fspos_t* pos) {
   m_curPosition = pos->position;
   m_curCluster = pos->cluster;
 }
-//-----------------------------------------------------------------------------
-size_t ExFatFile::getName(ExChar_t *name, size_t length) {
+//------------------------------------------------------------------------------
+bool ExFatFile::getAccessDateTime(uint16_t* pdate, uint16_t* ptime) {
+  DirFile_t* df = reinterpret_cast<DirFile_t*>
+                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
+  if (!df) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *pdate = getLe16(df->accessDate);
+  *ptime = getLe16(df->accessTime);
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::getCreateDateTime(uint16_t* pdate, uint16_t* ptime) {
+  DirFile_t* df = reinterpret_cast<DirFile_t*>
+                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
+  if (!df) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *pdate = getLe16(df->createDate);
+  *ptime = getLe16(df->createTime);
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
+  DirFile_t* df = reinterpret_cast<DirFile_t*>
+                 (m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
+  if (!df) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *pdate = getLe16(df->modifyDate);
+  *ptime = getLe16(df->modifyTime);
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
+size_t ExFatFile::getName(ExChar_t* name, size_t length) {
   DirName_t* dn;
   DirPos_t pos = m_dirPos;
   size_t n = 0;
@@ -108,11 +171,11 @@ size_t ExFatFile::getName(ExChar_t *name, size_t length) {
   *name = 0;
   return 0;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::open(const ExChar_t* path, int oflag) {
   return open(ExFatVolume::cwv(), path, oflag);
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::open(ExFatVolume* vol, const ExChar_t* path, int oflag) {
   return vol && open(vol->vwd(), path, oflag);
 }
@@ -156,7 +219,7 @@ bool ExFatFile::open(ExFatFile* dirFile, const ExChar_t* path, oflag_t oflag) {
   }
   return open(dirFile, &fname, oflag);
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -170,7 +233,7 @@ bool ExFatFile::open(ExFatFile* dirFile, uint32_t index, oflag_t oflag) {
   }
   return false;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::openNext(ExFatFile* dir, oflag_t oflag) {
   if (isOpen() || !dir->isDir() || (dir->curPosition() & 0X1F)) {
     DBG_FAIL_MACRO;
@@ -400,13 +463,23 @@ bool ExFatFile::openRootFile(ExFatFile* dir, const ExChar_t* name,
       dirFile->type = EXFAT_TYPE_FILE;
       m_setCount = freeNeed - 1;
       dirFile->setCount = m_setCount;
+
       if (FsDateTime::callback) {
         uint16_t date, time;
         uint8_t ms10;
         FsDateTime::callback(&date, &time, &ms10);
-        dirFile->createTimeMs = ms10;
-        setLe16(dirFile->createTime, time);
         setLe16(dirFile->createDate, date);
+        setLe16(dirFile->createTime, time);
+        dirFile->createTimeMs = ms10;
+      } else {
+        setLe16(dirFile->createDate, FS_DEFAULT_DATE);
+        setLe16(dirFile->modifyDate, FS_DEFAULT_DATE);
+        setLe16(dirFile->accessDate, FS_DEFAULT_DATE);
+       if (FS_DEFAULT_TIME) {
+         setLe16(dirFile->createTime, FS_DEFAULT_TIME);
+         setLe16(dirFile->modifyTime, FS_DEFAULT_TIME);
+         setLe16(dirFile->accessTime, FS_DEFAULT_TIME);
+       }
       }
     } else if (i == 1) {
       dirStream = reinterpret_cast<DirStream_t*>(cache);
@@ -438,7 +511,7 @@ bool ExFatFile::openRootFile(ExFatFile* dir, const ExChar_t* name,
   m_flags = 0;
   return false;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ExFatFile::openRoot(ExFatVolume* vol) {
   if (isOpen()) {
     DBG_FAIL_MACRO;
@@ -494,7 +567,7 @@ bool ExFatFile::parsePathName(const ExChar_t* path,
   fname->len = len;
   return true;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 int ExFatFile::peek() {
   uint64_t curPosition = m_curPosition;
   uint32_t curCluster = m_curCluster;
@@ -503,44 +576,7 @@ int ExFatFile::peek() {
   m_curCluster = curCluster;
   return c;
 }
-//-----------------------------------------------------------------------------
-size_t ExFatFile::printName(print_t* pr) {
-  DirName_t* dn;
-  DirPos_t pos = m_dirPos;
-  size_t n = 0;
-  uint8_t in;
-  uint8_t buf[15];
-  if (!isOpen()) {
-      DBG_FAIL_MACRO;
-      goto fail;
-  }
-  for (uint8_t is = 1; is < m_setCount; is++) {
-    if (m_vol->dirSeek(&pos, is == 1 ? 64: 32) != 1) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    dn = reinterpret_cast<DirName_t*>
-         (m_vol->dirCache(&pos, FsCache::CACHE_FOR_READ));
-    if (!dn || dn->type != EXFAT_TYPE_NAME) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    for (in = 0; in < 15; in++) {
-      uint16_t c = getLe16(dn->unicode + 2*in);
-      if (!c) {
-        break;;
-      }
-      buf[in] = c < 0X7f ? c : '?';
-      n++;
-    }
-    pr->write(buf, in);
-  }
-  return n;
-
- fail:
-  return 0;
-}
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 int ExFatFile::read(void* buf, size_t count) {
   uint8_t* dst = reinterpret_cast<uint8_t*>(buf);
   int8_t fg;
@@ -604,7 +640,7 @@ int ExFatFile::read(void* buf, size_t count) {
 #if USE_MULTI_SECTOR_IO
     } else if (toRead >= 2*m_vol->bytesPerSector()) {
       uint32_t ns = toRead >> m_vol->bytesPerSectorShift();
-      // Limit writes to current cluster.
+      // Limit reads to current cluster.
       uint32_t maxNs = m_vol->sectorsPerCluster()
                        - (clusterOffset >> m_vol->bytesPerSectorShift());
       if (ns > maxNs) {
@@ -639,7 +675,7 @@ int ExFatFile::read(void* buf, size_t count) {
   }
   return count - toRead;
 
-fail:
+ fail:
   m_error |= READ_ERROR;
   return -1;
 }
@@ -652,7 +688,7 @@ bool ExFatFile::remove(const ExChar_t* path) {
   }
   return file.remove();
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -702,11 +738,11 @@ bool ExFatFile::seekSet(uint64_t pos) {
     }
   }
 
-done:
+ done:
   m_curPosition = pos;
   return true;
 
-fail:
+ fail:
   m_curCluster = tmp;
   return false;
 }

@@ -230,7 +230,7 @@ class FsVolume {
            m_xVol ? m_xVol->rmdir(path) : false;
   }
 #if ENABLE_ARDUINO_SERIAL
-  /** List directory contents. 
+  /** List directory contents.
    * \return true for success or false for failure.
    */
   bool ls() {

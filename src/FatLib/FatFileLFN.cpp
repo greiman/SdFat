@@ -59,7 +59,7 @@ static uint16_t Bernstein(uint16_t hash, const char *str, size_t len) {
  * \param[in] i Index of character.
  * \return The 16-bit character.
  */
-static uint16_t lfnGetChar(DirLfn_t *ldir, uint8_t i) {
+static uint16_t lfnGetChar(DirLfn_t* ldir, uint8_t i) {
   if (i < 5) {
     return getLe16(ldir->unicode1 + 2*i);
   } else if (i < 11) {
@@ -70,7 +70,7 @@ static uint16_t lfnGetChar(DirLfn_t *ldir, uint8_t i) {
   return 0;
 }
 //------------------------------------------------------------------------------
-static bool lfnGetName(DirLfn_t *ldir, char* name, size_t n) {
+static bool lfnGetName(DirLfn_t* ldir, char* name, size_t n) {
   uint8_t i;
   size_t k = 13*((ldir->order & 0X1F) - 1);
   for (i = 0; i < 13; i++) {
@@ -104,7 +104,7 @@ inline bool lfnLegalChar(uint8_t c) {
  * \param[in] i Index of character.
  * \param[in] c  The 16-bit character.
  */
-static void lfnPutChar(DirLfn_t *ldir, uint8_t i, uint16_t c) {
+static void lfnPutChar(DirLfn_t* ldir, uint8_t i, uint16_t c) {
   if (i < 5) {
     setLe16(ldir->unicode1 + 2*i, c);
   } else if (i < 11) {
@@ -114,7 +114,7 @@ static void lfnPutChar(DirLfn_t *ldir, uint8_t i, uint16_t c) {
   }
 }
 //------------------------------------------------------------------------------
-static void lfnPutName(DirLfn_t *ldir, const char* name, size_t n) {
+static void lfnPutName(DirLfn_t* ldir, const char* name, size_t n) {
   size_t k = 13*((ldir->order & 0X1F) - 1);
   for (uint8_t i = 0; i < 13; i++, k++) {
     uint16_t c = k < n ? name[k] : k == n ? 0 : 0XFFFF;
@@ -165,7 +165,7 @@ bool FatFile::getName(char* name, size_t size) {
   // Fall into fail.
   DBG_FAIL_MACRO;
 
-fail:
+ fail:
   name[0] = 0;
   return false;
 }
@@ -404,7 +404,7 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
     }
   }
 
-found:
+ found:
   // Don't open if create only.
   if (oflag & O_EXCL) {
     DBG_FAIL_MACRO;
@@ -412,7 +412,7 @@ found:
   }
   goto open;
 
-create:
+ create:
   // don't create unless O_CREAT and write mode
   if (!(oflag & O_CREAT) || !isWriteMode(oflag)) {
     DBG_FAIL_MACRO;
@@ -484,21 +484,26 @@ create:
   // Set base-name and extension lower case bits.
   dir->caseFlags =  (FAT_CASE_LC_BASE | FAT_CASE_LC_EXT) & fname->flags;
 
-  // set timestamps
+  // Set timestamps.
   if (FsDateTime::callback) {
     // call user date/time function
     FsDateTime::callback(&date, &time, &ms10);
-    dir->createTimeMs = ms10;
     setLe16(dir->createDate, date);
     setLe16(dir->createTime, time);
-    setLe16(dir->accessDate, date);
-    setLe16(dir->modifyDate, date);
-    setLe16(dir->modifyTime, time);;
+    dir->createTimeMs = ms10;
+  } else {
+    setLe16(dir->createDate, FS_DEFAULT_DATE);
+    setLe16(dir->modifyDate, FS_DEFAULT_DATE);
+    setLe16(dir->accessDate, FS_DEFAULT_DATE);
+    if (FS_DEFAULT_TIME) {
+      setLe16(dir->createTime, FS_DEFAULT_TIME);
+      setLe16(dir->modifyTime, FS_DEFAULT_TIME);
+    }
   }
   // Force write of entry to device.
   dirFile->m_vol->cacheDirty();
 
-open:
+ open:
   // open entry in cache.
   if (!openCachedEntry(dirFile, curIndex, oflag, lfnOrd)) {
     DBG_FAIL_MACRO;
@@ -506,7 +511,7 @@ open:
   }
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -553,7 +558,7 @@ size_t FatFile::printName(print_t* pr) {
   }
   return n;
 
-fail:
+ fail:
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -632,14 +637,14 @@ bool FatFile::remove() {
   // Fall into fail.
   DBG_FAIL_MACRO;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
 bool FatFile::lfnUniqueSfn(fname_t* fname) {
   const uint8_t FIRST_HASH_SEQ = 2;  // min value is 2
   uint8_t pos = fname->seqPos;;
-  DirFat_t *dir;
+  DirFat_t* dir;
   uint16_t hex;
 
   DBG_HALT_IF(!(fname->flags & FNAME_FLAG_LOST_CHARS));
@@ -685,10 +690,10 @@ bool FatFile::lfnUniqueSfn(fname_t* fname) {
   // fall inti fail - too many tries.
   DBG_FAIL_MACRO;
 
-fail:
+ fail:
   return false;
 
-done:
+ done:
   return true;
 }
 #endif  // #if USE_LONG_FILE_NAMES

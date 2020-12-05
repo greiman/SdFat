@@ -31,7 +31,7 @@
 bool FatFile::getSFN(char* name) {
   uint8_t j = 0;
   uint8_t lcBit = FAT_CASE_LC_BASE;
-  DirFat_t *dir;
+  DirFat_t* dir;
 
   if (!isOpen()) {
     DBG_FAIL_MACRO;
@@ -67,7 +67,7 @@ bool FatFile::getSFN(char* name) {
   name[j] = 0;
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ size_t FatFile::printSFN(print_t* pr) {
   }
   return pr->write(name);
 
-fail:
+ fail:
   return 0;
 }
 #if !USE_LONG_FILE_NAMES
@@ -138,7 +138,7 @@ bool FatFile::parsePathName(const char* path, fname_t* fname,
   *ptr = path;
   return true;
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -242,16 +242,21 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   // Set base-name and extension lower case bits.
   dir->caseFlags = (FAT_CASE_LC_BASE | FAT_CASE_LC_EXT) & fname->flags;
 
-  // set timestamps
+  // Set timestamps.
   if (FsDateTime::callback) {
     // call user date/time function
     FsDateTime::callback(&date, &time, &ms10);
-    dir->createTimeMs = ms10;
-    setLe16(dir->createTime, time);
-    setLe16(dir->modifyTime, time);
-    setLe16(dir->accessDate, date);
     setLe16(dir->createDate, date);
-    setLe16(dir->modifyDate, date);
+    setLe16(dir->createTime, time);
+    dir->createTimeMs = ms10;
+  } else {
+    setLe16(dir->createDate, FS_DEFAULT_DATE);
+    setLe16(dir->modifyDate, FS_DEFAULT_DATE);
+    setLe16(dir->accessDate, FS_DEFAULT_DATE);
+    if (FS_DEFAULT_TIME) {
+      setLe16(dir->createTime, FS_DEFAULT_TIME);
+      setLe16(dir->modifyTime, FS_DEFAULT_TIME);
+    }
   }
   // Force write of entry to device.
   dirFile->m_vol->cacheDirty();
@@ -259,7 +264,7 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   // open entry in cache.
   return openCachedEntry(dirFile, index, oflag, 0);
 
-fail:
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -295,7 +300,7 @@ bool FatFile::remove() {
   // Write entry to device.
   return m_vol->cacheSync();
 
-fail:
+ fail:
   return false;
 }
 #endif  // !USE_LONG_FILE_NAMES

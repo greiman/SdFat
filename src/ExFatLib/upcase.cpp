@@ -47,7 +47,7 @@ struct pair16 {
   uint16_t val;
 };
 typedef struct pair16 pair16_t;
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 static const map16_t mapTable[] TABLE_MEM = {
   {0X0061, -32,  26},
   {0X00E0, -32,  23},
@@ -104,7 +104,7 @@ static const map16_t mapTable[] TABLE_MEM = {
   {0XFF41, -32,  26},
 };
 const size_t MAP_DIM = sizeof(mapTable)/sizeof(map16_t);
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 static const pair16_t lookupTable[] TABLE_MEM = {
   {0X00FF, 0X0178},
   {0X0180, 0X0243},
@@ -183,17 +183,7 @@ static const pair16_t lookupTable[] TABLE_MEM = {
   {0X2C76, 0X2C75},
 };
 const size_t LOOKUP_DIM = sizeof(lookupTable)/sizeof(pair16_t);
-
-//-----------------------------------------------------------------------------
-uint16_t exFatHashName(const ExChar16_t* name, size_t n, uint16_t hash) {
-  for (size_t i = 0; i < n; i++) {
-    uint16_t c = toUpcase(name[i]);
-    hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
-    hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
-  }
-  return hash;
-}
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 static size_t searchPair16(const pair16_t* table, size_t size, uint16_t key) {
   size_t left = 0;
   size_t right = size;
@@ -208,7 +198,56 @@ static size_t searchPair16(const pair16_t* table, size_t size, uint16_t key) {
   }
   return left;
 }
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+static char toUpper(char c) {
+  return c - ('a' <= c && c <= 'z' ? 'a' - 'A' : 0);
+}
+//------------------------------------------------------------------------------
+bool exFatCmpName(const DirName_t* unicode,
+                  const ExChar16_t* name, size_t offset, size_t n) {
+  uint16_t u;
+  for (size_t i = 0; i < n; i++) {
+    u = getLe16(unicode->unicode + 2*i);
+    if (toUpcase(name[i + offset]) != toUpcase(u)) {
+      return false;
+    }
+  }
+  return true;
+}
+//------------------------------------------------------------------------------
+bool exFatCmpName(const DirName_t* unicode,
+                  const char* name, size_t offset, size_t n) {
+  uint16_t u;
+  for (size_t i = 0; i < n; i++) {
+    u = getLe16(unicode->unicode + 2*i);
+    if (u >= 0x7F  || toUpper(name[i + offset]) != toUpper(u)) {
+      return false;
+    }
+  }
+  return true;
+}
+//------------------------------------------------------------------------------
+uint16_t exFatHashName(const ExChar16_t* name, size_t n, uint16_t hash) {
+  for (size_t i = 0; i < n; i++) {
+    uint16_t c = toUpcase(name[i]);
+    hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
+    hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
+  }
+  return hash;
+}
+//------------------------------------------------------------------------------
+uint16_t exFatHashName(const char* name, size_t n, uint16_t hash) {
+  for (size_t i = 0; i < n; i++) {
+    uint8_t c = name[i];
+    if ('a' <= c && c <= 'z') {
+      c -= 'a' - 'A';
+    }
+    hash = ((hash << 15) | (hash >> 1)) + c;
+    hash = ((hash << 15) | (hash >> 1));
+  }
+  return hash;
+}
+//------------------------------------------------------------------------------
 uint16_t toUpcase(uint16_t chr) {
   uint16_t i, first;
   // Optimize for simple ASCII.
@@ -230,47 +269,7 @@ uint16_t toUpcase(uint16_t chr) {
   }
   return chr;
 }
-//-----------------------------------------------------------------------------
-bool exFatCmpName(const DirName_t* unicode,
-                  const ExChar16_t* name, size_t offset, size_t n) {
-  uint16_t u;
-  for (size_t i = 0; i < n; i++) {
-    u = getLe16(unicode->unicode + 2*i);
-    if (toUpcase(name[i + offset]) != toUpcase(u)) {
-      return false;
-    }
-  }
-  return true;
-}
-//-----------------------------------------------------------------------------
-static char toUpper(char c) {
-  return c - ('a' <= c && c <= 'z' ? 'a' - 'A' : 0);
-}
-//-----------------------------------------------------------------------------
-uint16_t exFatHashName(const char* name, size_t n, uint16_t hash) {
-  for (size_t i = 0; i < n; i++) {
-    uint8_t c = name[i];
-    if ('a' <= c && c <= 'z') {
-      c -= 'a' - 'A';
-    }
-    hash = ((hash << 15) | (hash >> 1)) + c;
-    hash = ((hash << 15) | (hash >> 1));
-  }
-  return hash;
-}
-//-----------------------------------------------------------------------------
-bool exFatCmpName(const DirName_t* unicode,
-                  const char* name, size_t offset, size_t n) {
-  uint16_t u;
-  for (size_t i = 0; i < n; i++) {
-    u = getLe16(unicode->unicode + 2*i);
-    if (u >= 0x7F  || toUpper(name[i + offset]) != toUpper(u)) {
-      return false;
-    }
-  }
-  return true;
-}
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 uint32_t upcaseChecksum(uint16_t uc, uint32_t sum) {
   sum = (sum << 31) + (sum >> 1) + (uc & 0XFF);
   sum = (sum << 31) + (sum >> 1) + (uc >> 8);

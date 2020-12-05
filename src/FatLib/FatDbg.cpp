@@ -24,7 +24,6 @@
  */
 #include "FatVolume.h"
 #include "FatFile.h"
-#include "../common/FsDateTime.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
 static void printHex(print_t* pr, uint8_t h) {

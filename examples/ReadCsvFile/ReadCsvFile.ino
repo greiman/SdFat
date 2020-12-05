@@ -5,7 +5,7 @@
 #define SD_FAT_TYPE 0
 /*
   Change the value of SD_CS_PIN if you are using SPI and
-  your hardware does not use the default value, SS.  
+  your hardware does not use the default value, SS.
   Common values are:
   Arduino Ethernet shield: pin 4
   Sparkfun SD shield: pin 8
@@ -63,25 +63,25 @@ bool parseLine(char* str) {
   // Set strtok start of line.
   str = strtok(str, ",");
   if (!str) return false;
-  
+
   // Print text field.
   Serial.println(str);
-  
+
   // Subsequent calls to strtok expects a null pointer.
   str = strtok(nullptr, ",");
   if (!str) return false;
-  
+
   // Convert string to long integer.
   int32_t i32 = strtol(str, &ptr, 0);
   if (str == ptr || *skipSpace(ptr)) return false;
   Serial.println(i32);
-  
+
   str = strtok(nullptr, ",");
   if (!str) return false;
-  
+
   // strtoul accepts a leading minus with unexpected results.
   if (*skipSpace(str) == '-') return false;
-  
+
   // Convert string to unsigned long integer.
   uint32_t u32 = strtoul(str, &ptr, 0);
   if (str == ptr || *skipSpace(ptr)) return false;
@@ -89,20 +89,20 @@ bool parseLine(char* str) {
 
   str = strtok(nullptr, ",");
   if (!str) return false;
-  
+
   // Convert string to double.
   double d = strtod(str, &ptr);
   if (str == ptr || *skipSpace(ptr)) return false;
   Serial.println(d);
-  
+
   // Check for extra fields.
   return strtok(nullptr, ",") == nullptr;
 }
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     yield();
   }
@@ -117,7 +117,7 @@ void setup() {
   }
   // Remove any existing file.
   if (sd.exists("ReadCsvDemo.csv")) {
-    sd.remove("ReadCsvDemo.csv"); 
+    sd.remove("ReadCsvDemo.csv");
   }
   // Create the file.
   if (!file.open("ReadCsvDemo.csv", FILE_WRITE)) {
@@ -128,14 +128,14 @@ void setup() {
     "abc,123,456,7.89\r\n"
     "def,-321,654,-9.87\r\n"
     "ghi,333,0xff,5.55"));
-    
+
   // Rewind file for read.
   file.rewind();
-  
+
   while (file.available()) {
     int n = file.fgets(line, sizeof(line));
     if (n <= 0) {
-      error("fgets failed"); 
+      error("fgets failed");
     }
     if (line[n-1] != '\n' && n == (sizeof(line) - 1)) {
       error("line too long");

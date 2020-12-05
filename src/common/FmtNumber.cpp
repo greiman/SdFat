@@ -511,6 +511,6 @@ float scanFloat(const char* str, const char** ptr) {
   v = scale10(static_cast<float>(fract), fracExp);
   return neg ? -v : v;
 
-fail:
+ fail:
   return 0;
 }

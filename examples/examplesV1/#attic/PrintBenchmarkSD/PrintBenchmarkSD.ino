@@ -24,8 +24,8 @@ void error(const char* s) {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     yield();
   }
@@ -51,7 +51,7 @@ void loop() {
   if (!SD.begin(chipSelect)) {
     error("begin");
   }
-  
+
   Serial.println(F("Starting print test.  Please wait.\n"));
 
   // do write test

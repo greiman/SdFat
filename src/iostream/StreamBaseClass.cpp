@@ -92,7 +92,7 @@ void StreamBaseClass::open(const char* path, ios::openmode mode) {
   clear();
   return;
 
-fail:
+ fail:
   StreamBaseFile::close();
   setstate(failbit);
   return;

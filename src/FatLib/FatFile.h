@@ -151,10 +151,49 @@ class FatFile {
   }
   /** \return Directory entry index. */
   uint16_t dirIndex() {return m_dirIndex;}
+  /** Get a file's access date.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getAccessDate(uint16_t* pdate);
+  /** Get a file's access date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime return zero since FAT has no time.
+   *
+   * This function is for comparability in FsFile.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getAccessDateTime(uint16_t* pdate, uint16_t* ptime) {
+    if (!getAccessDate(pdate)) {
+      return false;
+    }
+    *ptime = 0;
+    return true;
+  }
+  /** Get a file's create date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return All error bits. */
   uint8_t getError() {
     return m_error;
   }
+  /** Get a file's modify date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return value of writeError */
   bool getWriteError() {
     return isOpen() ? m_error & WRITE_ERROR : true;
@@ -196,6 +235,8 @@ class FatFile {
    * \param[out] bgnSector the first sector address for the file.
    * \param[out] endSector the last  sector address for the file.
    *
+   * Set the contiguous flag if the file is contiguous.
+   * The parameters may be nullptr to only set the flag.
    * \return true for success or false for failure.
    */
   bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector);
@@ -203,7 +244,7 @@ class FatFile {
   /** Create and open a new contiguous file of a specified size.
    *
    * \param[in] dirFile The directory where the file will be created.
-   * \param[in] path A path with a validfile name.
+   * \param[in] path A path with a valid file name.
    * \param[in] size The desired file size.
    *
    * \return true for success or false for failure.
@@ -212,7 +253,7 @@ class FatFile {
                         const char* path, uint32_t size);
   /** Create and open a new contiguous file of a specified size.
    *
-   * \param[in] path A path with a validfile name.
+   * \param[in] path A path with a valid file name.
    * \param[in] size The desired file size.
    *
    * \return true for success or false for failure.
@@ -263,8 +304,8 @@ class FatFile {
    * Get a string from a file.
    *
    * fgets() reads bytes from a file into the array pointed to by \a str, until
-   * \a num - 1 bytes are read, or a delimiter is read and transferred to \a str,
-   * or end-of-file is encountered. The string is then terminated
+   * \a num - 1 bytes are read, or a delimiter is read and transferred to
+   * \a str, or end-of-file is encountered. The string is then terminated
    * with a null byte.
    *
    * fgets() deletes CR, '\\r', from the string.  This insures only a '\\n'
@@ -277,7 +318,8 @@ class FatFile {
    * \param[in] delim Optional set of delimiters. The default is "\n".
    *
    * \return For success fgets() returns the length of the string in \a str.
-   * If no data is read, fgets() returns zero for EOF or -1 if an error occurred.
+   * If no data is read, fgets() returns zero for EOF or -1 if an error
+   * occurred.
    */
   int fgets(char* str, int num, char* delim = nullptr);
 
@@ -287,7 +329,7 @@ class FatFile {
   }
   /** \return first sector of file or zero for empty file. */
   uint32_t firstBlock() const {return firstSector();}
-  /** \return first sector of file or zero for empty file. */
+  /** \return Address of first sector or zero for empty file. */
   uint32_t firstSector() const;
   /**
    * Get a file's name followed by a zero byte.
@@ -472,10 +514,12 @@ class FatFile {
    * O_CREAT - If the file exists, this flag has no effect except as noted
    * under O_EXCL below. Otherwise, the file shall be created
    *
-   * O_EXCL - If O_CREAT and O_EXCL are set, open() shall fail if the file exists.
+   * O_EXCL - If O_CREAT and O_EXCL are set, open() shall fail if the file
+   * exists.
    *
    * O_TRUNC - If the file exists and is a regular file, and the file is
-   * successfully opened and is not read only, its length shall be truncated to 0.
+   * successfully opened and is not read only, its length shall be truncated
+   * to 0.
    *
    * WARNING: A given file must not be opened by more than one FatFile object
    * or file corruption may occur.
@@ -873,7 +917,8 @@ class FatFile {
    * \return For success write() returns the number of bytes written, always
    * \a count.  If an error occurs, write() returns -1.  Possible errors
    * include write() is called before a file has been opened, write is called
-   * for a read-only file, device is full, a corrupt file system or an I/O error.
+   * for a read-only file, device is full, a corrupt file system or an I/O
+   * error.
    *
    */
   size_t write(const void* buf, size_t count);

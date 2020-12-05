@@ -8,7 +8,7 @@
 #define SD_FAT_TYPE 0
 /*
   Change the value of SD_CS_PIN if you are using SPI and
-  your hardware does not use the default value, SS.  
+  your hardware does not use the default value, SS.
   Common values are:
   Arduino Ethernet shield: pin 4
   Sparkfun SD shield: pin 8
@@ -57,12 +57,12 @@ FsFile file;
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
-  
+
   Serial.println("Type any character to start");
   while (!Serial.available()) {
     SysCall::yield();
@@ -72,7 +72,7 @@ void setup() {
   if (!sd.begin(SD_CONFIG)) {
     sd.initErrorHalt(&Serial);
   }
-  // Open root directory 
+  // Open root directory
   if (!dir.open("/")){
     error("dir.open failed");
   }

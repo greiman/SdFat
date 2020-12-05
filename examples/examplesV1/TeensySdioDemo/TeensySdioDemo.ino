@@ -1,7 +1,7 @@
 // Simple performance test for Teensy 3.5/3.6 SDHC.
 // Demonstrates yield() efficiency.
 
-// Warning SdFatSdio and SdFatSdioEX normally should 
+// Warning SdFatSdio and SdFatSdioEX normally should
 // not both be used in a program.
 // Each has its own cache and member variables.
 
@@ -48,8 +48,8 @@ void errorHalt(const char* msg) {
 }
 //------------------------------------------------------------------------------
 uint32_t kHzSdClk() {
-  return useEx ? sdEx.card()->kHzSdClk() : sd.card()->kHzSdClk(); 
-}  
+  return useEx ? sdEx.card()->kHzSdClk() : sd.card()->kHzSdClk();
+}
 //------------------------------------------------------------------------------
 // Replace "weak" system yield() function.
 void yield() {
@@ -74,7 +74,7 @@ void runTest() {
   totalMicros = 0;
   yieldMicros = 0;
   yieldCalls = 0;
-  yieldMaxUsec = 0; 
+  yieldMaxUsec = 0;
   if (!file.open("TeensyDemo.bin", O_RDWR | O_CREAT)) {
     errorHalt("open failed");
   }
@@ -100,19 +100,19 @@ void runTest() {
     Serial.print(',');
     file.rewind();
     t = micros();
-    
+
     for (uint32_t n = 0; n < nRdWr; n++) {
       if ((int)nb != file.read(buf, nb)) {
         errorHalt("read failed");
       }
-      // crude check of data.     
+      // crude check of data.
       if (buf32[0] != n || buf32[nb/4 - 1] != n) {
         errorHalt("data check");
       }
     }
     t = micros() - t;
-    totalMicros += t;   
-    Serial.println(1000.0*FILE_SIZE/t);    
+    totalMicros += t;
+    Serial.println(1000.0*FILE_SIZE/t);
   }
   file.close();
   Serial.print("\ntotalMicros  ");
@@ -122,7 +122,7 @@ void runTest() {
   Serial.print("yieldCalls   ");
   Serial.println(yieldCalls);
   Serial.print("yieldMaxUsec ");
-  Serial.println(yieldMaxUsec); 
+  Serial.println(yieldMaxUsec);
   Serial.print("kHzSdClk     ");
   Serial.println(kHzSdClk());
   Serial.println("Done");
@@ -133,8 +133,8 @@ void setup() {
   while (!Serial) {
   }
   Serial.println("SdFatSdioEX uses extended multi-block transfers without DMA.");
-  Serial.println("SdFatSdio uses a traditional DMA SDIO implementation."); 
-  Serial.println("Note the difference is speed and busy yield time.\n"); 
+  Serial.println("SdFatSdio uses a traditional DMA SDIO implementation.");
+  Serial.println("Note the difference is speed and busy yield time.\n");
 }
 //-----------------------------------------------------------------------------
 void loop() {
@@ -163,7 +163,7 @@ void loop() {
       sd.initErrorHalt("SdFatSdio begin() failed");
     }
     // make sd the current volume.
-    sd.chvol();  
+    sd.chvol();
   }
   runTest();
 }

@@ -24,6 +24,10 @@ const uint32_t LOG_INTERVAL_USEC = 2000;
 
 // Set USE_RTC nonzero for file timestamps.
 // RAM use will be marginal on Uno with RTClib.
+// 0 - RTC not used
+// 1 - DS1307
+// 2 - DS3231
+// 3 - PCF8523
 #define USE_RTC 0
 #if USE_RTC
 #include "RTClib.h"
@@ -151,8 +155,15 @@ file_t csvFile;
 char binName[] = "ExFatLogger00.bin";
 //------------------------------------------------------------------------------
 #if USE_RTC
+#if USE_RTC == 1
 RTC_DS1307 rtc;
-
+#elif USE_RTC == 2
+RTC_DS3231 rtc;
+#elif USE_RTC == 3
+RTC_PCF8523 rtc;
+#else  // USE_RTC == type
+#error USE_RTC type not implemented.
+#endif  // USE_RTC == type
 // Call back for file timestamps.  Only called for file create and sync().
 void dateTime(uint16_t* date, uint16_t* time, uint8_t* ms10) {
   DateTime now = rtc.now();
@@ -211,6 +222,15 @@ void binaryToCsv() {
   Serial.print(0.001*(millis() - t0));
   Serial.println(F(" Seconds"));
 }
+//------------------------------------------------------------------------------
+void clearSerialInput() {
+  uint32_t m = micros();
+  do {
+    if (Serial.read() >= 0) {
+      m = micros();
+    }
+  } while (micros() - m < 10000);
+}
 //-------------------------------------------------------------------------------
 void createBinFile() {
   binFile.close();
@@ -261,7 +281,7 @@ bool createCsvFile() {
   if (!csvFile.open(csvName, O_WRONLY | O_CREAT | O_TRUNC)) {
     error("open csvFile failed");
   }
-  serialClearInput();
+  clearSerialInput();
   Serial.print(F("Writing: "));
   Serial.print(csvName);
   Serial.println(F(" - type any character to stop"));
@@ -289,7 +309,7 @@ void logData() {
   if (binFile.write(fifoBuf, 512) != 512) {
     error("write first sector failed");
   }
-  serialClearInput();
+  clearSerialInput();
   Serial.println(F("Type any character to stop"));
 
   // Wait until SD is not busy.
@@ -397,7 +417,7 @@ void logData() {
 //------------------------------------------------------------------------------
 void openBinFile() {
   char name[FILE_NAME_DIM];
-  serialClearInput();
+  clearSerialInput();
   Serial.println(F("Enter file name"));
   if (!serialReadLine(name, sizeof(name))) {
     return;
@@ -425,7 +445,7 @@ void printData() {
   if (!binFile.seekSet(512)) {
     error("seek failed");
   }
-  serialClearInput();
+  clearSerialInput();
   Serial.println(F("type any character to stop\n"));
   delay(1000);
   printRecord(&Serial, nullptr);
@@ -439,16 +459,10 @@ void printData() {
 }
 //------------------------------------------------------------------------------
 void printUnusedStack() {
-#if HAS_UNUSED_STACK  
+#if HAS_UNUSED_STACK
   Serial.print(F("\nUnused stack: "));
   Serial.println(UnusedStack());
-#endif  // HAS_UNUSED_STACK 
-}
-//------------------------------------------------------------------------------
-void serialClearInput() {
-  do {
-    delay(10);
-  } while (Serial.read() >= 0);
+#endif  // HAS_UNUSED_STACK
 }
 //------------------------------------------------------------------------------
 bool serialReadLine(char* str, size_t size) {
@@ -476,7 +490,7 @@ void testSensor() {
   const uint32_t interval = 200000;
   int32_t diff;
   data_t data;
-  serialClearInput();
+  clearSerialInput();
   Serial.println(F("\nTesting - type any character to stop\n"));
   delay(1000);
   printRecord(&Serial, nullptr);
@@ -538,7 +552,7 @@ void setup() {
 void loop() {
   printUnusedStack();
   // Read any Serial data.
-  serialClearInput();
+  clearSerialInput();
 
   if (ERROR_LED_PIN >= 0) {
     digitalWrite(ERROR_LED_PIN, LOW);

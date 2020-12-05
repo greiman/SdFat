@@ -1,6 +1,6 @@
 // A simple read/write example for SD.h.
 // Mostly from the SD.h ReadWrite example.
-// 
+//
 // Your SD must be formatted FAT16/FAT32.
 //
 // Set USE_SD_H nonzero to use SD.h.
@@ -28,14 +28,14 @@ void setup() {
 #if USE_SD_H
   Serial.println(F("Using SD.h. Set USE_SD_H zero to use SdFat.h."));
 #else  // USE_SD_H
-  Serial.println(F("Using SdFat.h. Set USE_SD_H nonzero to use SD.h."));  
-#endif  // USE_SD_H  
+  Serial.println(F("Using SdFat.h. Set USE_SD_H nonzero to use SD.h."));
+#endif  // USE_SD_H
   Serial.println(F("\nType any character to begin."));
   while (!Serial.available()) {
     yield();
   }
   Serial.print("Initializing SD card...");
-  
+
   if (!SD.begin(SD_CS_PIN)) {
     Serial.println("initialization failed!");
     return;

@@ -26,7 +26,7 @@
 #define ExFatVolume_h
 #include "ExFatPartition.h"
 #include "ExFatFile.h"
-//=============================================================================
+//==============================================================================
 /**
  * \class ExFatVolume
  * \brief exFAT volume.

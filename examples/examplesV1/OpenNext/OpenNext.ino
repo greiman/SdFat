@@ -15,12 +15,12 @@ SdFile file;
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
-  
+
   Serial.println("Type any character to start");
   while (!Serial.available()) {
     SysCall::yield();

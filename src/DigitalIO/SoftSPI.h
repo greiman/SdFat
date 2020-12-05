@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 /**
- * @file 
+ * @file
  * @brief  Software SPI.
  *
  * @defgroup softSPI Software SPI

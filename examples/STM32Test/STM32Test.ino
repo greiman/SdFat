@@ -7,7 +7,7 @@
 #include "FreeStack.h"
 
 // Chip select PA4, shared SPI, 18 MHz, port 1.
-#define SD1_CONFIG SdSpiConfig(PA4, SHARED_SPI, SD_SCK_MHZ(18), &SPI) 
+#define SD1_CONFIG SdSpiConfig(PA4, SHARED_SPI, SD_SCK_MHZ(18), &SPI)
 SdFs sd1;
 FsFile file1;
 
@@ -36,7 +36,7 @@ void errorHalt() {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
     SysCall::yield();
   }
@@ -65,7 +65,7 @@ void setup() {
   }
   // Make Dir1 the working directory on sd1.
   if (!sd1.chdir("Dir1")) {
-     error("dsd1.chdir");   
+     error("dsd1.chdir");
   }
   // initialize the second card
   if (!sd2.begin(SD2_CONFIG)) {
@@ -79,8 +79,8 @@ void setup() {
   }
   // Make Dir2 the working directory on sd2.
   if (!sd2.chdir("Dir2")) {
-     error("sd2.chdir");   
-  }  
+     error("sd2.chdir");
+  }
   // remove test.bin from /Dir1 directory of sd1
   if (sd1.exists("test.bin")) {
     if (!sd1.remove("test.bin")) {
@@ -144,7 +144,7 @@ void setup() {
   // close test.bin
   file1.close();
   // sync copy.bin so ls works.
-  file2.close(); 
+  file2.close();
   // list directories.
   Serial.println(F("------sd1 -------"));
   sd1.ls("/", LS_R | LS_SIZE);

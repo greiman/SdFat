@@ -25,23 +25,26 @@
 #ifndef FsDateTime_h
 #define FsDateTime_h
 #include <stdint.h>
+#include "CompileDateTime.h"
 #include "SysCall.h"
+
 /** Backward compatible definition. */
 #define FAT_DATE(y, m, d) FS_DATE(y, m, d)
 
 /** Backward compatible definition. */
 #define FAT_TIME(h, m, s) FS_TIME(h, m, s)
+
 /** Date time callback */
 namespace FsDateTime {
   /** Date time callback. */
   extern void (*callback)(uint16_t* date, uint16_t* time, uint8_t* ms10);
   /** Date time callback. */
   extern void (*callback2)(uint16_t* date, uint16_t* time);
-  /** Cancel callback */
+  /** Cancel callback. */
   void clearCallback();
-   /** Set the date/time callback function
+   /** Set the date/time callback function.
    *
-   * \param[in] dateTime The user's call back function.  The callback
+   * \param[in] dateTime The user's call back function.  The callback.
    * function is of the form:
    *
    * \code
@@ -49,13 +52,13 @@ namespace FsDateTime {
    *   uint16_t year;
    *   uint8_t month, day, hour, minute, second;
    *
-   *   // User gets date and time from GPS or real-time clock here
+   *   // User gets date and time from GPS or real-time clock here.
    *
-   *   // return date using FAT_DATE macro to format fields
-   *   *date = FAT_DATE(year, month, day);
+   *   // Return date using FS_DATE macro to format fields.
+   *   *date = FS_DATE(year, month, day);
    *
-   *   // return time using FAT_TIME macro to format fields
-   *   *time = FAT_TIME(hour, minute, second);
+   *   // Return time using FS_TIME macro to format fields.
+   *   *time = FS_TIME(hour, minute, second);
    * }
    * \endcode
    *
@@ -66,7 +69,7 @@ namespace FsDateTime {
    *
    */
   void setCallback(void (*dateTime)(uint16_t* date, uint16_t* time));
-   /** Set the date/time callback function
+   /** Set the date/time callback function.
    *
    * \param[in] dateTime The user's call back function.  The callback
    * function is of the form:
@@ -76,15 +79,20 @@ namespace FsDateTime {
    *   uint16_t year;
    *   uint8_t month, day, hour, minute, second;
    *
-   *   // User gets date and time from GPS or real-time clock here
+   *   // User gets date and time from GPS or real-time clock here.
    *
-   *   // return date using FAT_DATE macro to format fields
-   *   *date = FAT_DATE(year, month, day);
+   *   // Return date using FS_DATE macro to format fields
+   *   *date = FS_DATE(year, month, day);
    *
-   *   // return time using FAT_TIME macro to format fields
-   *   *time = FAT_TIME(hour, minute, second);
+   *   // Return time using FS_TIME macro to format fields
+   *   *time = FS_TIME(hour, minute, second);
    *
-   *   *ms10 = <tens of ms since second/1>
+   *   // Return tenths of milliseconds since last even second.
+   *   // The granularity of the seconds part of FS_TIME is 2 seconds so
+   *   // this field is a count of tenths of a second and its valid value
+   *   // range is 0-199 inclusive.
+   *   // For a simple RTC return 100*(seconds & 1).
+   *   *ms10 = <tens of ms since even second>
    * }
    * \endcode
    *
@@ -95,8 +103,9 @@ namespace FsDateTime {
    *
    */
   void setCallback(
-    void (*dateTime)(uint16_t* date, uint16_t* time, uint8_t *ms10));
+    void (*dateTime)(uint16_t* date, uint16_t* time, uint8_t* ms10));
 }  // namespace FsDateTime
+
 /** date field for directory entry
  * \param[in] year [1980,2107]
  * \param[in] month [1,12]
@@ -109,6 +118,11 @@ static inline uint16_t FS_DATE(uint16_t year, uint8_t month, uint8_t day) {
   return year > 127 || month > 12 || day > 31 ? 0 :
          year << 9 | month << 5 | day;
 }
+/** year part of FAT directory date field
+ * \param[in] fatDate Date in packed dir format.
+ *
+ * \return Extracted year [1980,2107]
+ */
 static inline uint16_t FS_YEAR(uint16_t fatDate) {
   return 1980 + (fatDate >> 9);
 }

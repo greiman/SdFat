@@ -63,7 +63,7 @@ class FsBaseFile {
            m_xFile ? m_xFile->available() : 0;
   }
 
-  /** Set writeError to zero */
+  /** Clear writeError. */
   void clearWriteError() {
     if (m_fFile) m_fFile->clearWriteError();
     if (m_xFile) m_xFile->clearWriteError();
@@ -74,6 +74,20 @@ class FsBaseFile {
    * \return true for success or false for failure.
    */
   bool close();
+  /** Check for contiguous file and return its raw sector range.
+   *
+   * \param[out] bgnSector the first sector address for the file.
+   * \param[out] endSector the last  sector address for the file.
+   *
+   * Set contiguous flag for FAT16/FAT32 files.
+   * Parameters may be nullptr.
+   *
+   * \return true for success or false for failure.
+   */
+  bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector) {
+    return m_fFile ? m_fFile->contiguousRange(bgnSector, endSector) :
+           m_xFile ? m_xFile->contiguousRange(bgnSector, endSector) : false;
+  }
   /** \return The current position for a file or directory. */
   uint64_t curPosition() {
     return m_fFile ? m_fFile->curPosition() :
@@ -135,6 +149,11 @@ class FsBaseFile {
     return m_fFile ? m_fFile->fileSize() :
            m_xFile ? m_xFile->fileSize() : 0;
   }
+  /** \return Address of first sector or zero for empty file. */
+  uint32_t firstSector() {
+    return m_fFile ? m_fFile->firstSector() :
+           m_xFile ? m_xFile->firstSector() : 0;
+  }
   /** Ensure that any bytes written to the file are saved to the SD card. */
   void flush() {sync();}
   /** set position for streams
@@ -144,10 +163,43 @@ class FsBaseFile {
     if (m_fFile) m_fFile->fsetpos(pos);
     if (m_xFile) m_xFile->fsetpos(pos);
   }
+  /** Get a file's access date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getAccessDateTime(uint16_t* pdate, uint16_t* ptime) {
+    return m_fFile ? m_fFile->getAccessDateTime(pdate, ptime) :
+           m_xFile ? m_xFile->getAccessDateTime(pdate, ptime) : false;
+  }
+  /** Get a file's create date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime) {
+    return m_fFile ? m_fFile->getCreateDateTime(pdate, ptime) :
+           m_xFile ? m_xFile->getCreateDateTime(pdate, ptime) : false;
+  }
   /** \return All error bits. */
   uint8_t getError() {
     return m_fFile ? m_fFile->getError() :
            m_xFile ? m_xFile->getError() : 0XFF;
+  }
+  /** Get a file's Modify date and time.
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
+    return m_fFile ? m_fFile->getModifyDateTime(pdate, ptime) :
+           m_xFile ? m_xFile->getModifyDateTime(pdate, ptime) : false;
   }
   /**
    * Get a file's name followed by a zero byte.
@@ -168,6 +220,15 @@ class FsBaseFile {
   bool getWriteError() {
     return m_fFile ? m_fFile->getWriteError() :
            m_xFile ? m_xFile->getWriteError() : true;
+  }
+  /** \return True if the file is contiguous. */
+  bool isContiguous() {
+#if USE_FAT_FILE_FLAG_CONTIGUOUS
+    return m_fFile ? m_fFile->isContiguous() :
+           m_xFile ? m_xFile->isContiguous() : false;
+#else  // USE_FAT_FILE_FLAG_CONTIGUOUS
+    return m_xFile ? m_xFile->isContiguous() : false;
+#endif  // USE_FAT_FILE_FLAG_CONTIGUOUS
   }
   /** \return True if this is a directory else false. */
   bool isDir() {
@@ -593,7 +654,7 @@ class FsBaseFile {
    * \param[in] flags Values for \a flags are constructed by a bitwise-inclusive
    * OR of flags from the following list
    *
-   * T_ACCESS - Set the file's last access date.
+   * T_ACCESS - Set the file's last access date and time.
    *
    * T_CREATE - Set the file's creation date and time.
    *

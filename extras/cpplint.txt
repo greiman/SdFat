@@ -1,7 +1,0 @@
-Ignoring ../src/DigitalIO/readme.txt; not a valid file name (cc, h, cpp, cu, cuh)
-Ignoring ../src/SdCard/CPPLINT.cfg; not a valid file name (cc, h, cpp, cu, cuh)
-Ignoring "../src/SdCard/SdioTeensy.h": file excluded by "C:\Users\bill\Documents\ArduinoSdFat\libraries\SdFat\src\SdCard\CPPLINT.cfg". File path component "SdioTeensy.h" matches pattern "SdioTeensy.h"
-Ignoring ../src/common/CPPLINT.cfg; not a valid file name (cc, h, cpp, cu, cuh)
-Ignoring "../src/common/PrintBasic.cpp": file excluded by "C:\Users\bill\Documents\ArduinoSdFat\libraries\SdFat\src\common\CPPLINT.cfg". File path component "PrintBasic.cpp" matches pattern "PrintBasic.cpp"
-Ignoring "../src/common/PrintBasic.h": file excluded by "C:\Users\bill\Documents\ArduinoSdFat\libraries\SdFat\src\common\CPPLINT.cfg". File path component "PrintBasic.h" matches pattern "PrintBasic.h"
-Ignoring "../src/common/PrintTemplates.h": file excluded by "C:\Users\bill\Documents\ArduinoSdFat\libraries\SdFat\src\common\CPPLINT.cfg". File path component "PrintTemplates.h" matches pattern "PrintTemplates.h"

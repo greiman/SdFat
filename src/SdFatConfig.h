@@ -57,7 +57,7 @@
 #define INCLUDE_SDIOS 0
 //------------------------------------------------------------------------------
 /**
- * Set USE_FAT_FILE_FLAG_CONTIGUOUS nonzero to optimize access to 
+ * Set USE_FAT_FILE_FLAG_CONTIGUOUS nonzero to optimize access to
  * contiguous files.
  */
 #define USE_FAT_FILE_FLAG_CONTIGUOUS 1
@@ -73,6 +73,9 @@
 #if defined(__AVR__) && FLASHEND < 0X8000
 // 32K AVR boards.
 #define SDFAT_FILE_TYPE 1
+#elif defined(__arm__)
+// ARM boards usually have plenty of memory
+#define SDFAT_FILE_TYPE 3
 #else  // defined(__AVR__) && FLASHEND < 0X8000
 // All other boards.
 #define SDFAT_FILE_TYPE 1
@@ -151,6 +154,24 @@ typedef uint8_t SdCsPin_t;
  *
  */
 #define USE_LONG_FILE_NAMES 1
+//------------------------------------------------------------------------------
+/**
+ * Set the default file time stamp when a RTC callback is not used.
+ * A valid date and time is required by the FAT/exFAT standard.
+ *
+ * The default below is YYYY-01-01 00:00:00 midnight where YYYY is
+ * the compile year from the __DATE__ macro.  This is easy to recognize
+ * as a placeholder for a correct date/time.
+ *
+ * The full compile date is:
+ * FS_DATE(compileYear(), compileMonth(), compileDay())
+ *
+ * The full compile time is:
+ * FS_TIME(compileHour(), compileMinute(), compileSecond())
+ */
+#define FS_DEFAULT_DATE FS_DATE(compileYear(), 1, 1)
+/** 00:00:00 midnight */
+#define FS_DEFAULT_TIME FS_TIME(0, 0, 0)
 //------------------------------------------------------------------------------
 /**
  * If CHECK_FLASH_PROGRAMMING is zero, overlap of single sector flash

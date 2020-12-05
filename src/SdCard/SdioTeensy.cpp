@@ -733,9 +733,9 @@ bool SdioCard::readCSD(csd_t* csd) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readData(uint8_t *dst) {
+bool SdioCard::readData(uint8_t* dst) {
   DBG_IRQSTAT();
-  uint32_t *p32 = reinterpret_cast<uint32_t*>(dst);
+  uint32_t* p32 = reinterpret_cast<uint32_t*>(dst);
 
   if (!(SDHC_PRSSTAT & SDHC_PRSSTAT_RTA)) {
     SDHC_PROCTL &= ~SDHC_PROCTL_SABGREQ;
@@ -911,7 +911,7 @@ bool SdioCard::writeData(const uint8_t* src) {
 //------------------------------------------------------------------------------
 bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
   if (m_sdioConfig.useDma()) {
-    uint8_t *ptr;
+    uint8_t* ptr;
     uint8_t aligned[512];
     if (3 & (uint32_t)src) {
       ptr = aligned;
