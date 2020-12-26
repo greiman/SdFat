@@ -747,24 +747,14 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
         ns = maxNs;
       }
       n = ns << m_vol->bytesPerSectorShift();
-      // Check for cache sector in write range.
-      if (sector <= m_vol->dataCacheSector()
-          && m_vol->dataCacheSector() < (sector + ns)) {
-        // Invalidate cache if cache sector is in the range.
-        m_vol->dataCacheInvalidate();
-      }
-      if (!m_vol->writeSectors(sector, src, ns)) {
-        DBG_FAIL_MACRO;
+      if (!m_vol->cacheSafeWrite(sector, src, ns)) {
+         DBG_FAIL_MACRO;
         goto fail;
       }
 #endif  // USE_MULTI_SECTOR_IO
     } else {
-      // use single sector write command
       n = m_vol->bytesPerSector();
-      if (m_vol->dataCacheSector() == sector) {
-        m_vol->dataCacheInvalidate();
-      }
-      if (!m_vol->writeSector(sector, src)) {
+      if (!m_vol->cacheSafeWrite(sector, src)) {
         DBG_FAIL_MACRO;
         goto fail;
       }

@@ -43,7 +43,7 @@ bool FatFile::getSFN(char* name) {
     return true;
   }
   // cache entry
-  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FatCache::CACHE_FOR_READ));
+  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FsCache::CACHE_FOR_READ));
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -285,7 +285,7 @@ bool FatFile::remove() {
     goto fail;
   }
   // Cache directory entry.
-  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FatCache::CACHE_FOR_WRITE));
+  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FsCache::CACHE_FOR_WRITE));
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;

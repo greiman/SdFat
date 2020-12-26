@@ -580,7 +580,7 @@ bool FatFile::remove() {
     goto fail;
   }
   // Cache directory entry.
-  dir = cacheDirEntry(FatCache::CACHE_FOR_WRITE);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;

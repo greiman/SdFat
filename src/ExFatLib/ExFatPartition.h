@@ -30,86 +30,14 @@
  */
 #include "../common/SysCall.h"
 #include "../common/BlockDevice.h"
+#include "../common/FsCache.h"
 #include "ExFatConfig.h"
 #include "ExFatTypes.h"
 /** Type for exFAT partition */
 const uint8_t FAT_TYPE_EXFAT = 64;
 
 class ExFatFile;
-//==============================================================================
-/**
- * \class FsCache
- * \brief Sector cache.
- */
-class FsCache {
- public:
-  /** Cached sector is dirty */
-  static const uint8_t CACHE_STATUS_DIRTY = 1;
-  /** Cache sector status bits */
-  static const uint8_t CACHE_STATUS_MASK = CACHE_STATUS_DIRTY;
-  /** Sync existing sector but do not read new sector. */
-  static const uint8_t CACHE_OPTION_NO_READ = 2;
-  /** Cache sector for read. */
-  static const uint8_t CACHE_FOR_READ = 0;
-  /** Cache sector for write. */
-  static const uint8_t CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
-  /** Reserve cache sector for write - do not read from sector device. */
-  static const uint8_t CACHE_RESERVE_FOR_WRITE
-    = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
 
-  FsCache() : m_blockDev(nullptr) {
-    invalidate();
-  }
-
-  /** \return Cache sector address. */
-  uint8_t* cacheBuffer() {
-    return m_cacheBuffer;
-  }
-  /** \return Clear the cache and returns a pointer to the cache. */
-  uint8_t* clear() {
-    if (isDirty() && !sync()) {
-      return nullptr;
-    }
-    invalidate();
-    return m_cacheBuffer;
-  }
-  /** Set current sector dirty. */
-  void dirty() {
-    m_status |= CACHE_STATUS_DIRTY;
-  }
-  /** Initialize the cache.
-   * \param[in] blockDev Block device for this partition.
-   */
-  void init(BlockDevice* blockDev) {
-    m_blockDev = blockDev;
-    invalidate();
-  }
-  /** Invalidate current cache sector. */
-  void invalidate();
-  /** \return dirty status */
-  bool isDirty() {
-    return m_status & CACHE_STATUS_DIRTY;
-  }
-  /** \return Logical sector number for cached sector. */
-  uint32_t sector() {
-    return m_sector;
-  }
-  /** Fill cache with sector data.
-   * \param[in] sector Sector to read.
-   * \param[in] option mode for cached sector.
-   * \return Address of cached sector. */
-  uint8_t* get(uint32_t sector, uint8_t option);
-  /** Write current sector if dirty.
-   * \return true for success or false for failure.
-   */
-  bool sync();
-
- private:
-  uint8_t m_status;
-  BlockDevice* m_blockDev;
-  uint32_t m_sector;
-  uint8_t m_cacheBuffer[512];
-};
 //==============================================================================
 /**
  * \class ExFatPartition
@@ -233,20 +161,24 @@ class ExFatPartition {
   bool syncDevice() {
     return m_blockDev->syncDevice();
   }
+  bool cacheSafeRead(uint32_t sector, uint8_t* dst) {
+    return m_dataCache.cacheSafeRead(sector, dst);
+  }
+  bool cacheSafeWrite(uint32_t sector, const uint8_t* src) {
+    return m_dataCache.cacheSafeWrite(sector, src);
+  }
+  bool cacheSafeRead(uint32_t sector, uint8_t* dst, size_t count) {
+    return m_dataCache.cacheSafeRead(sector, dst, count);
+  }
+  bool cacheSafeWrite(uint32_t sector, const uint8_t* src, size_t count) {
+     return m_dataCache.cacheSafeWrite(sector, src, count);
+  }
   bool readSector(uint32_t sector, uint8_t* dst) {
     return m_blockDev->readSector(sector, dst);
   }
   bool writeSector(uint32_t sector, const uint8_t* src) {
     return m_blockDev->writeSector(sector, src);
   }
-#if USE_MULTI_SECTOR_IO
-  bool readSectors(uint32_t sector, uint8_t* dst, size_t count) {
-    return m_blockDev->readSectors(sector, dst, count);
-  }
-  bool writeSectors(uint32_t sector, const uint8_t* src, size_t count) {
-    return m_blockDev->writeSectors(sector, src, count);
-  }
-#endif  // USE_MULTI_SECTOR_IO
   //----------------------------------------------------------------------------
   static const uint8_t  m_bytesPerSectorShift = 9;
   static const uint16_t m_bytesPerSector = 512;

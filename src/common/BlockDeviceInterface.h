@@ -46,7 +46,7 @@ class BlockDeviceInterface {
    * \return true for success or false for failure.
    */
   virtual bool readSector(uint32_t sector, uint8_t* dst) = 0;
-#if USE_MULTI_SECTOR_IO
+
   /**
    * Read multiple sectors.
    *
@@ -56,7 +56,7 @@ class BlockDeviceInterface {
    * \return true for success or false for failure.
    */
   virtual bool readSectors(uint32_t sector, uint8_t* dst, size_t ns) = 0;
-#endif  // USE_MULTI_SECTOR_IO
+
   /** \return device size in sectors. */
   virtual uint32_t sectorCount() = 0;
 
@@ -73,7 +73,7 @@ class BlockDeviceInterface {
    * \return true for success or false for failure.
    */
   virtual bool writeSector(uint32_t sector, const uint8_t* src) = 0;
-#if USE_MULTI_SECTOR_IO
+
   /**
    * Write multiple sectors.
    *
@@ -83,6 +83,5 @@ class BlockDeviceInterface {
    * \return true for success or false for failure.
    */
   virtual bool writeSectors(uint32_t sector, const uint8_t* src, size_t ns) = 0;
-#endif  // USE_MULTI_SECTOR_IO
 };
 #endif  // BlockDeviceInterface_h

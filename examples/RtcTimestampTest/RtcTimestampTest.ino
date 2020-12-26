@@ -150,17 +150,17 @@ bool setRtc() {
   Serial.print(F("Input: "));
   Serial.println(line);
 
-  y = strtol(line, &ptr, 0);
+  y = strtol(line, &ptr, 10);
   if (*ptr++ != '-' || y < 2000 || y > 2099) return error("year");
-  m = strtol(ptr, &ptr, 0);
+  m = strtol(ptr, &ptr, 10);
   if (*ptr++ != '-' || m < 1 || m > 12) return error("month");
-  d = strtol(ptr, &ptr, 0);
+  d = strtol(ptr, &ptr, 10);
   if (d < 1 || d > 31) return error("day");
-  hh = strtol(ptr, &ptr, 0);
+  hh = strtol(ptr, &ptr, 10);
   if (*ptr++ != ':' || hh > 23) return error("hour");
-  mm = strtol(ptr, &ptr, 0);
+  mm = strtol(ptr, &ptr, 10);
   if (*ptr++ != ':' || mm > 59) return error("minute");
-  ss = strtol(ptr, &ptr, 0);
+  ss = strtol(ptr, &ptr, 10);
   if (ss > 59) return error("second");
 
   rtc.adjust(DateTime(y, m, d, hh, mm, ss));

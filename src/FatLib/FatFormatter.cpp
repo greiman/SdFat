@@ -24,7 +24,7 @@
  */
 #include "FatFormatter.h"
 // Set nonzero to use calculated CHS in MBR.  Should not be required.
-#define USE_LBA_TO_CHS 0
+#define USE_LBA_TO_CHS 1
 
 // Constants for file system structure optimized for flash.
 uint16_t const BU16 = 128;

@@ -647,16 +647,7 @@ int ExFatFile::read(void* buf, size_t count) {
         ns = maxNs;
       }
       n = ns << m_vol->bytesPerSectorShift();
-      // Check for cache sector in read range.
-      if (sector <= m_vol->dataCacheSector()
-          && m_vol->dataCacheSector() < (sector + ns)) {
-        // Flush cache if cache sector is in the range.
-        if (!m_vol->dataCacheSync()) {
-          DBG_FAIL_MACRO;
-          goto fail;
-        }
-      }
-      if (!m_vol->readSectors(sector, dst, ns)) {
+     if (!m_vol->cacheSafeRead(sector, dst, ns)) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -664,7 +655,7 @@ int ExFatFile::read(void* buf, size_t count) {
     } else {
       // read single sector
       n = m_vol->bytesPerSector();
-      if (!m_vol->readSector(sector, dst)) {
+      if (!m_vol->cacheSafeRead(sector, dst)) {
         DBG_FAIL_MACRO;
         goto fail;
       }

@@ -74,8 +74,7 @@ char* fsFmtTime(char* str, uint16_t time) {
 }
 //------------------------------------------------------------------------------
 char* fsFmtTime(char* str, uint16_t time, uint8_t sec100) {
-  str = fsFmtField(str, sec100%100, 0);
-  str = fsFmtField(str, 2*(time & 31) + sec100/100, '.');
+  str = fsFmtField(str, 2*(time & 31) + (sec100 < 100 ? 0 : 1), 0);
   *--str = ':';
   return fsFmtTime(str, time);
 }
@@ -138,8 +137,8 @@ size_t fsPrintDateTime(print_t* pr, uint32_t dateTime) {
 //------------------------------------------------------------------------------
 size_t fsPrintDateTime(print_t* pr,
                        uint32_t dateTime, uint8_t s100, int8_t tz) {
-  // Allow YYYY-MM-DD hh:mm:ss.ss UTC+hh:mm
-  char buf[sizeof("YYYY-MM-DD hh:mm:ss.ss UTC+hh:mm") -1];
+  // Allow YYYY-MM-DD hh:mm:ss UTC+hh:mm
+  char buf[sizeof("YYYY-MM-DD hh:mm:ss UTC+hh:mm") -1];
   char* str = buf + sizeof(buf);
   if (tz) {
     str = fsFmtTimeZone(str, tz);
@@ -160,8 +159,8 @@ size_t fsPrintTime(print_t* pr, uint16_t time) {
 }
 //------------------------------------------------------------------------------
 size_t fsPrintTime(print_t* pr, uint16_t time, uint8_t sec100) {
-  // Allow hh:mm:ss.ss
-  char buf[sizeof("hh:mm:ss.ss") -1];
+  // Allow hh:mm:ss
+  char buf[sizeof("hh:mm:ss") -1];
   char* str = buf + sizeof(buf);
   str = fsFmtTime(str, time, sec100);
   return pr->write(reinterpret_cast<uint8_t*>(str), buf + sizeof(buf) - str);

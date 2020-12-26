@@ -71,7 +71,7 @@ bool FatFile::addDirCluster() {
     goto fail;
   }
   sector = m_vol->clusterStartSector(m_curCluster);
-  pc = m_vol->cacheFetchData(sector, FatCache::CACHE_RESERVE_FOR_WRITE);
+  pc = m_vol->cacheFetchData(sector, FsCache::CACHE_RESERVE_FOR_WRITE);
   if (!pc) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -187,7 +187,7 @@ bool FatFile::dirEntry(DirFat_t* dst) {
     goto fail;
   }
   // read entry
-  dir = cacheDirEntry(FatCache::CACHE_FOR_READ);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_READ);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -378,7 +378,7 @@ bool FatFile::mkdir(FatFile* parent, fname_t* fname) {
     goto fail;
   }
   // cache entry - should already be in cache due to sync() call
-  dir = cacheDirEntry(FatCache::CACHE_FOR_WRITE);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -395,7 +395,7 @@ bool FatFile::mkdir(FatFile* parent, fname_t* fname) {
 
   // cache sector for '.'  and '..'
   sector = m_vol->clusterStartSector(m_firstCluster);
-  pc = m_vol->cacheFetchData(sector, FatCache::CACHE_FOR_WRITE);
+  pc = m_vol->cacheFetchData(sector, FsCache::CACHE_FOR_WRITE);
   if (!pc) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -786,7 +786,7 @@ int FatFile::read(void* buf, size_t nbyte) {
         n = toRead;
       }
       // read sector to cache and copy data to caller
-      pc = m_vol->cacheFetchData(sector, FatCache::CACHE_FOR_READ);
+      pc = m_vol->cacheFetchData(sector, FsCache::CACHE_FOR_READ);
       if (!pc) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -803,16 +803,7 @@ int FatFile::read(void* buf, size_t nbyte) {
         }
       }
       n = ns << m_vol->bytesPerSectorShift();
-      // Check for cache sector in read range.
-      if (sector <= m_vol->cacheSectorNumber()
-          && m_vol->cacheSectorNumber() < (sector + ns)) {
-        // Flush cache if cache sector is in the range.
-        if (!m_vol->cacheSyncData()) {
-          DBG_FAIL_MACRO;
-          goto fail;
-        }
-      }
-      if (!m_vol->readSectors(sector, dst, ns)) {
+      if (!m_vol->cacheSafeRead(sector, dst, ns)) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -820,7 +811,7 @@ int FatFile::read(void* buf, size_t nbyte) {
     } else {
       // read single sector
       n = m_vol->bytesPerSector();
-      if (!m_vol->readSector(sector, dst)) {
+      if (!m_vol->cacheSafeRead(sector, dst)) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -929,7 +920,7 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
   // sync() and cache directory entry
   sync();
   oldFile = *this;
-  dir = cacheDirEntry(FatCache::CACHE_FOR_READ);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_READ);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -962,7 +953,7 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
   file.m_flags = 0;
 
   // cache new directory entry
-  dir = cacheDirEntry(FatCache::CACHE_FOR_WRITE);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -976,7 +967,7 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
   if (dirCluster) {
     // get new dot dot
     uint32_t sector = m_vol->clusterStartSector(dirCluster);
-    pc = m_vol->cacheFetchData(sector, FatCache::CACHE_FOR_READ);
+    pc = m_vol->cacheFetchData(sector, FsCache::CACHE_FOR_READ);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -990,7 +981,7 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
     }
     // store new dot dot
     sector = m_vol->clusterStartSector(m_firstCluster);
-    pc = m_vol->cacheFetchData(sector, FatCache::CACHE_FOR_WRITE);
+    pc = m_vol->cacheFetchData(sector, FsCache::CACHE_FOR_WRITE);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -1200,7 +1191,7 @@ bool FatFile::sync() {
     return true;
   }
   if (m_flags & FILE_FLAG_DIR_DIRTY) {
-    DirFat_t* dir = cacheDirEntry(FatCache::CACHE_FOR_WRITE);
+    DirFat_t* dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
     // check for deleted by another open file object
     if (!dir || dir->name[0] == FAT_NAME_DELETED) {
       DBG_FAIL_MACRO;
@@ -1259,7 +1250,7 @@ bool FatFile::timestamp(uint8_t flags, uint16_t year, uint8_t month,
     DBG_FAIL_MACRO;
     goto fail;
   }
-  dir = cacheDirEntry(FatCache::CACHE_FOR_WRITE);
+  dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -1420,10 +1411,10 @@ size_t FatFile::write(const void* buf, size_t nbyte) {
       if (sectorOffset == 0 &&
          (m_curPosition >= m_fileSize || m_flags & FILE_FLAG_PREALLOCATE)) {
         // start of new sector don't need to read into cache
-        cacheOption = FatCache::CACHE_RESERVE_FOR_WRITE;
+        cacheOption = FsCache::CACHE_RESERVE_FOR_WRITE;
       } else {
         // rewrite part of sector
-        cacheOption = FatCache::CACHE_FOR_WRITE;
+        cacheOption = FsCache::CACHE_FOR_WRITE;
       }
       pc = m_vol->cacheFetchData(sector, cacheOption);
       if (!pc) {
@@ -1448,13 +1439,7 @@ size_t FatFile::write(const void* buf, size_t nbyte) {
         nSector = maxSectors;
       }
       n = nSector << m_vol->bytesPerSectorShift();
-      // Check for cache sector in write range.
-      if (sector <= m_vol->cacheSectorNumber()
-          && m_vol->cacheSectorNumber() < (sector + nSector)) {
-        // Invalidate cache if cache sector is in the range.
-        m_vol->cacheInvalidate();
-      }
-      if (!m_vol->writeSectors(sector, src, nSector)) {
+      if (!m_vol->cacheSafeWrite(sector, src, nSector)) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -1462,10 +1447,7 @@ size_t FatFile::write(const void* buf, size_t nbyte) {
     } else {
       // use single sector write command
       n = m_vol->bytesPerSector();
-      if (m_vol->cacheSectorNumber() == sector) {
-        m_vol->cacheInvalidate();
-      }
-      if (!m_vol->writeSector(sector, src)) {
+      if (!m_vol->cacheSafeWrite(sector, src)) {
         DBG_FAIL_MACRO;
         goto fail;
       }

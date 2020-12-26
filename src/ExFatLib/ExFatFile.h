@@ -82,7 +82,6 @@ struct ExFatPos_t {
   uint64_t position;
   /** cluster for position */
   uint32_t cluster;
-  ExFatPos_t() : position(0), cluster(0) {}
 };
 //------------------------------------------------------------------------------
 /**

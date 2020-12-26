@@ -27,51 +27,6 @@
 #include "ExFatVolume.h"
 #include "../common/FsStructs.h"
 //------------------------------------------------------------------------------
-uint8_t* FsCache::get(uint32_t sector, uint8_t option) {
-  if (!m_blockDev) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  if (m_sector != sector) {
-    if (!sync()) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    if (!(option & CACHE_OPTION_NO_READ)) {
-      if (!m_blockDev->readSector(sector, m_cacheBuffer)) {
-        DBG_FAIL_MACRO;
-        goto fail;
-      }
-    }
-    m_status = 0;
-    m_sector = sector;
-  }
-  m_status |= option & CACHE_STATUS_MASK;
-  return m_cacheBuffer;
-
- fail:
-  return nullptr;
-}
-//------------------------------------------------------------------------------
-void FsCache::invalidate() {
-  m_status = 0;
-  m_sector = 0XFFFFFFFF;
-}
-//------------------------------------------------------------------------------
-bool FsCache::sync() {
-  if (m_status & CACHE_STATUS_DIRTY) {
-    if (!m_blockDev->writeSector(m_sector, m_cacheBuffer)) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    m_status &= ~CACHE_STATUS_DIRTY;
-  }
-  return true;
-
- fail:
-  return false;
-}
-//==============================================================================
 // return 0 if error, 1 if no space, else start cluster.
 uint32_t ExFatPartition::bitmapFind(uint32_t cluster, uint32_t count) {
   uint32_t start = cluster ? cluster - 2 : m_bitmapStart;

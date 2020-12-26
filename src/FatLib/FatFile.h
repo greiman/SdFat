@@ -70,7 +70,6 @@ struct FatPos_t {
   uint32_t position;
   /** cluster for position */
   uint32_t cluster;
-  FatPos_t() : position(0), cluster(0) {}
 };
 //------------------------------------------------------------------------------
 /** Expression for path name separator. */

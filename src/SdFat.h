@@ -357,7 +357,7 @@ class SdFat32 : public SdBase<FatVolume> {
    */
   bool format(print_t* pr = nullptr) {
     FatFormatter fmt;
-    uint8_t* cache = reinterpret_cast<uint8_t*>(cacheClear());
+    uint8_t* cache = cacheClear();
     if (!cache) {
       return false;
     }
@@ -378,7 +378,7 @@ class SdExFat : public SdBase<ExFatVolume> {
    */
   bool format(print_t* pr = nullptr) {
     ExFatFormatter fmt;
-    uint8_t* cache = reinterpret_cast<uint8_t*>(cacheClear());
+    uint8_t* cache = cacheClear();
     if (!cache) {
       return false;
     }

@@ -32,6 +32,7 @@
 #include "FatLibConfig.h"
 #include "../common/SysCall.h"
 #include "../common/BlockDevice.h"
+#include "../common/FsCache.h"
 #include "../common/FsStructs.h"
 
 /** Type for FAT12 partition */
@@ -44,11 +45,8 @@ const uint8_t FAT_TYPE_FAT16 = 16;
 const uint8_t FAT_TYPE_FAT32 = 32;
 
 //------------------------------------------------------------------------------
-// Forward declaration of FatPartition.
-class FatPartition;
-//------------------------------------------------------------------------------
 /**
- * \brief Cache for an raw data sector.
+ * \brief Cache type for a sector.
  */
 union cache_t {
   /** Used to access cached file data sectors. */
@@ -58,74 +56,7 @@ union cache_t {
   /** Used to access cached FAT32 entries. */
   uint32_t fat32[128];
   /** Used to access cached directory entries. */
-  DirFat_t    dir[16];
-};
-//==============================================================================
-/**
- * \class FatCache
- * \brief Sector cache.
- */
-class FatCache {
- public:
-  /** Cached sector is dirty */
-  static const uint8_t CACHE_STATUS_DIRTY = 1;
-  /** Cashed sector is FAT entry and must be mirrored in second FAT. */
-  static const uint8_t CACHE_STATUS_MIRROR_FAT = 2;
-  /** Cache sector status bits */
-  static const uint8_t CACHE_STATUS_MASK
-    = CACHE_STATUS_DIRTY | CACHE_STATUS_MIRROR_FAT;
-  /** Sync existing sector but do not read new sector. */
-  static const uint8_t CACHE_OPTION_NO_READ = 4;
-  /** Cache sector for read. */
-  static const uint8_t CACHE_FOR_READ = 0;
-  /** Cache sector for write. */
-  static const uint8_t CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
-  /** Reserve cache sector for write - do not read from sector device. */
-  static const uint8_t CACHE_RESERVE_FOR_WRITE
-    = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
-  /** \return Cache sector address. */
-  cache_t* buffer() {
-    return &m_buffer;
-  }
-  /** Set current sector dirty. */
-  void dirty() {
-    m_status |= CACHE_STATUS_DIRTY;
-  }
-  /** Initialize the cache.
-   * \param[in] vol FatPartition that owns this FatCache.
-   */
-  void init(FatPartition *vol) {
-    m_part = vol;
-    invalidate();
-  }
-  /** Invalidate current cache sector. */
-  void invalidate() {
-    m_status = 0;
-    m_lbn = 0XFFFFFFFF;
-  }
-  /** \return dirty status */
-  bool isDirty() {
-    return m_status & CACHE_STATUS_DIRTY;
-  }
-  /** \return Logical sector number for cached sector. */
-  uint32_t sector() {
-    return m_lbn;
-  }
-  /** Read a sector into the cache.
-   * \param[in] sector Sector to read.
-   * \param[in] option mode for cached sector.
-   * \return Address of cached sector. */
-  cache_t* read(uint32_t sector, uint8_t option);
-  /** Write current sector if dirty.
-   * \return true for success or false for failure.
-   */
-  bool sync();
-
- private:
-  uint8_t m_status;
-  FatPartition* m_part;
-  uint32_t m_lbn;
-  cache_t m_buffer;
+  DirFat_t dir[16];
 };
 //==============================================================================
 /**
@@ -173,12 +104,8 @@ class FatPartition {
   /** Clear the cache and returns a pointer to the cache.  Not for normal apps.
    * \return A pointer to the cache buffer or zero if an error occurs.
    */
-  cache_t* cacheClear() {
-    if (!cacheSync()) {
-      return nullptr;
-    }
-    m_cache.invalidate();
-    return m_cache.buffer();
+  uint8_t* cacheClear() {
+    return m_cache.clear();
   }
   /** \return The total number of clusters in the volume. */
   uint32_t clusterCount() const {
@@ -251,8 +178,6 @@ class FatPartition {
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   //----------------------------------------------------------------------------
  private:
-  /** FatCache allowed access to private members. */
-  friend class FatCache;
   /** FatFile allowed access to private members. */
   friend class FatFile;
   //----------------------------------------------------------------------------
@@ -274,6 +199,18 @@ class FatPartition {
   uint32_t m_rootDirStart;            // Start sector FAT16, cluster FAT32.
   //----------------------------------------------------------------------------
   // sector I/O functions.
+  bool cacheSafeRead(uint32_t sector, uint8_t* dst) {
+    return m_cache.cacheSafeRead(sector, dst);
+  }
+  bool cacheSafeRead(uint32_t sector, uint8_t* dst, size_t count) {
+    return m_cache.cacheSafeRead(sector, dst, count);
+  }
+  bool cacheSafeWrite(uint32_t sector, const uint8_t* dst) {
+    return m_cache.cacheSafeWrite(sector, dst);
+  }
+  bool cacheSafeWrite(uint32_t sector, const uint8_t* dst, size_t count) {
+    return m_cache.cacheSafeWrite(sector, dst, count);
+  }
   bool readSector(uint32_t sector, uint8_t* dst) {
     return m_blockDev->readSector(sector, dst);
   }
@@ -283,14 +220,6 @@ class FatPartition {
   bool writeSector(uint32_t sector, const uint8_t* src) {
     return m_blockDev->writeSector(sector, src);
   }
-#if USE_MULTI_SECTOR_IO
-  bool readSectors(uint32_t sector, uint8_t* dst, size_t ns) {
-    return m_blockDev->readSectors(sector, dst, ns);
-  }
-  bool writeSectors(uint32_t sector, const uint8_t* src, size_t ns) {
-    return m_blockDev->writeSectors(sector, src, ns);
-  }
-#endif  // USE_MULTI_SECTOR_IO
 #if MAINTAIN_FREE_CLUSTER_COUNT
   int32_t  m_freeClusterCount;     // Count of free clusters in volume.
   void setFreeClusterCount(int32_t value) {
@@ -309,29 +238,28 @@ class FatPartition {
     (void)change;
   }
 #endif  // MAINTAIN_FREE_CLUSTER_COUNT
-
 // sector caches
-  FatCache m_cache;
+  FsCache m_cache;
 #if USE_SEPARATE_FAT_CACHE
-  FatCache m_fatCache;
+  FsCache m_fatCache;
   cache_t* cacheFetchFat(uint32_t sector, uint8_t options) {
-    return m_fatCache.read(sector,
-                           options | FatCache::CACHE_STATUS_MIRROR_FAT);
+    options |= FsCache::CACHE_STATUS_MIRROR_FAT;
+    return reinterpret_cast<cache_t*>(m_fatCache.get(sector, options));
   }
   bool cacheSync() {
     return m_cache.sync() && m_fatCache.sync() && syncDevice();
   }
 #else  // USE_SEPARATE_FAT_CACHE
   cache_t* cacheFetchFat(uint32_t sector, uint8_t options) {
-    return cacheFetchData(sector,
-                          options | FatCache::CACHE_STATUS_MIRROR_FAT);
+    options |= FsCache::CACHE_STATUS_MIRROR_FAT;
+    return cacheFetchData(sector, options);
   }
   bool cacheSync() {
     return m_cache.sync() && syncDevice();
   }
 #endif  // USE_SEPARATE_FAT_CACHE
   cache_t* cacheFetchData(uint32_t sector, uint8_t options) {
-    return m_cache.read(sector, options);
+    return reinterpret_cast<cache_t*>(m_cache.get(sector, options));
   }
   void cacheInvalidate() {
     m_cache.invalidate();
@@ -340,7 +268,7 @@ class FatPartition {
     return m_cache.sync();
   }
   cache_t* cacheAddress() {
-    return m_cache.buffer();
+    return reinterpret_cast<cache_t*>(m_cache.cacheBuffer());
   }
   uint32_t cacheSectorNumber() {
     return m_cache.sector();
@@ -354,7 +282,9 @@ class FatPartition {
   uint8_t sectorOfCluster(uint32_t position) const {
     return (position >> 9) & m_clusterSectorMask;
   }
-  uint32_t clusterStartSector(uint32_t cluster) const;
+  uint32_t clusterStartSector(uint32_t cluster) const {
+    return m_dataStartSector + ((cluster - 2) << m_sectorsPerClusterShift);
+  }
   int8_t fatGet(uint32_t cluster, uint32_t* value);
   bool fatPut(uint32_t cluster, uint32_t value);
   bool fatPutEOC(uint32_t cluster) {

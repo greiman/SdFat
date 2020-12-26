@@ -28,51 +28,6 @@
 #include "../common/FsStructs.h"
 #include "FatPartition.h"
 //------------------------------------------------------------------------------
-cache_t* FatCache::read(uint32_t sector, uint8_t option) {
-  if (m_lbn != sector) {
-    if (!sync()) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    if (!(option & CACHE_OPTION_NO_READ)) {
-      if (!m_part->readSector(sector, m_buffer.data)) {
-        DBG_FAIL_MACRO;
-        goto fail;
-      }
-    }
-    m_status = 0;
-    m_lbn = sector;
-  }
-  m_status |= option & CACHE_STATUS_MASK;
-  return &m_buffer;
-
- fail:
-
-  return nullptr;
-}
-//------------------------------------------------------------------------------
-bool FatCache::sync() {
-  if (m_status & CACHE_STATUS_DIRTY) {
-    if (!m_part->writeSector(m_lbn, m_buffer.data)) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    // mirror second FAT
-    if (m_status & CACHE_STATUS_MIRROR_FAT) {
-      uint32_t sector = m_lbn + m_part->sectorsPerFat();
-      if (!m_part->writeSector(sector, m_buffer.data)) {
-        DBG_FAIL_MACRO;
-        goto fail;
-      }
-    }
-    m_status &= ~CACHE_STATUS_DIRTY;
-  }
-  return true;
-
- fail:
-  return false;
-}
-//------------------------------------------------------------------------------
 bool FatPartition::allocateCluster(uint32_t current, uint32_t* next) {
   uint32_t find;
   bool setStart;
@@ -199,10 +154,6 @@ bool FatPartition::allocContiguous(uint32_t count, uint32_t* firstCluster) {
   return false;
 }
 //------------------------------------------------------------------------------
-uint32_t FatPartition::clusterStartSector(uint32_t cluster) const {
-  return m_dataStartSector + ((cluster - 2) << m_sectorsPerClusterShift);
-}
-//------------------------------------------------------------------------------
 // Fetch a FAT entry - return -1 error, 0 EOC, else 1.
 int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
   uint32_t sector;
@@ -217,7 +168,7 @@ int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
 
   if (fatType() == 32) {
     sector = m_fatStartSector + (cluster >> (m_bytesPerSectorShift - 2));
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_READ);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_READ);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -227,7 +178,7 @@ int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
   } else if (fatType() == 16) {
     cluster &= 0XFFFF;
     sector = m_fatStartSector + (cluster >> (m_bytesPerSectorShift - 1) );
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_READ);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_READ);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -238,7 +189,7 @@ int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
     uint16_t index = cluster;
     index += index >> 1;
     sector = m_fatStartSector + (index >> m_bytesPerSectorShift);
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_READ);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_READ);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -247,7 +198,7 @@ int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
     uint16_t tmp = pc->data[index];
     index++;
     if (index == m_bytesPerSector) {
-      pc = cacheFetchFat(sector + 1, FatCache::CACHE_FOR_READ);
+      pc = cacheFetchFat(sector + 1, FsCache::CACHE_FOR_READ);
       if (!pc) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -283,7 +234,7 @@ bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
 
   if (fatType() == 32) {
     sector = m_fatStartSector + (cluster >> (m_bytesPerSectorShift - 2));
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_WRITE);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_WRITE);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -296,7 +247,7 @@ bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
   if (fatType() == 16) {
     cluster &= 0XFFFF;
     sector = m_fatStartSector + (cluster >> (m_bytesPerSectorShift - 1) );
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_WRITE);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_WRITE);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -310,7 +261,7 @@ bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
     uint16_t index = cluster;
     index += index >> 1;
     sector = m_fatStartSector + (index >> m_bytesPerSectorShift);
-    pc = cacheFetchFat(sector, FatCache::CACHE_FOR_WRITE);
+    pc = cacheFetchFat(sector, FsCache::CACHE_FOR_WRITE);
     if (!pc) {
       DBG_FAIL_MACRO;
       goto fail;
@@ -326,7 +277,7 @@ bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
     if (index == m_bytesPerSector) {
       sector++;
       index = 0;
-      pc = cacheFetchFat(sector, FatCache::CACHE_FOR_WRITE);
+      pc = cacheFetchFat(sector, FsCache::CACHE_FOR_WRITE);
       if (!pc) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -402,7 +353,7 @@ int32_t FatPartition::freeClusterCount() {
   } else if (fatType() == 16 || fatType() == 32) {
     sector = m_fatStartSector;
     while (todo) {
-      cache_t* pc = cacheFetchFat(sector++, FatCache::CACHE_FOR_READ);
+      cache_t* pc = cacheFetchFat(sector++, FsCache::CACHE_FOR_READ);
       if (!pc) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -449,9 +400,9 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
   uint8_t tmp;
   m_fatType = 0;
   m_allocSearchStart = 1;
-  m_cache.init(this);
+  m_cache.init(dev);
 #if USE_SEPARATE_FAT_CACHE
-  m_fatCache.init(this);
+  m_fatCache.init(dev);
 #endif  // USE_SEPARATE_FAT_CACHE
   // if part == 0 assume super floppy with FAT boot sector in sector zero
   // if part > 0 assume mbr volume with partition table
@@ -461,7 +412,7 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
       goto fail;
     }
     mbr = reinterpret_cast<MbrSector_t*>
-          (cacheFetchData(0, FatCache::CACHE_FOR_READ));
+          (cacheFetchData(0, FsCache::CACHE_FOR_READ));
     MbrPart_t* mp = mbr->part + part - 1;
 
     if (!mbr || mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
@@ -471,9 +422,8 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
     volumeStartSector = getLe32(mp->relativeSectors);
   }
   pbs = reinterpret_cast<pbs_t*>
-        (cacheFetchData(volumeStartSector, FatCache::CACHE_FOR_READ));
+        (cacheFetchData(volumeStartSector, FsCache::CACHE_FOR_READ));
   bpb = reinterpret_cast<BpbFat32_t*>(pbs->bpb);
-
   if (!pbs || bpb->fatCount != 2 || getLe16(bpb->bytesPerSector) != 512) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -531,6 +481,10 @@ bool FatPartition::init(BlockDevice* dev, uint8_t part) {
     m_rootDirStart = getLe32(bpb->fat32RootCluster);
     m_fatType = 32;
   }
+  m_cache.setMirrorOffset(m_sectorsPerFat);
+#if USE_SEPARATE_FAT_CACHE
+  m_fatCache.setMirrorOffset(m_sectorsPerFat);
+#endif  // USE_SEPARATE_FAT_CACHE
   return true;
 
  fail:
