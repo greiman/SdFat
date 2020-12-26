@@ -208,7 +208,7 @@ void setup() {
   while (!Serial) {
     SysCall::yield();
   }
-  cout << F("SdFat version: ") << SD_FAT_VERSION << endl;
+  cout << F("SdFat version: ") << SD_FAT_VERSION_STR << endl;
   printConfig(SD_CONFIG);
 
 }
