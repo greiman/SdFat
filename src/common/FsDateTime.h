@@ -87,9 +87,9 @@ namespace FsDateTime {
    *   // Return time using FS_TIME macro to format fields
    *   *time = FS_TIME(hour, minute, second);
    *
-   *   // Return tenths of milliseconds since last even second.
+   *   // Return the time since the last even second in units of 10 ms.
    *   // The granularity of the seconds part of FS_TIME is 2 seconds so
-   *   // this field is a count of tenths of a second and its valid value
+   *   // this field is a count of hundredth of a second and its valid
    *   // range is 0-199 inclusive.
    *   // For a simple RTC return 100*(seconds & 1).
    *   *ms10 = <tens of ms since even second>

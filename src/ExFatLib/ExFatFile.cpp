@@ -49,7 +49,7 @@ bool ExFatFile::contiguousRange(uint32_t* bgnSector, uint32_t* endSector) {
   return true;
 }
 //------------------------------------------------------------------------------
-void ExFatFile::fgetpos(fspos_t* pos) {
+void ExFatFile::fgetpos(fspos_t* pos) const {
   pos->position = m_curPosition;
   pos->cluster = m_curCluster;
 }
@@ -82,7 +82,7 @@ int ExFatFile::fgets(char* str, int num, char* delim) {
   return n;
 }
 //------------------------------------------------------------------------------
-uint32_t ExFatFile::firstSector() {
+uint32_t ExFatFile::firstSector() const {
   return m_firstCluster ? m_vol->clusterStartSector(m_firstCluster) : 0;
 }
 //------------------------------------------------------------------------------
@@ -170,6 +170,10 @@ size_t ExFatFile::getName(ExChar_t* name, size_t length) {
  fail:
   *name = 0;
   return 0;
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::isBusy() {
+  return m_vol->isBusy();
 }
 //------------------------------------------------------------------------------
 bool ExFatFile::open(const ExChar_t* path, int oflag) {

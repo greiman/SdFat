@@ -85,6 +85,12 @@ class ExFatPartition {
    * \return true for success or false for failure.
    */
   bool init(BlockDevice* dev, uint8_t part);
+  /**
+   * Check for BlockDevice busy.
+   *
+   * \return true if busy else false.
+   */
+  bool isBusy() {return m_blockDev->isBusy();}
   /** \return the root directory start cluster number. */
   uint32_t rootDirectoryCluster() const {return m_rootDirectoryCluster;}
   /** \return the root directory length. */
@@ -146,7 +152,7 @@ class ExFatPartition {
   uint32_t dataCacheSector() {return m_dataCache.sector();}
   bool dataCacheSync() {return m_dataCache.sync();}
   //----------------------------------------------------------------------------
-  uint32_t clusterMask() {return m_clusterMask;}
+  uint32_t clusterMask() const {return m_clusterMask;}
   uint32_t clusterStartSector(uint32_t cluster) {
     return m_clusterHeapStartSector +
            ((cluster - 2) << m_sectorsPerClusterShift);
@@ -157,7 +163,7 @@ class ExFatPartition {
   bool fatPut(uint32_t cluster, uint32_t value);
   uint32_t chainSize(uint32_t cluster);
   bool freeChain(uint32_t cluster);
-  uint16_t sectorMask() {return m_sectorMask;}
+  uint16_t sectorMask() const {return m_sectorMask;}
   bool syncDevice() {
     return m_blockDev->syncDevice();
   }

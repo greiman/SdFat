@@ -68,8 +68,7 @@ class ExFatVolume : public ExFatPartition {
    * \return true for success or false for failure.
    */
   bool chdir(const ExChar_t* path);
-  /** \return current working volume. */
-  static ExFatVolume* cwv() {return m_cwv;}
+
   /** Change global working volume to this volume. */
   void chvol() {m_cwv = this;}
 
@@ -341,8 +340,9 @@ class ExFatVolume : public ExFatPartition {
 
  private:
   friend ExFatFile;
+  static ExFatVolume* cwv() {return m_cwv;}
   ExFatFile* vwd() {return &m_vwd;}
-  ExFatFile m_vwd;
   static ExFatVolume* m_cwv;
+  ExFatFile m_vwd;
 };
 #endif  // ExFatVolume_h

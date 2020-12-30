@@ -127,12 +127,12 @@ void ostream::putDouble(double n) {
 //------------------------------------------------------------------------------
 void ostream::putNum(int32_t n) {
   bool neg = n < 0 && flagsToBase() == 10;
-  putNum ((uint32_t)(neg ? -n : n), neg);
+  putNum((uint32_t)(neg ? -n : n), neg);
 }
 //------------------------------------------------------------------------------
 void ostream::putNum(int64_t n) {
   bool neg = n < 0 && flagsToBase() == 10;
-  putNum ((uint64_t)(neg ? -n : n), neg);
+  putNum((uint64_t)(neg ? -n : n), neg);
 }
 //------------------------------------------------------------------------------
 void ostream::putPgm(const char* str) {

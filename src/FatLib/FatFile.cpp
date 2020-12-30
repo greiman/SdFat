@@ -248,7 +248,7 @@ int FatFile::fgets(char* str, int num, char* delim) {
   return n;
 }
 //------------------------------------------------------------------------------
-void FatFile::fgetpos(fspos_t* pos) {
+void FatFile::fgetpos(fspos_t* pos) const {
   pos->position = m_curPosition;
   pos->cluster = m_curCluster;
 }
@@ -301,6 +301,10 @@ bool FatFile::getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
 
  fail:
   return false;
+}
+//------------------------------------------------------------------------------
+bool FatFile::isBusy() {
+  return m_vol->isBusy();
 }
 //------------------------------------------------------------------------------
 bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {

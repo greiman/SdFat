@@ -36,12 +36,11 @@
 #if INCLUDE_SDIOS
 #include "sdios.h"
 #endif  // INCLUDE_SDIOS
-
 //------------------------------------------------------------------------------
 /** SdFat version  for cpp use. */
-#define SD_FAT_VERSION 20003
+#define SD_FAT_VERSION 20004
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.0.3"
+#define SD_FAT_VERSION_STR "2.0.4"
 //==============================================================================
 /**
  * \class SdBase
@@ -263,7 +262,7 @@ class SdBase : public Vol {
       pr->print(sdErrorCode(), HEX);
       pr->print(F(",0x"));
       pr->println(sdErrorData(), HEX);
-    } else if (!Vol::cwv()) {
+    } else if (!Vol::fatType()) {
       pr->println(F("Check SD format."));
     }
   }
@@ -393,6 +392,27 @@ class SdExFat : public SdBase<ExFatVolume> {
  * \brief SD file system class for FAT16, FAT32, and exFAT volumes.
  */
 class SdFs : public SdBase<FsVolume> {
+ public:
+  /** Format a SD card FAT or exFAT.
+   *
+   * \param[in] pr Optional Print information.
+   * \return true for success or false for failure.
+   */
+  bool format(print_t* pr = nullptr) {
+    static_assert(sizeof(m_volMem) >= 512, "m_volMem too small");
+    uint32_t sectorCount = card()->sectorCount();
+    if (sectorCount == 0) {
+      return false;
+    }
+    end();
+    if (sectorCount > 67108864) {
+      ExFatFormatter fmt;
+      return fmt.format(card(), reinterpret_cast<uint8_t*>(m_volMem), pr);
+    } else {
+      FatFormatter fmt;
+      return fmt.format(card(), reinterpret_cast<uint8_t*>(m_volMem), pr);
+    }
+  }
 };
 //------------------------------------------------------------------------------
 #if SDFAT_FILE_TYPE == 1

@@ -50,16 +50,14 @@ class FsVolume {
    */
   bool begin(BlockDevice* blockDev);
   /** \return the number of bytes in a cluster. */
-  uint32_t bytesPerCluster() {
+  uint32_t bytesPerCluster() const {
     return m_fVol ? m_fVol->bytesPerCluster() :
            m_xVol ? m_xVol->bytesPerCluster() : 0;
   }
-  /** \return current working volume. */
-  static FsVolume* cwv() {return m_cwv;}
   /** Change global working volume to this volume. */
   void chvol() {m_cwv = this;}
   /** \return The total number of clusters in the volume. */
-  uint32_t clusterCount() {
+  uint32_t clusterCount() const {
     return m_fVol ? m_fVol->clusterCount() :
            m_xVol ? m_xVol->clusterCount() : 0;
   }
@@ -74,7 +72,7 @@ class FsVolume {
            m_xVol ? m_xVol->fatStartSector() : 0;
   }
   /** \return the free cluster count. */
-  uint32_t freeClusterCount() {
+  uint32_t freeClusterCount() const {
     return m_fVol ? m_fVol->freeClusterCount() :
            m_xVol ? m_xVol->freeClusterCount() : 0;
   }
@@ -360,13 +358,17 @@ class FsVolume {
    */
 #endif  // ENABLE_ARDUINO_STRING
 
+ protected:
+  newalign_t   m_volMem[FS_ALIGN_DIM(ExFatVolume, FatVolume)];
+
  private:
   /** FsBaseFile allowed access to private members. */
   friend class FsBaseFile;
-  static FsVolume* m_cwv;
+  static FsVolume* cwv() {return m_cwv;}
   FsVolume(const FsVolume& from);
   FsVolume& operator=(const FsVolume& from);
-  newalign_t   m_volMem[FS_ALIGN_DIM(ExFatVolume, FatVolume)];
+
+  static FsVolume* m_cwv;
   FatVolume*   m_fVol;
   ExFatVolume* m_xVol;
   BlockDevice* m_blockDev;

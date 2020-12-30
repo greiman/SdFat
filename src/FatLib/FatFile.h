@@ -149,7 +149,7 @@ class FatFile {
     m_error &= ~WRITE_ERROR;
   }
   /** \return Directory entry index. */
-  uint16_t dirIndex() {return m_dirIndex;}
+  uint16_t dirIndex() const {return m_dirIndex;}
   /** Get a file's access date.
    *
    * \param[out] pdate Packed date for directory entry.
@@ -182,9 +182,7 @@ class FatFile {
    */
   bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return All error bits. */
-  uint8_t getError() {
-    return m_error;
-  }
+  uint8_t getError() const {return m_error;}
   /** Get a file's modify date and time.
    *
    * \param[out] pdate Packed date for directory entry.
@@ -194,13 +192,13 @@ class FatFile {
    */
   bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return value of writeError */
-  bool getWriteError() {
+  bool getWriteError() const {
     return isOpen() ? m_error & WRITE_ERROR : true;
   }
   /** get position for streams
    * \param[out] pos struct to receive position
    */
-  void fgetpos(fspos_t* pos);
+  void fgetpos(fspos_t* pos) const;
   /** set position for streams
    * \param[in] pos struct with value for new position
    */
@@ -263,9 +261,7 @@ class FatFile {
   uint32_t curCluster() const {return m_curCluster;}
 
   /** \return The current position for a file or directory. */
-  uint32_t curPosition() const {
-    return m_curPosition;
-  }
+  uint32_t curPosition() const {return m_curPosition;}
 
   /** Return a file's directory entry.
    *
@@ -323,9 +319,7 @@ class FatFile {
   int fgets(char* str, int num, char* delim = nullptr);
 
   /** \return The total number of bytes in a file. */
-  uint32_t fileSize() const {
-    return m_fileSize;
-  }
+  uint32_t fileSize() const {return m_fileSize;}
   /** \return first sector of file or zero for empty file. */
   uint32_t firstBlock() const {return firstSector();}
   /** \return Address of first sector or zero for empty file. */
@@ -348,62 +342,42 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool getSFN(char* name);
+  /**
+   * Check for BlockDevice busy.
+   *
+   * \return true if busy else false.
+   */
+  bool isBusy();
 #if USE_FAT_FILE_FLAG_CONTIGUOUS
     /** \return True if the file is contiguous. */
   bool isContiguous() const {return m_flags & FILE_FLAG_CONTIGUOUS;}
 #endif  // USE_FAT_FILE_FLAG_CONTIGUOUS
   /** \return True if this is a directory. */
-  bool isDir() const {
-    return m_attributes & FILE_ATTR_DIR;
-  }
+  bool isDir() const {return m_attributes & FILE_ATTR_DIR;}
   /** \return True if this is a normal file. */
-  bool isFile() const {
-    return m_attributes & FILE_ATTR_FILE;
-  }
+  bool isFile() const {return m_attributes & FILE_ATTR_FILE;}
   /** \return True if this is a hidden file. */
-  bool isHidden() const {
-    return m_attributes & FILE_ATTR_HIDDEN;
-  }
+  bool isHidden() const {return m_attributes & FILE_ATTR_HIDDEN;}
   /** \return true if this file has a Long File Name. */
-  bool isLFN() const {
-    return m_lfnOrd;
-  }
+  bool isLFN() const {return m_lfnOrd;}
   /** \return True if this is an open file/directory. */
-  bool isOpen() const {
-    return m_attributes;
-  }
+  bool isOpen() const {return m_attributes;}
   /** \return True if this is the root directory. */
-  bool isRoot() const {
-    return m_attributes & FILE_ATTR_ROOT;
-  }
+  bool isRoot() const {return m_attributes & FILE_ATTR_ROOT;}
   /** \return True if this is the FAT32 root directory. */
-  bool isRoot32() const {
-    return m_attributes & FILE_ATTR_ROOT32;
-  }
+  bool isRoot32() const {return m_attributes & FILE_ATTR_ROOT32;}
   /** \return True if this is the FAT12 of FAT16 root directory. */
-  bool isRootFixed() const {
-    return m_attributes & FILE_ATTR_ROOT_FIXED;
-  }
+  bool isRootFixed() const {return m_attributes & FILE_ATTR_ROOT_FIXED;}
   /** \return True if file is read-only */
-  bool isReadOnly() const {
-    return m_attributes & FILE_ATTR_READ_ONLY;
-  }
+  bool isReadOnly() const {return m_attributes & FILE_ATTR_READ_ONLY;}
   /** \return True if this is a subdirectory. */
-  bool isSubDir() const {
-    return m_attributes & FILE_ATTR_SUBDIR;
-  }
+  bool isSubDir() const {return m_attributes & FILE_ATTR_SUBDIR;}
   /** \return True if this is a system file. */
-  bool isSystem() const {
-    return m_attributes & FILE_ATTR_SYSTEM;
-  }
+  bool isSystem() const {return m_attributes & FILE_ATTR_SYSTEM;}
   /** \return True file is writable. */
-  bool isReadable() const {
-    return m_flags & FILE_FLAG_READ;
-  }
+  bool isReadable() const {return m_flags & FILE_FLAG_READ;}
   /** \return True file is writable. */
-  bool isWritable() const {
-    return m_flags & FILE_FLAG_WRITE;
-  }
+  bool isWritable() const {return m_flags & FILE_FLAG_WRITE;}
   /** Check for a legal 8.3 character.
    * \param[in] c Character to be checked.
    * \return true for a legal 8.3 character.

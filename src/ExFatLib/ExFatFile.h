@@ -146,9 +146,9 @@ class ExFatFile {
   uint64_t curPosition() const {return m_curPosition;}
 
   /** \return Total data length for file. */
-  uint64_t dataLength() {return m_dataLength;}
+  uint64_t dataLength() const {return m_dataLength;}
   /** \return Directory entry index. */
-  uint32_t dirIndex() {return m_dirPos.position/32;}
+  uint32_t dirIndex() const {return m_dirPos.position/32;}
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.
@@ -167,7 +167,7 @@ class ExFatFile {
   /** get position for streams
    * \param[out] pos struct to receive position
    */
-  void fgetpos(fspos_t* pos);
+  void fgetpos(fspos_t* pos) const;
  /**
    * Get a string from a file.
    *
@@ -191,9 +191,9 @@ class ExFatFile {
    */
   int fgets(char* str, int num, char* delim = nullptr);
   /** \return The total number of bytes in a file. */
-  uint64_t fileSize() {return m_validLength;}
+  uint64_t fileSize() const {return m_validLength;}
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector();
+  uint32_t firstSector() const;
   /** Set position for streams
    * \param[in] pos struct with value for new position
    */
@@ -233,7 +233,7 @@ class ExFatFile {
    */
   bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return All error bits. */
-  uint8_t getError() {
+  uint8_t getError() const {
     return isOpen() ? m_error : 0XFF;
   }
   /** Get a file's modify date and time.
@@ -245,9 +245,15 @@ class ExFatFile {
    */
   bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime);
   /** \return value of writeError */
-  bool getWriteError() {
+  bool getWriteError() const {
     return isOpen() ? m_error & WRITE_ERROR : true;
   }
+  /**
+   * Check for BlockDevice busy.
+   *
+   * \return true if busy else false.
+   */
+  bool isBusy();
   /** \return True if the file is contiguous. */
   bool isContiguous() const {return m_flags & FILE_FLAG_CONTIGUOUS;}
   /** \return True if this is a directory. */
@@ -675,7 +681,7 @@ class ExFatFile {
   }
 
   /** \return The valid number of bytes in a file. */
-  uint64_t validLength() {return m_validLength;}
+  uint64_t validLength() const {return m_validLength;}
   /** Write a string to a file. Used by the Arduino Print class.
    * \param[in] str Pointer to the string.
    * Use getWriteError to check for errors.
@@ -721,7 +727,7 @@ class ExFatFile {
   friend class ExFatVolume;
   bool addCluster();
   bool addDirCluster();
-  uint8_t setCount() {return m_setCount;}
+  uint8_t setCount() const {return m_setCount;}
   bool mkdir(ExFatFile* parent, ExName_t* fname);
   bool openRootFile(ExFatFile* dir,
                     const ExChar_t* name, uint8_t nameLength, oflag_t oflag);

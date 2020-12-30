@@ -169,6 +169,12 @@ class FatPartition {
   int8_t dbgFat(uint32_t n, uint32_t* v) {
     return fatGet(n, v);
   }
+  /**
+   * Check for BlockDevice busy.
+   *
+   * \return true if busy else false.
+   */
+  bool isBusy() {return m_blockDev->isBusy();}
   //----------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   void dmpDirSector(print_t* pr, uint32_t sector);

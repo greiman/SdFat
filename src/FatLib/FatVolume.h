@@ -58,8 +58,7 @@ class FatVolume : public  FatPartition {
   }
   /** Change global current working volume to this volume. */
   void chvol() {m_cwv = this;}
-  /** \return current working volume. */
-  static FatVolume* cwv() {return m_cwv;}
+
   /**
    * Set volume working directory to root.
    * \return true for success or false for failure.
@@ -332,9 +331,10 @@ class FatVolume : public  FatPartition {
 #endif  // ENABLE_ARDUINO_STRING
 
  private:
-  FatFile* vwd() {return &m_vwd;}
   friend FatFile;
-  FatFile m_vwd;
+  static FatVolume* cwv() {return m_cwv;}
+  FatFile* vwd() {return &m_vwd;}
   static FatVolume* m_cwv;
+  FatFile m_vwd;
 };
 #endif  // FatVolume_h

@@ -39,6 +39,12 @@ class BlockDeviceInterface {
  public:
   virtual ~BlockDeviceInterface() {}
   /**
+   * Check for BlockDevice busy.
+   *
+   * \return true if busy else false.
+   */
+  virtual bool isBusy() = 0;
+  /**
    * Read a sector.
    *
    * \param[in] sector Logical sector to be read.

@@ -141,7 +141,7 @@ class FsCache {
    * \param[in] sector Sector to checked.
    * \return true if the sector is cached.
    */
-  bool isCached(uint32_t sector) {return sector == m_sector;}
+  bool isCached(uint32_t sector) const {return sector == m_sector;}
    /** Check if the cache contains a sector from a range.
    * \param[in] sector Start sector of the range.
    * \param[in] count Number of sectors in the range.

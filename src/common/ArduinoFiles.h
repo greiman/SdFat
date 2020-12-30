@@ -90,9 +90,7 @@ class StreamFile : public stream_t, public BaseFile {
    * Use getName(char* name, size_t size).
    * \return a pointer to replacement suggestion.
    */
-  const char* name() const {
-    return "use getName()";
-  }
+  const char* name() const {return "use getName()";}
   /** Return the next available byte without consuming it.
    *
    * \return The byte if no error and not at eof else -1;
