@@ -45,7 +45,7 @@ class ExFatFile;
  */
 class ExFatPartition {
  public:
-  ExFatPartition() : m_fatType(0) {}
+  ExFatPartition() {}
   /** \return the number of bytes in a cluster. */
   uint32_t bytesPerCluster() const {return m_bytesPerCluster;}
   /** \return the power of two for bytesPerCluster. */
@@ -203,7 +203,7 @@ class ExFatPartition {
   uint32_t m_clusterMask;
   uint32_t m_bytesPerCluster;
   BlockDevice* m_blockDev;
-  uint8_t  m_fatType;
+  uint8_t  m_fatType = 0;
   uint8_t  m_sectorsPerClusterShift;
 };
 #endif  // ExFatPartition_h

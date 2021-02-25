@@ -197,10 +197,15 @@ void loop() {
     }
     Serial.println("\nDMA SDIO mode - slow for small transfers.");
   } else if (c == '3') {
+#if ENABLE_DEDICATED_SPI
     if (!sd.begin(SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SD_SCK_MHZ(50)))) {
       errorHalt("begin failed");
     }
     Serial.println("\nDedicated SPI mode.");
+#else  // ENABLE_DEDICATED_SPI
+    Serial.println("ENABLE_DEDICATED_SPI must be non-zero.");
+    return;
+#endif  // ENABLE_DEDICATED_SPI
   } else if (c == '4') {
     if (!sd.begin(SdSpiConfig(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(50)))) {
       errorHalt("begin failed");

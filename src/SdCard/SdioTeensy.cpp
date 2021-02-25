@@ -28,10 +28,7 @@
 #include "SdioCard.h"
 //==============================================================================
 // limit of K66 due to errata KINETIS_K_0N65N.
-const uint32_t MAX_SDHC_COUNT = 0XFFFF;
-
-// Max RU is 1024 sectors.
-const uint32_t RU_MASK = 0X03FF;
+const uint32_t MAX_BLKCNT = 0XFFFF;
 //==============================================================================
 #define SDHC_PROCTL_DTW_4BIT 0x01
 const uint32_t FIFO_WML = 16;
@@ -201,6 +198,9 @@ static bool (*m_busyFcn)() = 0;
 static bool m_initDone = false;
 static bool m_version2;
 static bool m_highCapacity;
+#if ENABLE_TEENSY_SDIO_MOD
+static bool m_transferActive = false;
+#endif  // ENABLE_TEENSY_SDIO_MOD
 static uint8_t m_errorCode = SD_CARD_ERROR_INIT_NOT_CALLED;
 static uint32_t m_errorLine = 0;
 static uint32_t m_rca;
@@ -216,20 +216,53 @@ static csd_t m_csd;
 #if USE_DEBUG_MODE
 #define DBG_IRQSTAT() if (SDHC_IRQSTAT) {Serial.print(__LINE__);\
         Serial.print(" IRQSTAT "); Serial.println(SDHC_IRQSTAT, HEX);}
-
 static void printRegs(uint32_t line) {
-  Serial.print(line);
-  Serial.print(" SDHC_BLKATTR ");
-  Serial.print(SDHC_BLKATTR, HEX);
-  Serial.print(" XFERTYP ");
-  Serial.print(SDHC_XFERTYP, HEX);
-  Serial.print(" PRSSTAT ");
-  Serial.print(SDHC_PRSSTAT, HEX);
-  Serial.print(" PROCTL ");
-  Serial.print(SDHC_PROCTL, HEX);
-  Serial.print(" IRQSTAT ");
-  Serial.print(SDHC_IRQSTAT, HEX);
-  Serial.print(" m_irqstat ");
+  uint32_t blkattr = SDHC_BLKATTR;
+  uint32_t xfertyp = SDHC_XFERTYP;
+  uint32_t prsstat = SDHC_PRSSTAT;
+  uint32_t proctl = SDHC_PROCTL;
+  uint32_t irqstat = SDHC_IRQSTAT;
+  Serial.print("\nLINE: ");
+  Serial.println(line);
+  Serial.print("BLKATTR ");
+  Serial.println(blkattr, HEX);
+  Serial.print("XFERTYP ");
+  Serial.print(xfertyp, HEX);
+  Serial.print(" CMD");
+  Serial.print(xfertyp >> 24);
+  Serial.print(" TYP");
+  Serial.print((xfertyp >> 2) & 3);
+  if (xfertyp & SDHC_XFERTYP_DPSEL) {Serial.print(" DPSEL");}
+  Serial.println();
+  Serial.print("PRSSTAT ");
+  Serial.print(prsstat, HEX);
+  if (prsstat & SDHC_PRSSTAT_BREN) {Serial.print(" BREN");}
+  if (prsstat & SDHC_PRSSTAT_BWEN) {Serial.print(" BWEN");}
+  if (prsstat & SDHC_PRSSTAT_RTA) {Serial.print(" RTA");}
+  if (prsstat & SDHC_PRSSTAT_WTA) {Serial.print(" WTA");}
+  if (prsstat & SDHC_PRSSTAT_SDOFF) {Serial.print(" SDOFF");}
+  if (prsstat & SDHC_PRSSTAT_PEROFF) {Serial.print(" PEROFF");}
+  if (prsstat & SDHC_PRSSTAT_HCKOFF) {Serial.print(" HCKOFF");}
+  if (prsstat & SDHC_PRSSTAT_IPGOFF) {Serial.print(" IPGOFF");}
+  if (prsstat & SDHC_PRSSTAT_SDSTB) {Serial.print(" SDSTB");}
+  if (prsstat & SDHC_PRSSTAT_DLA) {Serial.print(" DLA");}
+  if (prsstat & SDHC_PRSSTAT_CDIHB) {Serial.print(" CDIHB");}
+  if (prsstat & SDHC_PRSSTAT_CIHB) {Serial.print(" CIHB");}
+  Serial.println();
+  Serial.print("PROCTL ");
+  Serial.print(proctl, HEX);
+  if (proctl & SDHC_PROCTL_SABGREQ) Serial.print(" SABGREQ");
+  Serial.print(" EMODE");
+  Serial.print((proctl >>4) & 3);
+  Serial.print(" DWT");
+  Serial.print((proctl >>1) & 3);
+  Serial.println();
+  Serial.print("IRQSTAT ");
+  Serial.print(irqstat, HEX);
+  if (irqstat & SDHC_IRQSTAT_BGE) {Serial.print(" BGE");}
+  if (irqstat & SDHC_IRQSTAT_TC) {Serial.print(" TC");}
+  if (irqstat & SDHC_IRQSTAT_CC) {Serial.print(" CC");}
+  Serial.print("\nm_irqstat ");
   Serial.println(m_irqstat, HEX);
 }
 #else  // USE_DEBUG_MODE
@@ -299,7 +332,7 @@ static void gpioMux(uint8_t mode) {
 static void enableGPIO(bool enable) {
   const uint32_t CLOCK_MASK = IOMUXC_SW_PAD_CTL_PAD_PKE |
 #if defined(ARDUINO_TEENSY41)
-                              IOMUXC_SW_PAD_CTL_PAD_DSE(1) |
+                              IOMUXC_SW_PAD_CTL_PAD_DSE(7) |
 #else  // defined(ARDUINO_TEENSY41)
                               IOMUXC_SW_PAD_CTL_PAD_DSE(4) |  ///// WHG
 #endif  // defined(ARDUINO_TEENSY41)
@@ -402,7 +435,7 @@ static void initSDHC() {
 
 #if defined (__IMXRT1062__)
   SDHC_MIX_CTRL |= 0x80000000;
-#endif
+#endif  //  (__IMXRT1062__)
 
   // Reset SDHC. Use default Water Mark Level of 16.
   SDHC_SYSCTL |= SDHC_SYSCTL_RSTA | SDHC_SYSCTL_SDCLKFS(0x80);
@@ -433,11 +466,7 @@ static uint32_t statusCMD13() {
 }
 //------------------------------------------------------------------------------
 static bool isBusyCMD13() {
-  if (!cardCommand(CMD13_XFERTYP, m_rca)) {
-    // Caller will timeout.
-    return true;
-  }
-  return !(SDHC_CMDRSP0 & CARD_STATUS_READY_FOR_DATA);
+  return !(statusCMD13() & CARD_STATUS_READY_FOR_DATA);
 }
 //------------------------------------------------------------------------------
 static bool isBusyCommandComplete() {
@@ -446,6 +475,10 @@ static bool isBusyCommandComplete() {
 //------------------------------------------------------------------------------
 static bool isBusyCommandInhibit() {
   return SDHC_PRSSTAT & SDHC_PRSSTAT_CIHB;
+}
+//------------------------------------------------------------------------------
+static bool isBusyDat() {
+  return SDHC_PRSSTAT & (1 << 24) ? false : true;
 }
 //------------------------------------------------------------------------------
 static bool isBusyDMA() {
@@ -536,20 +569,26 @@ static void setSdclk(uint32_t kHzMax) {
 }
 //------------------------------------------------------------------------------
 static bool transferStop() {
+  // This fix allows CDIHB to be cleared in Tennsy 3.x without a reset.
+  SDHC_PROCTL &= ~SDHC_PROCTL_SABGREQ;
   if (!cardCommand(CMD12_XFERTYP, 0)) {
     return sdError(SD_CARD_ERROR_CMD12);
   }
-  if (yieldTimeout(isBusyCMD13)) {
+//  if (yieldTimeout(isBusyCMD13)) {
+  if (yieldTimeout(isBusyDat)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
-  // Save registers before reset DAT lines.
-  uint32_t irqsststen = SDHC_IRQSTATEN;
-  uint32_t proctl = SDHC_PROCTL & ~SDHC_PROCTL_SABGREQ;
-  // Do reset to clear CDIHB.  Should be a better way!
-  SDHC_SYSCTL |= SDHC_SYSCTL_RSTD;
-  // Restore registers.
-  SDHC_IRQSTATEN = irqsststen;
-  SDHC_PROCTL = proctl;
+  if (SDHC_PRSSTAT & SDHC_PRSSTAT_CDIHB) {
+    // This should not happen after above fix.
+    // Save registers before reset DAT lines.
+    uint32_t irqsststen = SDHC_IRQSTATEN;
+    uint32_t proctl = SDHC_PROCTL & ~SDHC_PROCTL_SABGREQ;
+    // Do reset to clear CDIHB.  Should be a better way!
+    SDHC_SYSCTL |= SDHC_SYSCTL_RSTD;
+    // Restore registers.
+    SDHC_IRQSTATEN = irqsststen;
+    SDHC_PROCTL = proctl;
+  }
   return true;
 }
 //------------------------------------------------------------------------------
@@ -585,6 +624,22 @@ static bool waitTimeout(bool (*fcn)()) {
   }
   return false;  // Caller will set errorCode.
 }
+#if ENABLE_TEENSY_SDIO_MOD
+//------------------------------------------------------------------------------
+static bool waitTransferComplete() {
+  if (!m_transferActive) {
+    return true;
+  }
+  bool timeOut = waitTimeout(isBusyTransferComplete);
+  m_transferActive = false;
+  m_irqstat = SDHC_IRQSTAT;
+  SDHC_IRQSTAT = m_irqstat;
+  if (timeOut || (m_irqstat & SDHC_IRQSTAT_ERROR)) {
+    return sdError(SD_CARD_ERROR_TRANSFER_COMPLETE);
+  }
+  return true;
+}
+#endif  // ENABLE_TEENSY_SDIO_MOD
 //==============================================================================
 // Start of SdioCard member functions.
 //==============================================================================
@@ -675,6 +730,11 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
 }
 //------------------------------------------------------------------------------
 bool SdioCard::erase(uint32_t firstSector, uint32_t lastSector) {
+#if ENABLE_TEENSY_SDIO_MOD
+  if (m_curState != IDLE_STATE && !syncDevice()) {
+    return false;
+  }
+#endif  // ENABLE_TEENSY_SDIO_MOD
   // check for single sector erase
   if (!m_csd.v1.erase_blk_en) {
     // erase size mask
@@ -716,7 +776,31 @@ uint32_t SdioCard::errorLine() const {
 }
 //------------------------------------------------------------------------------
 bool SdioCard::isBusy() {
+#if ENABLE_TEENSY_SDIO_MOD
+  if (m_sdioConfig.useDma()) {
+    return m_busyFcn ? m_busyFcn() : m_initDone && isBusyCMD13();
+  } else {
+    if (m_transferActive) {
+      if (isBusyTransferComplete()) {
+        return true;
+      }
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      if ((SDHC_BLKATTR & 0XFFFF0000) != 0) {
+        return false;
+      }
+      m_transferActive = false;
+      stopTransmission(false);
+      return true;
+#else  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      return false;
+#endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    }
+    // Use DAT0 low as busy.
+    return SDHC_PRSSTAT & (1 << 24) ? false : true;
+  }
+#else  // ENABLE_TEENSY_SDIO_MOD
   return m_busyFcn ? m_busyFcn() : m_initDone && isBusyCMD13();
+#endif  // ENABLE_TEENSY_SDIO_MOD
 }
 //------------------------------------------------------------------------------
 uint32_t SdioCard::kHzSdClk() {
@@ -781,6 +865,11 @@ bool SdioCard::readSector(uint32_t sector, uint8_t* dst) {
       memcpy(dst, aligned, 512);
     }
   } else {
+#if ENABLE_TEENSY_SDIO_MOD
+    if (!waitTransferComplete()) {
+      return false;
+    }
+#endif  // ENABLE_TEENSY_SDIO_MOD
     if (m_curState != READ_STATE || sector != m_curSector) {
       if (!syncDevice()) {
         return false;
@@ -841,7 +930,7 @@ bool SdioCard::readStart(uint32_t sector) {
   SDHC_BLKATTR = SDHC_BLKATTR_BLKSIZE(512);
 #else  // defined(__IMXRT1062__)
   // Errata - can't do infinite transfer.
-  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(0XFFFF) | SDHC_BLKATTR_BLKSIZE(512);
+  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(MAX_BLKCNT) | SDHC_BLKATTR_BLKSIZE(512);
 #endif  // defined(__IMXRT1062__)
 
   if (!cardCommand(CMD18_PGM_XFERTYP, m_highCapacity ? sector : 512*sector)) {
@@ -862,7 +951,30 @@ uint32_t SdioCard::status() {
   return statusCMD13();
 }
 //------------------------------------------------------------------------------
+bool SdioCard::stopTransmission(bool blocking) {
+  m_curState = IDLE_STATE;
+  // This fix allows CDIHB to be cleared in Tennsy 3.x without a reset.
+  SDHC_PROCTL &= ~SDHC_PROCTL_SABGREQ;
+  if (!cardCommand(CMD12_XFERTYP, 0)) {
+    return sdError(SD_CARD_ERROR_CMD12);
+  }
+  if (blocking) {
+    if (yieldTimeout(isBusyDat)) {
+      return sdError(SD_CARD_ERROR_CMD13);
+    }
+  }
+  return true;
+}
+//------------------------------------------------------------------------------
 bool SdioCard::syncDevice() {
+#if ENABLE_TEENSY_SDIO_MOD
+  if (!waitTransferComplete()) {
+    return false;
+  }
+  if (m_curState != IDLE_STATE) {
+    return stopTransmission(true);
+  }
+#else  // ENABLE_TEENSY_SDIO_MOD
   if (m_curState == READ_STATE) {
     m_curState = IDLE_STATE;
     if (!readStop()) {
@@ -874,6 +986,7 @@ bool SdioCard::syncDevice() {
       return false;
     }
   }
+#endif  // ENABLE_TEENSY_SDIO_MOD
   return true;
 }
 //------------------------------------------------------------------------------
@@ -884,6 +997,11 @@ uint8_t SdioCard::type() const {
 //------------------------------------------------------------------------------
 bool SdioCard::writeData(const uint8_t* src) {
   DBG_IRQSTAT();
+#if ENABLE_TEENSY_SDIO_MOD
+  if (!waitTransferComplete()) {
+    return false;
+  }
+#endif  // ENABLE_TEENSY_SDIO_MOD
   const uint32_t* p32 = reinterpret_cast<const uint32_t*>(src);
   if (!(SDHC_PRSSTAT & SDHC_PRSSTAT_WTA)) {
     SDHC_PROCTL &= ~SDHC_PROCTL_SABGREQ;
@@ -901,12 +1019,17 @@ bool SdioCard::writeData(const uint8_t* src) {
     }
     p32 += FIFO_WML;
   }
+#if ENABLE_TEENSY_SDIO_MOD
+  m_transferActive = true;
+  return true;
+#else  // ENABLE_TEENSY_SDIO_MOD
   if (waitTimeout(isBusyTransferComplete)) {
     return sdError(SD_CARD_ERROR_WRITE_TIMEOUT);
   }
   m_irqstat = SDHC_IRQSTAT;
   SDHC_IRQSTAT = m_irqstat;
   return (m_irqstat & SDHC_IRQSTAT_TC) && !(m_irqstat & SDHC_IRQSTAT_ERROR);
+#endif  // ENABLE_TEENSY_SDIO_MOD
 }
 //------------------------------------------------------------------------------
 bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
@@ -919,10 +1042,23 @@ bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
     } else {
       ptr = const_cast<uint8_t*>(src);
     }
-  if (!rdWrSectors(CMD24_DMA_XFERTYP, sector, ptr, 1)) {
+    if (!rdWrSectors(CMD24_DMA_XFERTYP, sector, ptr, 1)) {
       return sdError(SD_CARD_ERROR_CMD24);
     }
   } else {
+#if ENABLE_TEENSY_SDIO_MOD
+    if (!waitTransferComplete()) {
+      return false;
+    }
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    // End transfer with CMD12 if required.
+    if ((SDHC_BLKATTR & 0XFFFF0000) == 0) {
+      if (!syncDevice()) {
+        return false;
+      }
+    }
+#endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
+#endif  // ENABLE_TEENSY_SDIO_MOD
     if (m_curState != WRITE_STATE || m_curSector != sector) {
       if (!syncDevice()) {
         return false;
@@ -937,6 +1073,7 @@ bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
       return false;
     }
     m_curSector++;
+#if !ENABLE_TEENSY_SDIO_MOD
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
     // End transfer with CMD12 if required.
     if ((SDHC_BLKATTR & 0XFFFF0000) == 0) {
@@ -945,6 +1082,7 @@ bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
       }
     }
 #endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
+#endif  // !ENABLE_TEENSY_SDIO_MOD
   }
   return true;
 }
@@ -984,7 +1122,7 @@ bool SdioCard::writeStart(uint32_t sector) {
   SDHC_BLKATTR = SDHC_BLKATTR_BLKSIZE(512);
 #else  // defined(__IMXRT1062__)
   // Errata - can't do infinite transfer.
-  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(0XFFFF) | SDHC_BLKATTR_BLKSIZE(512);
+  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(MAX_BLKCNT) | SDHC_BLKATTR_BLKSIZE(512);
 #endif  // defined(__IMXRT1062__)
   if (!cardCommand(CMD25_PGM_XFERTYP, m_highCapacity ? sector : 512*sector)) {
     return sdError(SD_CARD_ERROR_CMD25);

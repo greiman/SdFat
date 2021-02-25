@@ -41,7 +41,7 @@ static void dbgPrint(uint16_t line) {
 
 #define DBG_PRINT_IF(b) if (b) {Serial.print(F(__FILE__));\
                         Serial.println(__LINE__);}
-#define DBG_HALT_IF(b) if (b) { Serial.print(F("DBG_HALT "));\
+#define DBG_HALT_IF(b) if (b) {Serial.print(F("DBG_HALT "));\
                        Serial.print(F(__FILE__)); Serial.println(__LINE__);\
                        while (true) {}}
 #define DBG_FAIL_MACRO dbgPrint(__LINE__);

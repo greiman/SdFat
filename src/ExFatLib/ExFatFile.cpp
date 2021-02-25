@@ -156,10 +156,10 @@ size_t ExFatFile::getName(ExChar_t* name, size_t length) {
       goto fail;
     }
     for (uint8_t in = 0; in < 15; in++) {
-      if ((n + 1) >= length) {
+      uint16_t c = getLe16(dn->unicode + 2*in);
+      if (c == 0 || (n + 1) >= length) {
         goto done;
       }
-      uint16_t c = getLe16(dn->unicode + 2*in);
       name[n++] = sizeof(ExChar_t) > 1 || c < 0X7F ? c : '?';
     }
   }

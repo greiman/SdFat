@@ -377,7 +377,7 @@ int vmprintf(F* file, const char *fmt, va_list ap) {
         break;
 
       default:
-        *--str = c;;
+        *--str = c;
         break;
     }
     ns = ptr - str;
@@ -468,7 +468,7 @@ int vmprintf(F file, const __FlashStringHelper *ifsh, va_list ap) {
         break;
 
       default:
-        *--str = c;;
+        *--str = c;
         break;
     }
     ns = ptr - str;

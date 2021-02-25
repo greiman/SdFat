@@ -37,7 +37,18 @@
  */
 class FsBaseFile {
  public:
-  FsBaseFile() : m_fFile(nullptr), m_xFile(nullptr) {}
+  /** Create an instance. */
+  FsBaseFile() {}
+  /**  Create a file object and open it in the current working directory.
+   *
+   * \param[in] path A path for a file to be opened.
+   *
+   * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
+   * OR of open flags. see FatFile::open(FatFile*, const char*, uint8_t).
+   */
+  FsBaseFile(const char* path, oflag_t oflag) {
+    open(path, oflag);
+  }
 
   ~FsBaseFile() {close();}
   /** Copy constructor.
@@ -58,11 +69,17 @@ class FsBaseFile {
   /** \return number of bytes available from the current position to EOF
    *   or INT_MAX if more than INT_MAX bytes are available.
    */
-  int available() {
+  int available() const {
     return m_fFile ? m_fFile->available() :
            m_xFile ? m_xFile->available() : 0;
   }
-
+  /** \return The number of bytes available from the current position
+   * to EOF for normal files.  Zero is returned for directory files.
+   */
+  uint64_t available64() const {
+    return m_fFile ? m_fFile->available32() :
+           m_xFile ? m_xFile->available64() : 0;
+  }
   /** Clear writeError. */
   void clearWriteError() {
     if (m_fFile) m_fFile->clearWriteError();
@@ -186,7 +203,7 @@ class FsBaseFile {
            m_xFile ? m_xFile->getCreateDateTime(pdate, ptime) : false;
   }
   /** \return All error bits. */
-  uint8_t getError() {
+  uint8_t getError() const {
     return m_fFile ? m_fFile->getError() :
            m_xFile ? m_xFile->getError() : 0XFF;
   }
@@ -248,6 +265,11 @@ class FsBaseFile {
    * \return true if the file is a directory.
    */
   bool isDirectory() const {return isDir();}
+  /** \return True if this is a normal file. */
+  bool isFile() const {
+    return m_fFile ? m_fFile->isFile() :
+           m_xFile ? m_xFile->isFile() : false;
+  }
   /** \return True if this is a hidden file else false. */
   bool isHidden() const {
     return m_fFile ? m_fFile->isHidden() :
@@ -255,10 +277,25 @@ class FsBaseFile {
   }
   /** \return True if this is an open file/directory else false. */
   bool isOpen() const {return m_fFile || m_xFile;}
+  /** \return True file is readable. */
+  bool isReadable() const {
+    return m_fFile ? m_fFile->isReadable() :
+           m_xFile ? m_xFile->isReadable() : false;
+    }
+  /** \return True if file is read-only */
+  bool isReadOnly() const {
+    return m_fFile ? m_fFile->isReadOnly() :
+           m_xFile ? m_xFile->isReadOnly() : false;
+  }
   /** \return True if this is a subdirectory file else false. */
   bool isSubDir() const {
     return m_fFile ? m_fFile->isSubDir() :
            m_xFile ? m_xFile->isSubDir() : false;
+  }
+  /** \return True file is writable. */
+  bool isWritable() const {
+    return m_fFile ? m_fFile->isWritable() :
+           m_xFile ? m_xFile->isWritable() : false;
   }
 #if ENABLE_ARDUINO_SERIAL
   /** List directory contents.
@@ -412,6 +449,15 @@ class FsBaseFile {
    * \return a file object.
    */
   bool openNext(FsBaseFile* dir, oflag_t oflag = O_RDONLY);
+  /** Open a volume's root directory.
+   *
+   * \param[in] vol The SdFs volume containing the root directory to be opened.
+   *
+   * \return true for success or false for failure.
+   */
+  bool openRoot(FsVolume* vol);
+  /** \return the current file position. */
+  uint64_t position() const {return curPosition();}
   /** Return the next available byte without consuming it.
    *
    * \return The byte if no error and not at eof else -1;
@@ -419,6 +465,21 @@ class FsBaseFile {
   int peek() {
     return m_fFile ? m_fFile->peek() :
            m_xFile ? m_xFile->peek() : -1;
+  }
+  /** Allocate contiguous clusters to an empty file.
+   *
+   * The file must be empty with no clusters allocated.
+   *
+   * The file will contain uninitialized data for FAT16/FAT32 files.
+   * exFAT files will have zero validLength and dataLength will equal
+   * the requested length.
+   *
+   * \param[in] length size of the file in bytes.
+   * \return true for success or false for failure.
+   */
+  bool preAllocate(uint64_t length) {
+    return m_fFile ? length < (1ULL << 32) && m_fFile->preAllocate(length) :
+           m_xFile ? m_xFile->preAllocate(length) : false;
   }
   /** Print a file's access date and time
    *
@@ -440,55 +501,7 @@ class FsBaseFile {
     return m_fFile ? m_fFile->printCreateDateTime(pr) :
            m_xFile ? m_xFile->printCreateDateTime(pr) : 0;
   }
-  /** Print a file's modify date and time
-   *
-   * \param[in] pr Print stream for output.
-   *
-   * \return true for success or false for failure.
-   */
-  size_t printModifyDateTime(print_t* pr) {
-    return m_fFile ? m_fFile->printModifyDateTime(pr) :
-           m_xFile ? m_xFile->printModifyDateTime(pr) : 0;
-  }
-  /** Print a file's name
-   *
-   * \param[in] pr Print stream for output.
-   *
-   * \return true for success or false for failure.
-   */
-  size_t printName(print_t* pr) {
-    return m_fFile ? m_fFile->printName(pr) :
-           m_xFile ? m_xFile->printName(pr) : 0;
-  }
-  /** Print a file's size.
-   *
-   * \param[in] pr Print stream for output.
-   *
-   * \return The number of characters printed is returned
-   *         for success and zero is returned for failure.
-   */
-  size_t printFileSize(print_t* pr) {
-    return m_fFile ? m_fFile->printFileSize(pr) :
-           m_xFile ? m_xFile->printFileSize(pr) : 0;
-  }
-  /** Allocate contiguous clusters to an empty file.
-   *
-   * The file must be empty with no clusters allocated.
-   *
-   * The file will contain uninitialized data for FAT16/FAT32 files.
-   * exFAT files will have zero validLength and dataLength will equal
-   * the requested length.
-   *
-   * \param[in] length size of the file in bytes.
-   * \return true for success or false for failure.
-   */
-  bool preAllocate(uint64_t length) {
-    return m_fFile ? length < (1ULL << 32) && m_fFile->preAllocate(length) :
-           m_xFile ? m_xFile->preAllocate(length) : false;
-  }
-  /** \return the current file position. */
-  uint64_t position() const {return curPosition();}
-   /** Print a number followed by a field terminator.
+  /** Print a number followed by a field terminator.
    * \param[in] value The number to be printed.
    * \param[in] term The field terminator.  Use '\\n' for CR LF.
    * \param[in] prec Number of digits after decimal point.
@@ -516,6 +529,37 @@ class FsBaseFile {
   size_t printField(Type value, char term) {
     return m_fFile ? m_fFile->printField(value, term) :
            m_xFile ? m_xFile->printField(value, term) : 0;
+  }
+  /** Print a file's size.
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return The number of characters printed is returned
+   *         for success and zero is returned for failure.
+   */
+  size_t printFileSize(print_t* pr) {
+    return m_fFile ? m_fFile->printFileSize(pr) :
+           m_xFile ? m_xFile->printFileSize(pr) : 0;
+  }
+  /** Print a file's modify date and time
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printModifyDateTime(print_t* pr) {
+    return m_fFile ? m_fFile->printModifyDateTime(pr) :
+           m_xFile ? m_xFile->printModifyDateTime(pr) : 0;
+  }
+  /** Print a file's name
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printName(print_t* pr) {
+    return m_fFile ? m_fFile->printName(pr) :
+           m_xFile ? m_xFile->printName(pr) : 0;
   }
   /** Read the next byte from a file.
    *
@@ -698,7 +742,6 @@ class FsBaseFile {
            m_xFile->timestamp(flags, year, month, day, hour, minute, second) :
            false;
   }
-
   /** Truncate a file to the current position.
    *
    * \return true for success or false for failure.
@@ -746,8 +789,8 @@ class FsBaseFile {
 
  private:
   newalign_t m_fileMem[FS_ALIGN_DIM(ExFatFile, FatFile)];
-  FatFile*   m_fFile;
-  ExFatFile* m_xFile;
+  FatFile*   m_fFile = nullptr;
+  ExFatFile* m_xFile = nullptr;
 };
 /**
  * \class FsFile

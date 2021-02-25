@@ -91,7 +91,17 @@ struct ExFatPos_t {
 class ExFatFile {
  public:
   /** Create an instance. */
-  ExFatFile() : m_attributes(FILE_ATTR_CLOSED), m_error(0), m_flags(0) {}
+  ExFatFile() {}
+  /**  Create a file object and open it in the current working directory.
+   *
+   * \param[in] path A path for a file to be opened.
+   *
+   * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
+   * OR of open flags. see FatFile::open(FatFile*, const char*, uint8_t).
+   */
+  ExFatFile(const char* path, oflag_t oflag) {
+    open(path, oflag);
+  }
 
 #if DESTRUCTOR_CLOSES_FILE
   ~ExFatFile() {
@@ -109,12 +119,6 @@ class ExFatFile {
     return isOpen();
   }
   /** \return The number of bytes available from the current position
-   * to EOF for normal files.  Zero is returned for directory files.
-   */
-  uint64_t available64() {
-    return isFile() ? fileSize() - curPosition() : 0;
-  }
-  /** \return The number of bytes available from the current position
    * to EOF for normal files.  INT_MAX is returned for very large files.
    *
    * available64() is recommended for very large files.
@@ -125,6 +129,20 @@ class ExFatFile {
   int available() {
     uint64_t n = available64();
     return n > INT_MAX ? INT_MAX : n;
+  }
+  /** \return The number of bytes available from the current position
+   * to EOF for normal files.  Zero is returned for directory files.
+   */
+  uint64_t available64() {
+    return isFile() ? fileSize() - curPosition() : 0;
+  }
+  /** Clear all error bits. */
+  void clearError() {
+    m_error = 0;
+  }
+  /** Clear writeError. */
+  void clearWriteError() {
+    m_error &= ~WRITE_ERROR;
   }
   /** Close a file and force cached data and directory information
    *  to be written to the storage device.
@@ -200,22 +218,6 @@ class ExFatFile {
   void fsetpos(const fspos_t* pos);
   /** Arduino name for sync() */
   void flush() {sync();}
-  /**
-   * Get a file's name followed by a zero byte.
-   *
-   * \param[out] name An array of characters for the file's name.
-   * \param[in] size The size of the array in characters.
-   * \return the name length.
-   */
-  size_t getName(ExChar_t* name, size_t size);
-  /** Clear all error bits. */
-  void clearError() {
-    m_error = 0;
-  }
-  /** Clear writeError. */
-  void clearWriteError() {
-    m_error &= ~WRITE_ERROR;
-  }
   /** Get a file's access date and time.
    *
    * \param[out] pdate Packed date for directory entry.
@@ -244,6 +246,14 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool getModifyDateTime(uint16_t* pdate, uint16_t* ptime);
+  /**
+   * Get a file's name followed by a zero byte.
+   *
+   * \param[out] name An array of characters for the file's name.
+   * \param[in] size The size of the array in characters.
+   * \return the name length.
+   */
+  size_t getName(ExChar_t* name, size_t size);
   /** \return value of writeError */
   bool getWriteError() const {
     return isOpen() ? m_error & WRITE_ERROR : true;
@@ -266,12 +276,12 @@ class ExFatFile {
   bool isOpen() const {return m_attributes;}
   /** \return True if file is read-only */
   bool isReadOnly() const {return m_attributes & FILE_ATTR_READ_ONLY;}
-  /** \return True if this is a subdirectory. */
-  bool isSubDir() const {return m_attributes & FILE_ATTR_SUBDIR;}
   /** \return True if this is the root directory. */
   bool isRoot() const {return m_attributes & FILE_ATTR_ROOT;}
-  /** \return True file is writable. */
+  /** \return True file is readable. */
   bool isReadable() const {return m_flags & FILE_FLAG_READ;}
+  /** \return True if this is a subdirectory. */
+  bool isSubDir() const {return m_attributes & FILE_ATTR_SUBDIR;}
   /** \return True file is writable. */
   bool isWritable() const {return m_flags & FILE_FLAG_WRITE;}
   /** List directory contents.
@@ -381,6 +391,16 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool open(ExFatFile* dirFile, uint32_t index, oflag_t oflag);
+  /** Open a file in the current working directory.
+   *
+   * \param[in] path A path with a valid name for a file to be opened.
+   *
+   * \param[in] oflag bitwise-inclusive OR of open flags.
+   *                  See see ExFatFile::open(ExFatFile*, const char*, uint8_t).
+   *
+   * \return true for success or false for failure.
+   */
+  bool open(const ExChar_t* path, int oflag = O_RDONLY);
   /** Open the next file or subdirectory in a directory.
    *
    * \param[in] dirFile An open instance for the directory
@@ -392,16 +412,6 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool openNext(ExFatFile* dirFile, oflag_t oflag = O_RDONLY);
-  /** Open a file in the current working directory.
-   *
-   * \param[in] path A path with a valid name for a file to be opened.
-   *
-   * \param[in] oflag bitwise-inclusive OR of open flags.
-   *                  See see ExFatFile::open(ExFatFile*, const char*, uint8_t).
-   *
-   * \return true for success or false for failure.
-   */
-  bool open(const ExChar_t* path, int oflag = O_RDONLY);
   /** Open a volume's root directory.
    *
    * \param[in] vol The FAT volume containing the root directory to be opened.
@@ -425,6 +435,20 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool preAllocate(uint64_t length);
+     /** Print a file's access date and time
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printAccessDateTime(print_t* pr);
+   /** Print a file's creation date and time
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printCreateDateTime(print_t* pr);
   /** Print a number followed by a field terminator.
    * \param[in] value The number to be printed.
    * \param[in] term The field terminator.  Use '\\n' for CR LF.
@@ -488,21 +512,6 @@ class ExFatFile {
    * \return The number of bytes printed.
    */
   size_t printFileSize(print_t* pr);
-   /** Print a file's access date and time
-   *
-   * \param[in] pr Print stream for output.
-   *
-   * \return true for success or false for failure.
-   */
-  size_t printAccessDateTime(print_t* pr);
-  /** Print a file's creation date and time
-   *
-   * \param[in] pr Print stream for output.
-   *
-   * \return true for success or false for failure.
-   */
-  size_t printCreateDateTime(print_t* pr);
-
   /** Print a file's modify date and time
    *
    * \param[in] pr Print stream for output.
@@ -780,9 +789,9 @@ class ExFatFile {
   ExFatVolume*  m_vol;
   DirPos_t      m_dirPos;
   uint8_t       m_setCount;
-  uint8_t       m_attributes;
-  uint8_t       m_error;
-  uint8_t       m_flags;
+  uint8_t       m_attributes = FILE_ATTR_CLOSED;
+  uint8_t       m_error = 0;
+  uint8_t       m_flags = 0;
 };
 
 #include "../common/ArduinoFiles.h"

@@ -51,7 +51,7 @@ class FatVolume : public  FatPartition {
     if (!chdir()) {
       return false;
     }
-    if (setCwv) {
+    if (setCwv || !m_cwv) {
       m_cwv = this;
     }
     return true;

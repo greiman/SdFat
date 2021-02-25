@@ -71,6 +71,7 @@
   SD_CARD_ERROR(READ_START, "Bad readStart argument")\
   SD_CARD_ERROR(READ_TIMEOUT, "Read data timeout")\
   SD_CARD_ERROR(STOP_TRAN, "Multiple block stop failed")\
+  SD_CARD_ERROR(TRANSFER_COMPLETE, "SDIO transfer complete")\
   SD_CARD_ERROR(WRITE_DATA, "Write data not accepted")\
   SD_CARD_ERROR(WRITE_FIFO, "SDIO fifo write timeout")\
   SD_CARD_ERROR(WRITE_START, "Bad writeStart argument")\
@@ -83,7 +84,6 @@
   SD_CARD_ERROR(INIT_NOT_CALLED, "Card has not been initialized")\
   SD_CARD_ERROR(INVALID_CARD_CONFIG, "Invalid card config")\
   SD_CARD_ERROR(FUNCTION_NOT_SUPPORTED, "Unsupported SDIO command")
-
 
 enum {
 #define  SD_CARD_ERROR(e, m) SD_CARD_ERROR_##e,

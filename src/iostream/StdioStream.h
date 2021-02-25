@@ -114,11 +114,7 @@ class StdioStream : private StreamBaseFile {
   /** Constructor
    *
    */
-  StdioStream() {
-    m_w = m_r = 0;
-    m_p = m_buf;
-    m_status = 0;
-  }
+  StdioStream() {}
   //----------------------------------------------------------------------------
   /** Clear the stream's end-of-file and error indicators. */
   void clearerr() {
@@ -657,11 +653,11 @@ class StdioStream : private StreamBaseFile {
   static const uint8_t S_EOF = 0x10;  // found EOF
   static const uint8_t S_ERR = 0x20;  // found error
   //----------------------------------------------------------------------------
-  uint8_t  m_status;
-  uint8_t* m_p;
-  uint8_t  m_r;
-  uint8_t  m_w;
   uint8_t  m_buf[STREAM_BUF_SIZE];
+  uint8_t  m_status = 0;
+  uint8_t* m_p = m_buf;
+  uint8_t  m_r = 0;
+  uint8_t  m_w;
 };
 //------------------------------------------------------------------------------
 #endif  // StdioStream_h

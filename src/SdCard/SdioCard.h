@@ -35,7 +35,7 @@
  */
 class SdioConfig {
  public:
-  SdioConfig() : m_options(FIFO_SDIO) {}
+  SdioConfig() {}
   /**
    * SdioConfig constructor.
    * \param[in] opt SDIO options.
@@ -46,7 +46,7 @@ class SdioConfig {
   /** \return true if DMA_SDIO. */
   bool useDma() {return m_options & DMA_SDIO;}
  private:
-  uint8_t m_options;
+  uint8_t m_options = FIFO_SDIO;
 };
 //------------------------------------------------------------------------------
 /**
@@ -64,13 +64,7 @@ class SdioCard : public SdCardInterface {
    * \return false - not implemented.
    */
   bool end() {return false;}
-  /**
-   * Determine the size of an SD flash memory card.
-   *
-   * \return The number of 512 byte data sectors in the card
-   *         or zero if an error occurs.
-   */
-  uint32_t sectorCount();
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   // Use sectorCount(). cardSize() will be removed in the future.
   uint32_t cardSize() __attribute__ ((deprecated)) {return sectorCount();}
@@ -180,6 +174,21 @@ class SdioCard : public SdCardInterface {
   bool readStop();
   /** \return SDIO card status. */
   uint32_t status();
+    /**
+   * Determine the size of an SD flash memory card.
+   *
+   * \return The number of 512 byte data sectors in the card
+   *         or zero if an error occurs.
+   */
+  uint32_t sectorCount();
+  /**
+   *  Send CMD12 to stop read or write.
+   *
+   * \param[in] blocking If true, wait for command complete.
+   *
+   * \return true for success or false for failure.
+   */
+  bool stopTransmission(bool blocking);
   /** \return success if sync successful. Not for user apps. */
   bool syncDevice();
   /** Return the card type: SD V1, SD V2 or SDHC
@@ -241,6 +250,6 @@ class SdioCard : public SdCardInterface {
   static const uint8_t WRITE_STATE = 2;
   uint32_t m_curSector;
   SdioConfig m_sdioConfig;
-  uint8_t m_curState;
+  uint8_t m_curState = IDLE_STATE;
 };
 #endif  // SdioCard_h
