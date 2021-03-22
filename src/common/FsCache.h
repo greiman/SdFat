@@ -30,7 +30,6 @@
  */
 #include "SysCall.h"
 #include "BlockDevice.h"
-#include "DebugMacros.h"
 /**
  * \class FsCache
  * \brief Sector cache.

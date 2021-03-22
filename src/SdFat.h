@@ -38,9 +38,9 @@
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version  for cpp use. */
-#define SD_FAT_VERSION 20005
+#define SD_FAT_VERSION 20006
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.0.5"
+#define SD_FAT_VERSION_STR "2.0.6"
 //==============================================================================
 /**
  * \class SdBase

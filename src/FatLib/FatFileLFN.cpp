@@ -359,7 +359,11 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
         if ((ldir->order & FAT_ORDER_LAST_LONG_ENTRY) == 0) {
           continue;
         }
-        lfnOrd = order = ldir->order & 0X1F;
+        order = ldir->order & 0X1F;
+        if (order != (freeNeed - 1)) {
+          continue;
+        }
+        lfnOrd = order;
         checksum = ldir->checksum;
       } else if (ldir->order != --order || checksum != ldir->checksum) {
         lfnOrd = 0;
