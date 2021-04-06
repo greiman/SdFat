@@ -523,6 +523,13 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool openNext(FatFile* dirFile, oflag_t oflag = O_RDONLY);
+  /** Open a file's parent directory.
+   *
+   * \param[in] file Parent of this directory will be opened, if it is not root.
+   *
+   * \return true for success or false for failure.
+   */
+  bool openParent(FatFile* dirFile);
   /** Open a volume's root directory.
    *
    * \param[in] vol The FAT volume containing the root directory to be opened.
