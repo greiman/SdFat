@@ -651,39 +651,29 @@ bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   return false;
 }
 //------------------------------------------------------------------------------
-/** Open a file's parent directory.
- *
- * \param[in] file Parent of this directory will be opened, if it is not root.
- *
- * \return The value true is returned for success and
- * the value false is returned for failure.
- */
 bool FatFile::openParent(FatFile* dirFile) {
   DirFat_t* dir;
-  memset(this, 0, sizeof(FatFile));
   dirFile->rewind();
   dir = dirFile->readDirCache(true);
   dir = dirFile->readDirCache(true);
-  if (!!dir && dir->name[0] == '.' && dir->name[1] == '.' 
+  if (!!dir && dir->name[0] == '.' && dir->name[1] == '.'
       && !!(dir->attributes & FAT_ATTRIB_DIRECTORY)){
-    // the current subdir has a '..' entry at index 1, let's open it
-    // (if that fails, we open root)
+    // if the current subdir has a '..' entry at index 1, let's open it
     if (openCachedEntry(dirFile, 1, O_READ, 0)) {
-      rewind(); // PARANOIA
       dir = readDirCache(true);
       dir = readDirCache(true);
-      if (!!dir && dir->name[0] == '.' && dir->name[1] == '.' 
+      if (!!dir && dir->name[0] == '.' && dir->name[1] == '.'
       && !!(dir->attributes & FAT_ATTRIB_DIRECTORY)){
-        // the new subdir has a '..' entry at index 1, we are not in root
-        rewind();
+        // the new subdir also has a '..' entry at index 1, we are not in root
+        rewind(); // clean up (PARANOIA, all other functions skip over "." and ".." anyway)
         return true;
       } else {
-        // we moved ".." and are in root - Problem: openNext does not work anymore
-        // cleanup and open root
-        close();
+        // we opened ".." and are in the root directory
+        // problem: openNext does not work anymore now (why?)
+        close(); // clean up (otherwise openRoot will fail)
       }
     }
-  }
+  } // else: fallback to openRoot
   return openRoot(dirFile->m_vol);
 }
 //------------------------------------------------------------------------------
