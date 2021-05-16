@@ -13,7 +13,7 @@ FsFile file1;
 
 // Use mySPI2 since SPI2 is used in SPI.h as a different type.
 static SPIClass mySPI2(2);
-// Chip select PB21, dedicated SPI, 18 MHz, port 2.
+// Chip select PB12, dedicated SPI, 18 MHz, port 2.
 #if ENABLE_DEDICATED_SPI
 #define SD2_CONFIG SdSpiConfig(PB12, DEDICATED_SPI, SD_SCK_MHZ(18), &mySPI2)
 #else  // ENABLE_DEDICATED_SPI
