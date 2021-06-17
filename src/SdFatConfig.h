@@ -279,8 +279,8 @@ typedef uint8_t SdCsPin_t;
  * Set USE_SIMPLE_LITTLE_ENDIAN nonzero for little endian processors
  * with no memory alignment restrictions.
  */
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ && !defined(__SAMD21G18A__)\
-  && !defined(__MKL26Z64__) && !defined(ESP8266)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__\
+  && (defined(__AVR__) || defined(__ARM_FEATURE_UNALIGNED))
 #define USE_SIMPLE_LITTLE_ENDIAN 1
 #else  // __BYTE_ORDER_
 #define USE_SIMPLE_LITTLE_ENDIAN 0
