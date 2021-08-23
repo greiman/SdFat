@@ -1,9 +1,6 @@
 // Example to demonstrate write latency for preallocated exFAT files.
 // I suggest you write a PC program to convert very large bin files.
 //
-// If an exFAT SD is required, the ExFatFormatter example will format
-// smaller cards with an exFAT file system.
-//
 // The maximum data rate will depend on the quality of your SD,
 // the size of the FIFO, and using dedicated SPI.
 #include "SdFat.h"
@@ -68,12 +65,17 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Preallocate 1GiB file.
 const uint32_t PREALLOCATE_SIZE_MiB = 1024UL;
 
-// Select the fastest interface. Assumes no other SPI devices.
-#if ENABLE_DEDICATED_SPI
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI)
-#else  // ENABLE_DEDICATED_SPI
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI)
-#endif  // ENABLE_DEDICATED_SPI
+// Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
+#define SPI_CLOCK SD_SCK_MHZ(50)
+
+// Try to select the best SD card configuration.
+#if HAS_SDIO_CLASS
+#define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif  ENABLE_DEDICATED_SPI
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
+#else  // HAS_SDIO_CLASS
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
+#endif  // HAS_SDIO_CLASS
 
 // Save SRAM if 328.
 #ifdef __AVR_ATmega328P__
@@ -189,7 +191,7 @@ void binaryToCsv() {
   data_t binData[FIFO_DIM];
 
   if (!binFile.seekSet(512)) {
-	  error("binFile.seek faile");
+	  error("binFile.seek failed");
   }
   uint32_t tPct = millis();
   printRecord(&csvFile, nullptr);

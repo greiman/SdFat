@@ -308,7 +308,7 @@ bool FatFile::isBusy() {
 }
 //------------------------------------------------------------------------------
 bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
-  fname_t fname;
+  FatName_t fname;
   FatFile tmpDir;
 
   if (isOpen() || !parent->isDir()) {
@@ -349,7 +349,7 @@ bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::mkdir(FatFile* parent, fname_t* fname) {
+bool FatFile::mkdir(FatFile* parent, FatName_t* fname) {
   uint32_t sector;
   DirFat_t dot;
   DirFat_t* dir;
@@ -387,7 +387,7 @@ bool FatFile::mkdir(FatFile* parent, fname_t* fname) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  // change directory entry  attribute
+  // change directory entry attribute
   dir->attributes = FAT_ATTRIB_DIRECTORY;
 
   // make entry for '.'
@@ -429,7 +429,7 @@ bool FatFile::open(FatVolume* vol, const char* path, oflag_t oflag) {
 //------------------------------------------------------------------------------
 bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
   FatFile tmpDir;
-  fname_t fname;
+  FatName_t fname;
 
   // error if already open
   if (isOpen() || !dirFile->isDir()) {
@@ -458,7 +458,7 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
       break;
     }
     if (!open(dirFile, &fname, O_RDONLY)) {
-      DBG_FAIL_MACRO;
+      DBG_WARN_MACRO;
       goto fail;
     }
     tmpDir = *this;
@@ -477,11 +477,7 @@ bool FatFile::open(FatFile* dirFile, uint16_t index, oflag_t oflag) {
     DirLfn_t* ldir;
     uint8_t n = index < 20 ? index : 20;
     for (uint8_t i = 1; i <= n; i++) {
-      if (!dirFile->seekSet(32UL*(index - i))) {
-        DBG_FAIL_MACRO;
-        goto fail;
-      }
-      ldir = reinterpret_cast<DirLfn_t*>(dirFile->readDirCache());
+      ldir = reinterpret_cast<DirLfn_t*>(dirFile->cacheDir(index - i));
       if (!ldir) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -598,6 +594,18 @@ bool FatFile::openCachedEntry(FatFile* dirFile, uint16_t dirIndex,
   return false;
 }
 //------------------------------------------------------------------------------
+bool FatFile::openCluster(FatFile* file) {
+  if (file->m_dirCluster == 0) {
+    return openRoot(file->m_vol);
+  }
+  memset(this, 0, sizeof(FatFile));
+  m_attributes = FILE_ATTR_SUBDIR;
+  m_flags = FILE_FLAG_READ;
+  m_vol = file->m_vol;
+  m_firstCluster = file->m_dirCluster;
+  return true;
+}
+//------------------------------------------------------------------------------
 bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint8_t checksum = 0;
   DirLfn_t* ldir;
@@ -684,6 +692,15 @@ bool FatFile::openRoot(FatVolume* vol) {
   return false;
 }
 //------------------------------------------------------------------------------
+int FatFile::peek() {
+  uint32_t curPosition = m_curPosition;
+  uint32_t curCluster = m_curCluster;
+  int c = read();
+  m_curPosition = curPosition;
+  m_curCluster = curCluster;
+  return c;
+}
+//------------------------------------------------------------------------------
 bool FatFile::preAllocate(uint32_t length) {
   uint32_t need;
   if (!length || !isWritable() || m_firstCluster) {
@@ -709,15 +726,6 @@ bool FatFile::preAllocate(uint32_t length) {
 
  fail:
   return false;
-}
-//------------------------------------------------------------------------------
-int FatFile::peek() {
-  uint32_t curPosition = m_curPosition;
-  uint32_t curCluster = m_curCluster;
-  int c = read();
-  m_curPosition = curPosition;
-  m_curCluster = curCluster;
-  return c;
 }
 //------------------------------------------------------------------------------
 int FatFile::read(void* buf, size_t nbyte) {
@@ -858,9 +866,10 @@ int8_t FatFile::readDir(DirFat_t* dir) {
   }
 }
 //------------------------------------------------------------------------------
-// Read next directory entry into the cache
-// Assumes file is correctly positioned
+// Read next directory entry into the cache.
+// Assumes file is correctly positioned.
 DirFat_t* FatFile::readDirCache(bool skipReadOk) {
+  DBG_HALT_IF(m_curPosition & 0X1F);
   uint8_t i = (m_curPosition >> 5) & 0XF;
 
   if (i == 0 || !skipReadOk) {
@@ -1205,7 +1214,6 @@ bool FatFile::sync() {
     if (isFile()) {
       setLe32(dir->fileSize, m_fileSize);
     }
-
     // update first cluster fields
     setLe16(dir->firstClusterLow, m_firstCluster & 0XFFFF);
     setLe16(dir->firstClusterHigh, m_firstCluster >> 16);
@@ -1318,12 +1326,7 @@ bool FatFile::truncate() {
 
   // need to update directory entry
   m_flags |= FILE_FLAG_DIR_DIRTY;
-
-  if (!sync()) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  return true;
+  return sync();
 
  fail:
   return false;
@@ -1473,5 +1476,5 @@ size_t FatFile::write(const void* buf, size_t nbyte) {
  fail:
   // return for write error
   m_error |= WRITE_ERROR;
-  return -1;
+  return 0;
 }

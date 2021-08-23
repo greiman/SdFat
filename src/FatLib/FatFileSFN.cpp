@@ -27,125 +27,12 @@
 #include "../common/FsStructs.h"
 #include "FatFile.h"
 #include "FatVolume.h"
-//------------------------------------------------------------------------------
-size_t FatFile::getSFN(char* name) {
-  uint8_t j = 0;
-  uint8_t lcBit = FAT_CASE_LC_BASE;
-  DirFat_t* dir;
 
-  if (!isOpen()) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  if (isRoot()) {
-    name[0] = '/';
-    name[1] = '\0';
-    return 1;
-  }
-  // cache entry
-  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FsCache::CACHE_FOR_READ));
-  if (!dir) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  // format name
-  for (uint8_t i = 0; i < 11; i++) {
-    if (dir->name[i] == ' ') {
-      continue;
-    }
-    if (i == 8) {
-      // Position bit for extension.
-      lcBit = FAT_CASE_LC_EXT;
-      name[j++] = '.';
-    }
-    char c = dir->name[i];
-    if ('A' <= c && c <= 'Z' && (lcBit & dir->caseFlags)) {
-      c += 'a' - 'A';
-    }
-    name[j++] = c;
-  }
-  name[j] = '\0';
-  return j;
-
- fail:
-  name[0] = '\0';
-  return 0;
-}
-//------------------------------------------------------------------------------
-size_t FatFile::printSFN(print_t* pr) {
-  char name[13];
-  if (!getSFN(name)) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  return pr->write(name);
-
- fail:
-  return 0;
-}
 #if !USE_LONG_FILE_NAMES
-//------------------------------------------------------------------------------
-size_t FatFile::getName(char* name, size_t size) {
-  return size < 13 ? 0 : getSFN(name);
-}
-//------------------------------------------------------------------------------
-// format directory name field from a 8.3 name string
-bool FatFile::parsePathName(const char* path, fname_t* fname,
-                            const char** ptr) {
-  uint8_t uc = 0;
-  uint8_t lc = 0;
-  uint8_t bit = FNAME_FLAG_LC_BASE;
-  // blank fill name and extension
-  for (uint8_t i = 0; i < 11; i++) {
-    fname->sfn[i] = ' ';
-  }
-
-  for (uint8_t i = 0, n = 7;; path++) {
-    uint8_t c = *path;
-    if (c == 0 || isDirSeparator(c)) {
-      // Done.
-      break;
-    }
-    if (c == '.' && n == 7) {
-      n = 10;  // max index for full 8.3 name
-      i = 8;   // place for extension
-
-      // bit for extension.
-      bit = FNAME_FLAG_LC_EXT;
-    } else {
-      if (!legal83Char(c) || i > n) {
-        DBG_FAIL_MACRO;
-        goto fail;
-      }
-      if ('a' <= c && c <= 'z') {
-        c += 'A' - 'a';
-        lc |= bit;
-      } else if ('A' <= c && c <= 'Z') {
-        uc |= bit;
-      }
-      fname->sfn[i++] = c;
-    }
-  }
-  // must have a file name, extension is optional
-  if (fname->sfn[0] == ' ') {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  // Set base-name and extension bits.
-  fname->flags = lc & uc ? 0 : lc;
-  while (isDirSeparator(*path)) {
-    path++;
-  }
-  *ptr = path;
-  return true;
-
- fail:
-  return false;
-}
 //------------------------------------------------------------------------------
 // open with filename in fname
 #define SFN_OPEN_USES_CHKSUM 0
-bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
+bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
   uint16_t date;
   uint16_t time;
   uint8_t ms10;
@@ -227,11 +114,7 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
       goto fail;
     }
   }
-  if (!dirFile->seekSet(32UL*index)) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  dir = reinterpret_cast<DirFat_t*>(dirFile->readDirCache());
+  dir = reinterpret_cast<DirFat_t*>(dirFile->cacheDir(index));
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -269,8 +152,57 @@ bool FatFile::open(FatFile* dirFile, fname_t* fname, oflag_t oflag) {
   return false;
 }
 //------------------------------------------------------------------------------
-size_t FatFile::printName(print_t* pr) {
-  return printSFN(pr);
+// format directory name field from a 8.3 name string
+bool FatFile::parsePathName(const char* path, FatName_t* fname,
+                            const char** ptr) {
+  uint8_t uc = 0;
+  uint8_t lc = 0;
+  uint8_t bit = FNAME_FLAG_LC_BASE;
+  // blank fill name and extension
+  for (uint8_t i = 0; i < 11; i++) {
+    fname->sfn[i] = ' ';
+  }
+  for (uint8_t i = 0, n = 7;; path++) {
+    uint8_t c = *path;
+    if (c == 0 || isDirSeparator(c)) {
+      // Done.
+      break;
+    }
+    if (c == '.' && n == 7) {
+      n = 10;  // max index for full 8.3 name
+      i = 8;   // place for extension
+
+      // bit for extension.
+      bit = FNAME_FLAG_LC_EXT;
+    } else {
+      if (!legal83Char(c) || i > n) {
+        DBG_FAIL_MACRO;
+        goto fail;
+      }
+      if ('a' <= c && c <= 'z') {
+        c += 'A' - 'a';
+        lc |= bit;
+      } else if ('A' <= c && c <= 'Z') {
+        uc |= bit;
+      }
+      fname->sfn[i++] = c;
+    }
+  }
+  // must have a file name, extension is optional
+  if (fname->sfn[0] == ' ') {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  // Set base-name and extension bits.
+  fname->flags = lc & uc ? 0 : lc;
+  while (isDirSeparator(*path)) {
+    path++;
+  }
+  *ptr = path;
+  return true;
+
+ fail:
+  return false;
 }
 //------------------------------------------------------------------------------
 bool FatFile::remove() {
@@ -286,7 +218,7 @@ bool FatFile::remove() {
     goto fail;
   }
   // Cache directory entry.
-  dir = reinterpret_cast<DirFat_t*>(cacheDirEntry(FsCache::CACHE_FOR_WRITE));
+  dir = cacheDirEntry(FsCache::CACHE_FOR_WRITE);
   if (!dir) {
     DBG_FAIL_MACRO;
     goto fail;

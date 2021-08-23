@@ -360,9 +360,9 @@ class FsBaseFile {
    * Use getName(char* name, size_t size).
    * \return a pointer to replacement suggestion.
    */
-  const char* name() const {
-    return "use getName()";
-  }
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+  const char* __attribute__((error("use getName(name, size)"))) name();
+#endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** Open a file or directory by name.
    *
    * \param[in] dir An open file instance for the directory containing
@@ -777,10 +777,7 @@ class FsBaseFile {
    * \param[in] count Number of bytes to write.
    *
    * \return For success write() returns the number of bytes written, always
-   * \a nbyte.  If an error occurs, write() returns -1.  Possible errors
-   * include write() is called before a file has been opened, write is called
-   * for a read-only file, device is full, a corrupt file system or an
-   * I/O error.
+   * \a nbyte.  If an error occurs, write() returns zero and writeError is set.
    */
   size_t write(const void* buf, size_t count) {
     return m_fFile ? m_fFile->write(buf, count) :

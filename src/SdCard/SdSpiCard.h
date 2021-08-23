@@ -66,7 +66,7 @@ class SdSpiCard {
   uint32_t sectorCount();
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   // Use sectorCount(). cardSize() will be removed in the future.
-  uint32_t cardSize() __attribute__ ((deprecated)) {return sectorCount();}
+  uint32_t __attribute__((error("use sectorCount()"))) cardSize();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** Erase a range of sectors.
    *
@@ -310,7 +310,7 @@ class SdSpiCard {
     return m_spiDriver.receive();
   }
   uint8_t spiReceive(uint8_t* buf, size_t n) {
-    return  m_spiDriver.receive(buf, n);
+    return m_spiDriver.receive(buf, n);
   }
   void spiSend(uint8_t data) {
     m_spiDriver.send(data);
@@ -336,7 +336,7 @@ class SdSpiCard {
     return m_spiDriverPtr->receive();
   }
   uint8_t spiReceive(uint8_t* buf, size_t n) {
-    return  m_spiDriverPtr->receive(buf, n);
+    return m_spiDriverPtr->receive(buf, n);
   }
   void spiSend(uint8_t data) {
     m_spiDriverPtr->send(data);

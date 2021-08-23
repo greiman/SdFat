@@ -24,7 +24,7 @@
  */
 #ifndef FsApiConstants_h
 #define FsApiConstants_h
-#include "../SdFatConfig.h"
+#include "SdFatConfig.h"
 
 #if USE_FCNTL_H
 #include <fcntl.h>

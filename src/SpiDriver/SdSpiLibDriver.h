@@ -73,14 +73,14 @@ inline void SdSpiArduinoDriver::send(uint8_t data) {
 inline void SdSpiArduinoDriver::send(const uint8_t* buf, size_t count) {
 #if USE_SPI_ARRAY_TRANSFER
   if (count <= 512) {
-    uint8_t tmp[count];    // NOLINT
+    uint8_t tmp[512];
     memcpy(tmp, buf, count);
     m_spi->transfer(tmp, count);
-    return;
   }
-#endif  // USE_SPI_ARRAY_TRANSFER
+#else  // USE_SPI_ARRAY_TRANSFER
   for (size_t i = 0; i < count; i++) {
     m_spi->transfer(buf[i]);
   }
+#endif  // USE_SPI_ARRAY_TRANSFER  
 }
 #endif  // SdSpiLibDriver_h

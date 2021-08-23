@@ -37,10 +37,10 @@
 #include "sdios.h"
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
-/** SdFat version  for cpp use. */
-#define SD_FAT_VERSION 20007
+/** SdFat version for cpp use. */
+#define SD_FAT_VERSION 20100
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.0.7"
+#define SD_FAT_VERSION_STR "2.1.0"
 //==============================================================================
 /**
  * \class SdBase
@@ -418,27 +418,36 @@ class SdFs : public SdBase<FsVolume> {
 #if SDFAT_FILE_TYPE == 1
 /** Select type for SdFat. */
 typedef SdFat32 SdFat;
-/** Select type for File. */
-#if !defined(__has_include) || !__has_include(<FS.h>)
-typedef File32 File;
-#endif
 /** Select type for SdBaseFile. */
 typedef FatFile SdBaseFile;
 #elif SDFAT_FILE_TYPE == 2
 typedef SdExFat SdFat;
-#if !defined(__has_include) || !__has_include(<FS.h>)
-typedef ExFile File;
-#endif
 typedef ExFatFile SdBaseFile;
 #elif SDFAT_FILE_TYPE == 3
 typedef SdFs SdFat;
-#if !defined(__has_include) || !__has_include(<FS.h>)
-typedef FsFile File;
-#endif
 typedef FsBaseFile SdBaseFile;
 #else  // SDFAT_FILE_TYPE
 #error Invalid SDFAT_FILE_TYPE
 #endif  // SDFAT_FILE_TYPE
+//
+// Only define File if FS.h is not included.
+// Line with test for __has_include must not have operators or parentheses.
+#if defined __has_include
+#if __has_include(<FS.h>)
+#define HAS_INCLUDE_FS_H
+#warning File not defined because __has__include(FS.h)
+#endif  // __has_include(<FS.h>)
+#endif  // defined __has_include
+#ifndef HAS_INCLUDE_FS_H
+#if SDFAT_FILE_TYPE == 1
+/** Select type for File. */
+typedef File32 File;
+#elif SDFAT_FILE_TYPE == 2
+typedef ExFile File;
+#elif SDFAT_FILE_TYPE == 3
+typedef FsFile File;
+#endif  // SDFAT_FILE_TYPE
+#endif  // HAS_INCLUDE_FS_H
 /**
  * \class SdFile
  * \brief FAT16/FAT32 file with Print.

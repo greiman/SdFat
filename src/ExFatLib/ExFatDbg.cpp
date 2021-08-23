@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "ExFatVolume.h"
-#include "upcase.h"
+#include "../common/upcase.h"
 #include "ExFatFile.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
@@ -50,6 +50,20 @@ static uint16_t exFatDirChecksum(const void* dir, uint16_t checksum) {
     checksum = ((checksum << 15) | (checksum >> 1)) + data[i];
   }
   return checksum;
+}
+
+//------------------------------------------------------------------------------
+static uint16_t hashDir(DirName_t* dir, uint16_t hash) {
+  for (uint8_t i = 0; i < 30; i += 2) {
+    uint16_t u = getLe16(dir->unicode + i);
+    if (!u) {
+      break;
+    }
+  uint16_t c = toUpcase(u);
+  hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
+  hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
+  }
+  return hash;
 }
 //------------------------------------------------------------------------------
 static void printDateTime(print_t* pr,
@@ -105,8 +119,15 @@ static void printDirName(print_t* pr, DirName_t* dir) {
   pr->println(dir->type, HEX);
   pr->print(F("unicode: "));
   for (size_t i = 0; i < 30; i += 2) {
-    if (dir->unicode[i] == 0) break;
-    pr->write(dir->unicode[i]);
+    uint16_t c = getLe16(dir->unicode + i);
+    if (c == 0) break;
+    if (c < 128) {
+      pr->print(static_cast<char>(c));
+    } else {
+      pr->print("0x");
+      pr->print(c, HEX);
+    }
+    pr->print(' ');
   }
   pr->println();
 }
@@ -475,8 +496,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
         printDirName(pr, dirName);
         calcChecksum = exFatDirChecksum(dir, calcChecksum);
         nUnicode = nameLength > 15 ? 15 : nameLength;
-        calcHash = exFatHashName(reinterpret_cast<ExChar16_t*>
-                                (dirName->unicode), nUnicode, calcHash);
+        calcHash = hashDir(dirName, calcHash);
         nameLength -= nUnicode;
         setCount--;
         if (nameLength == 0  || setCount == 0) {

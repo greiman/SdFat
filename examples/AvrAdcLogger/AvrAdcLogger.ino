@@ -152,11 +152,13 @@ const uint16_t ISR_TIMER0 = 160;
 //==============================================================================
 const uint32_t MAX_FILE_SIZE = MAX_FILE_SIZE_MiB << 20;
 
-// Select fastest interface.
+// Select fastest interface.  Max SPI rate for AVR is 10 MHx.
+#define SPI_CLOCK SD_SCK_MHZ(10)
+
 #if ENABLE_DEDICATED_SPI
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI)
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // ENABLE_DEDICATED_SPI
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI)
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
 #endif  // ENABLE_DEDICATED_SPI
 
 #if SD_FAT_TYPE == 0

@@ -437,17 +437,11 @@ bool SdSpiCard::isBusy() {
     return false;
   }
 #endif  // ENABLE_DEDICATED_SPI
-  bool rtn = true;
   bool spiActive = m_spiActive;
   if (!spiActive) {
     spiStart();
   }
-  for (uint8_t i = 0; i < 8; i++) {
-    if (0XFF == spiReceive()) {
-      rtn = false;
-      break;
-    }
-  }
+  bool rtn = 0XFF != spiReceive();
   if (!spiActive) {
     spiStop();
   }
@@ -576,7 +570,6 @@ bool SdSpiCard::readStart(uint32_t sector) {
     error(SD_CARD_ERROR_CMD18);
     goto fail;
   }
-//  spiStop();
   return true;
 
  fail:
@@ -654,6 +647,8 @@ void SdSpiCard::spiStart() {
   if (!m_spiActive) {
     spiActivate();
     spiSelect();
+    // Dummy byte to drive MISO busy status.
+    spiSend(0XFF);    
     m_spiActive = true;
   }
 }
@@ -661,7 +656,8 @@ void SdSpiCard::spiStart() {
 void SdSpiCard::spiStop() {
   if (m_spiActive) {
     spiUnselect();
-    spiSend(0XFF);
+    // Insure MISO goes to low Z.
+    spiSend(0XFF);        
     spiDeactivate();
     m_spiActive = false;
   }

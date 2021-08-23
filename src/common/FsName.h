@@ -22,15 +22,45 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef upcase_h
-#define upcase_h
-#include "ExFatFile.h"
-bool exFatCmpName(const DirName_t* unicode,
-                  const char* name, size_t offset, size_t n);
-bool exFatCmpName(const DirName_t* unicode,
-                  const ExChar16_t* name, size_t offset, size_t n);
-uint16_t exFatHashName(const char* name, size_t n, uint16_t hash);
-uint16_t exFatHashName(const ExChar16_t* name, size_t n, uint16_t hash);
-uint16_t toUpcase(uint16_t chr);
-uint32_t upcaseChecksum(uint16_t unicode, uint32_t checksum);
-#endif  // upcase_h
+#ifndef FsName_h
+#define FsName_h
+#include "SdFatConfig.h"
+#include <stdint.h>
+/**
+ * \file
+ * \brief FsName class.
+ */
+/**
+ * \class FsName
+ * \brief Handle UTF-8 file names.
+ */
+class FsName {
+ public:
+  /** Beginning of LFN. */
+  const char* begin;
+  /** Next LFN character of end. */
+  const char* next;
+  /** Position one beyond last LFN character. */
+  const char* end;
+#if !USE_UTF8_LONG_NAMES
+  /** \return true if at end. */
+  bool atEnd() {return next == end;}
+  /** Reset to start of LFN. */
+  void reset() {next = begin;}
+  /** \return next char of LFN. */
+  char getch() {return atEnd() ? 0 : *next++;}
+  /** \return next UTF-16 unit of LFN. */
+  uint16_t get16() {return atEnd() ? 0 : *next++;}
+#else  // !USE_UTF8_LONG_NAMES
+  uint16_t ls = 0;
+  bool atEnd() {
+    return !ls && next == end;
+  }
+  void reset() {
+    next = begin;
+    ls = 0;
+  }
+  uint16_t get16();
+#endif  // !USE_UTF8_LONG_NAMES
+};
+#endif  // FsName_h

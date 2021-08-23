@@ -72,7 +72,7 @@ bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     // SDXC cards
     m_sectorsPerCluster = 128;
   }
-  rtn = m_sectorCount < 0X400000 ? makeFat16() :makeFat32();
+  rtn = m_sectorCount < 0X400000 ? makeFat16() : makeFat32();
   if (rtn) {
     writeMsg("Format Done\r\n");
   } else {

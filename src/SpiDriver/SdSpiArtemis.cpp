@@ -47,7 +47,7 @@ uint8_t SdSpiArduinoDriver::receive() {
 }
 //------------------------------------------------------------------------------
 uint8_t SdSpiArduinoDriver::receive(uint8_t* buf, size_t count) {
-  memset(buf, 0XFF, count); 
+  memset(buf, 0XFF, count);
   m_spi->transfer(buf, count);
   return 0;
 }

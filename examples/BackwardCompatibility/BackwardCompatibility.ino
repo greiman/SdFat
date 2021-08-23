@@ -3,6 +3,11 @@
 //
 // Your SD must be formatted FAT16/FAT32.
 //
+// SD.h does not support some default SdFat features.
+// To compare flash size, set USE_FAT_FILE_FLAG_CONTIGUOUS,
+// ENABLE_DEDICATED_SPI, and USE_LONG_FILE_NAMES to zero also
+// set SDFAT_FILE_TYPE to one in SdFat/src/SdFatCongfig.h
+//
 // Set USE_SD_H nonzero to use SD.h.
 // Set USE_SD_H zero to use SdFat.h.
 //

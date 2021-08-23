@@ -26,6 +26,17 @@
 #include "FatFile.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
+static uint16_t getLfnChar(DirLfn_t* ldir, uint8_t i) {
+  if (i < 5) {
+    return getLe16(ldir->unicode1 + 2*i);
+  } else if (i < 11) {
+    return getLe16(ldir->unicode2 + 2*i - 10);
+  } else if (i < 13) {
+    return getLe16(ldir->unicode3 + 2*i - 22);
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
 static void printHex(print_t* pr, uint8_t h) {
   if (h < 16) {
     pr->write('0');
@@ -63,13 +74,32 @@ static void printHex(print_t* pr, uint32_t val) {
   }
 }
 //------------------------------------------------------------------------------
-static void printDir(print_t* pr, DirFat_t* dir) {
-  if (!dir->name[0] || dir->name[0] == FAT_NAME_DELETED) {
-    pr->println(F("Not Used"));
+template<typename Uint>
+static void printHexLn(print_t* pr, Uint val) {
+  printHex(pr, val);
+  pr->println();
+}
+//------------------------------------------------------------------------------
+bool printFatDir(print_t* pr, DirFat_t* dir) {
+  DirLfn_t* ldir = reinterpret_cast<DirLfn_t*>(dir);
+  if (!dir->name[0]) {
+    pr->println(F("Unused"));
+    return false;
+  } else if (dir->name[0] == FAT_NAME_DELETED) {
+    pr->println(F("Deleted"));
   } else if (isFileOrSubdir(dir)) {
-    pr->print(F("name: "));
+    pr->print(F("SFN: "));
+    for (uint8_t i = 0; i < 11; i++) {
+      printHex(pr, dir->name[i]);
+      pr->write(' ');
+    }
+    pr->write(' ');
     pr->write(dir->name, 11);
     pr->println();
+    pr->print(F("attributes: 0X"));
+    printHexLn(pr, dir->attributes);
+    pr->print(F("caseFlags: 0X"));
+    printHexLn(pr, dir->caseFlags);
     uint32_t fc = ((uint32_t)getLe16(dir->firstClusterHigh) << 16)
                  | getLe16(dir->firstClusterLow);
     pr->print(F("firstCluster: "));
@@ -77,24 +107,46 @@ static void printDir(print_t* pr, DirFat_t* dir) {
     pr->print(F("fileSize: "));
     pr->println(getLe32(dir->fileSize));
   } else if (isLongName(dir)) {
-    pr->println(F("LFN"));
+    pr->print(F("LFN: "));
+    for (uint8_t i = 0; i < 13; i++) {
+      uint16_t c = getLfnChar(ldir, i);
+      if (15 < c && c < 128) {
+        pr->print(static_cast<char>(c));
+      } else {
+        pr->print("0X");
+        pr->print(c, HEX);
+      }
+      pr->print(' ');
+    }
+    pr->println();
+    pr->print(F("order: 0X"));
+    pr->println(ldir->order, HEX);
+    pr->print(F("attributes: 0X"));
+    pr->println(ldir->attributes, HEX);
+    pr->print(F("checksum: 0X"));
+    pr->println(ldir->checksum, HEX);
   } else {
     pr->println(F("Other"));
   }
+  pr->println();
+  return true;
 }
 //------------------------------------------------------------------------------
-void FatPartition::dmpDirSector(print_t* pr, uint32_t sector) {
+bool FatPartition::dmpDirSector(print_t* pr, uint32_t sector) {
   DirFat_t dir[16];
   if (!readSector(sector, reinterpret_cast<uint8_t*>(dir))) {
     pr->println(F("dmpDir failed"));
-    return;
+    return false;
   }
   for (uint8_t i = 0; i < 16; i++) {
-    printDir(pr, dir + i);
+    if (!printFatDir(pr, dir + i)) {
+      return false;
+    }
   }
+  return true;
 }
 //------------------------------------------------------------------------------
-void FatPartition::dmpRootDir(print_t* pr) {
+bool FatPartition::dmpRootDir(print_t* pr, uint32_t n) {
   uint32_t sector;
   if (fatType() == 16) {
     sector = rootDirStart();
@@ -102,9 +154,9 @@ void FatPartition::dmpRootDir(print_t* pr) {
     sector = clusterStartSector(rootDirStart());
   } else {
     pr->println(F("dmpRootDir failed"));
-    return;
+    return false;
   }
-  dmpDirSector(pr, sector);
+  return dmpDirSector(pr, sector + n);
 }
 //------------------------------------------------------------------------------
 void FatPartition::dmpSector(print_t* pr, uint32_t sector, uint8_t bits) {

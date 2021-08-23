@@ -98,8 +98,7 @@ class ExFatPartition {
   /** \return the number of sectors in a cluster. */
   uint32_t sectorsPerCluster() const {return 1UL << m_sectorsPerClusterShift;}
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  // Use sectorsPerCluster(). blocksPerCluster() will be removed in the future.
-  uint32_t blocksPerCluster() __attribute__ ((deprecated)) {return sectorsPerCluster();} //NOLINT
+  uint32_t __attribute__((error("use sectorsPerCluster()"))) blocksPerCluster();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** \return the power of two for sectors per cluster. */
   uint8_t  sectorsPerClusterShift() const {return m_sectorsPerClusterShift;}
@@ -159,7 +158,7 @@ class ExFatPartition {
   }
   uint8_t* dirCache(DirPos_t* pos, uint8_t options);
   int8_t dirSeek(DirPos_t* pos, uint32_t offset);
-  uint8_t fatGet(uint32_t cluster, uint32_t* value);
+  int8_t fatGet(uint32_t cluster, uint32_t* value);
   bool fatPut(uint32_t cluster, uint32_t value);
   uint32_t chainSize(uint32_t cluster);
   bool freeChain(uint32_t cluster);

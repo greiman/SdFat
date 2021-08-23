@@ -28,7 +28,7 @@
  * \file
  * \brief Ring buffer for data loggers.
  */
-#include "Arduino.h"
+#include "common/SysCall.h"
 #include "common/FmtNumber.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -266,8 +266,7 @@ class RingBuf : public Print {
   }
   /**
    * Write all data in the RingBuf to the underlying file.
-   * \param[in] data Byte to be written.
-   * \return Number of bytes actually written.
+   * \return true for success.
    */
   bool sync() {
     size_t n = bytesUsed();
@@ -290,6 +289,15 @@ class RingBuf : public Print {
       setWriteError();
     }
     return memcpyIn(buf, count);
+  }
+  /**
+   * Copy str to RingBuf.
+   *
+   * \param[in] str Location of data to be written.
+   * \return Number of bytes actually written.
+   */
+  size_t write(const char* str) {
+    return Print::write(str);
   }
   /**
    * Override virtual function in Print for efficiency.

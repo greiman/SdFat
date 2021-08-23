@@ -27,7 +27,6 @@
 #include "ExFatConfig.h"
 #include "../common/SysCall.h"
 #include "../common/BlockDevice.h"
-#include "upcase.h"
 /**
  * \class ExFatFormatter
  * \brief Format an exFAT volume.

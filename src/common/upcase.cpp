@@ -22,8 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <stddef.h>
 #include "upcase.h"
-
 #ifdef __AVR__
 #include <avr/pgmspace.h>
 #define TABLE_MEM PROGMEM
@@ -197,55 +197,6 @@ static size_t searchPair16(const pair16_t* table, size_t size, uint16_t key) {
     }
   }
   return left;
-}
-//------------------------------------------------------------------------------
-static char toUpper(char c) {
-  return c - ('a' <= c && c <= 'z' ? 'a' - 'A' : 0);
-}
-//------------------------------------------------------------------------------
-bool exFatCmpName(const DirName_t* unicode,
-                  const ExChar16_t* name, size_t offset, size_t n) {
-  uint16_t u;
-  for (size_t i = 0; i < n; i++) {
-    u = getLe16(unicode->unicode + 2*i);
-    if (toUpcase(name[i + offset]) != toUpcase(u)) {
-      return false;
-    }
-  }
-  return true;
-}
-//------------------------------------------------------------------------------
-bool exFatCmpName(const DirName_t* unicode,
-                  const char* name, size_t offset, size_t n) {
-  uint16_t u;
-  for (size_t i = 0; i < n; i++) {
-    u = getLe16(unicode->unicode + 2*i);
-    if (u >= 0x7F  || toUpper(name[i + offset]) != toUpper(u)) {
-      return false;
-    }
-  }
-  return true;
-}
-//------------------------------------------------------------------------------
-uint16_t exFatHashName(const ExChar16_t* name, size_t n, uint16_t hash) {
-  for (size_t i = 0; i < n; i++) {
-    uint16_t c = toUpcase(name[i]);
-    hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
-    hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
-  }
-  return hash;
-}
-//------------------------------------------------------------------------------
-uint16_t exFatHashName(const char* name, size_t n, uint16_t hash) {
-  for (size_t i = 0; i < n; i++) {
-    uint8_t c = name[i];
-    if ('a' <= c && c <= 'z') {
-      c -= 'a' - 'A';
-    }
-    hash = ((hash << 15) | (hash >> 1)) + c;
-    hash = ((hash << 15) | (hash >> 1));
-  }
-  return hash;
 }
 //------------------------------------------------------------------------------
 uint16_t toUpcase(uint16_t chr) {

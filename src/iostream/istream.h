@@ -285,8 +285,8 @@ class istream : public virtual ios {
    *
    */
   int peek();
-// istream& read(char *str, streamsize count);
-// streamsize readsome(char *str, streamsize count);
+  // istream& read(char *str, streamsize count);
+  // streamsize readsome(char *str, streamsize count);
   /**
    * \return the stream position
    */

@@ -22,8 +22,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FatLib_h
-#define FatLib_h
-#include "FatVolume.h"
-#include "FatFormatter.h"
-#endif  // FatLib_h
+#include "FsName.h"
+#include "FsUtf.h"
+#if USE_UTF8_LONG_NAMES
+uint16_t FsName::get16() {
+  uint16_t rtn;
+  if (ls) {
+    rtn = ls;
+    ls = 0;
+  } else if (next >= end) {
+    rtn = 0;
+  } else {
+    uint32_t cp;
+    const char* ptr = FsUtf::mbToCp(next, end, &cp);
+    if (!ptr) {
+      goto fail;
+    }
+    next = ptr;
+    if (cp <= 0XFFFF) {
+      rtn = cp;
+    } else {
+      ls = FsUtf::lowSurrogate(cp);
+      rtn = FsUtf::highSurrogate(cp);
+    }
+  }
+  return rtn;
+
+ fail:
+  return 0XFFFF;
+}
+#endif  // USE_UTF8_LONG_NAMES

@@ -22,15 +22,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define DBG_FILE "ExFatVolume.cpp"
+#include "../common/DebugMacros.h"
 #include "ExFatVolume.h"
 ExFatVolume* ExFatVolume::m_cwv = nullptr;
 //-----------------------------------------------------------------------------
-bool ExFatVolume::chdir(const ExChar_t* path) {
+bool ExFatVolume::chdir(const char* path) {
   ExFatFile dir;
   if (!dir.open(vwd(), path, O_RDONLY)) {
+    DBG_FAIL_MACRO;
     goto fail;
   }
   if (!dir.isDir()) {
+    DBG_FAIL_MACRO;
     goto fail;
   }
   m_vwd = dir;

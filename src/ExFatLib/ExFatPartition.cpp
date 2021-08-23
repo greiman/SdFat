@@ -164,7 +164,8 @@ int8_t ExFatPartition::dirSeek(DirPos_t* pos, uint32_t offset) {
   return 1;
 }
 //------------------------------------------------------------------------------
-uint8_t ExFatPartition::fatGet(uint32_t cluster, uint32_t* value) {
+// return -1 error, 0 EOC, 1 OK
+int8_t ExFatPartition::fatGet(uint32_t cluster, uint32_t* value) {
   uint8_t* cache;
   uint32_t next;
   uint32_t sector;
@@ -180,12 +181,8 @@ uint8_t ExFatPartition::fatGet(uint32_t cluster, uint32_t* value) {
     return -1;
   }
   next = getLe32(cache + ((cluster << 2) & m_sectorMask));
-
-  if (next == EXFAT_EOC) {
-    return 0;
-  }
   *value = next;
-  return 1;
+  return next == EXFAT_EOC ? 0 : 1;
 }
 //------------------------------------------------------------------------------
 bool ExFatPartition::fatPut(uint32_t cluster, uint32_t value) {
@@ -222,7 +219,7 @@ bool ExFatPartition::freeChain(uint32_t cluster) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    if ((cluster + 1) != next || status == 0) {
+    if (status == 0 || (cluster + 1) != next) {
       if (!bitmapModify(start, cluster - start + 1, 0)) {
         DBG_FAIL_MACRO;
         goto fail;

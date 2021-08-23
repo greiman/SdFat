@@ -29,7 +29,6 @@
  * \brief FatPartition class
  */
 #include <stddef.h>
-#include "FatLibConfig.h"
 #include "../common/SysCall.h"
 #include "../common/BlockDevice.h"
 #include "../common/FsCache.h"
@@ -94,8 +93,7 @@ class FatPartition {
     return m_sectorsPerCluster;
   }
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  // Use sectorsPerCluster(). blocksPerCluster() will be removed in the future.
-  uint8_t blocksPerCluster() __attribute__ ((deprecated)) {return sectorsPerCluster();} //NOLINT
+  uint8_t __attribute__((error("use sectorsPerCluster()"))) blocksPerCluster();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** \return The number of sectors in one FAT. */
   uint32_t sectorsPerFat()  const {
@@ -177,9 +175,9 @@ class FatPartition {
   bool isBusy() {return m_blockDev->isBusy();}
   //----------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  void dmpDirSector(print_t* pr, uint32_t sector);
+  bool dmpDirSector(print_t* pr, uint32_t sector);
   void dmpFat(print_t* pr, uint32_t start, uint32_t count);
-  void dmpRootDir(print_t* pr);
+  bool dmpRootDir(print_t* pr, uint32_t n = 0);
   void dmpSector(print_t* pr, uint32_t sector, uint8_t bits = 8);
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   //----------------------------------------------------------------------------
@@ -301,4 +299,7 @@ class FatPartition {
     return cluster > m_lastCluster;
   }
 };
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+bool printFatDir(print_t* pr, DirFat_t* dir);
+#endif  // DOXYGEN_SHOULD_SKIP_THIS
 #endif  // FatPartition
