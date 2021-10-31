@@ -25,6 +25,9 @@
 #include "SdSpiDriver.h"
 
 #if defined(SD_USE_CUSTOM_SPI) && defined(__SAMD21G18A__)
+/* Use SCK Maximum Frequency Override */
+// Reference For Maximum Frequency (12 MHz): https://microchipsupport.force.com/s/article/SPI-max-clock-frequency-in-SAMD-SAMR-devices
+#define USE_SAMD21_MAX_SCK_OVERRIDE 1
 
 /* Determine SERCOM Peripheral to Use */
 // In Order:
@@ -55,6 +58,11 @@ void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
 
 //------------------------------------------------------------------------------
 void SdSpiArduinoDriver::activate() {
+#if USE_SAMD21_MAX_SCK_OVERRIDE
+  // Reinitialize SPI Configuration if Specified SCK Clock > SD_SCK_MHZ(12)
+  if(m_spiSettings.getClockFreq() > SD_SCK_MHZ(12))
+    m_spiSettings = SPISettings(SD_SCK_MHZ(12), m_spiSettings.getBitOrder(), m_spiSettings.getDataMode());
+#endif // USE_SAMD21_MAX_SCK_OVERRIDE
   SD_SPI_CLASS.beginTransaction(m_spiSettings);
 }
 
