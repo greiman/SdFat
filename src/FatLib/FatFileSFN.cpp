@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,15 +24,11 @@
  */
 #define DBG_FILE "FatFileSFN.cpp"
 #include "../common/DebugMacros.h"
-#include "../common/FsStructs.h"
-#include "FatFile.h"
-#include "FatVolume.h"
-
-#if !USE_LONG_FILE_NAMES
+#include "FatLib.h"
 //------------------------------------------------------------------------------
 // open with filename in fname
 #define SFN_OPEN_USES_CHKSUM 0
-bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
+bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
   uint16_t date;
   uint16_t time;
   uint8_t ms10;
@@ -47,11 +43,8 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
   DirLfn_t* ldir;
 
   dirFile->rewind();
-  while (1) {
-    if (!emptyFound) {
-      emptyIndex = index;
-    }
-    dir = reinterpret_cast<DirFat_t*>(dirFile->readDirCache(true));
+  while (true) {
+    dir = dirFile->readDirCache(true);
     if (!dir) {
       if (dirFile->getError())  {
         DBG_FAIL_MACRO;
@@ -60,13 +53,15 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
       // At EOF if no error.
       break;
     }
-    if (dir->name[0] == FAT_NAME_FREE) {
-      emptyFound = true;
-      break;
-    }
-    if (dir->name[0] == FAT_NAME_DELETED) {
+    if (dir->name[0] == FAT_NAME_FREE || dir->name[0] == FAT_NAME_FREE) {
+      if (!emptyFound) {
+        emptyIndex = index;
+        emptyFound = true;
+      }
+      if (dir->name[0] == FAT_NAME_FREE) {
+        break;
+      }
       lfnOrd = 0;
-      emptyFound = true;
     } else if (isFileOrSubdir(dir)) {
       if (!memcmp(fname->sfn, dir->name, 11)) {
         // don't open existing file if O_EXCL
@@ -152,8 +147,84 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
   return false;
 }
 //------------------------------------------------------------------------------
+bool FatFile::openExistingSFN(const char* path) {
+  FatSfn_t fname;
+  auto vol = FatVolume::cwv();
+  while (*path == '/') {
+    path++;
+  }
+  if (*path == 0) {
+    return openRoot(vol);
+  }
+  *this = *vol->vwd();
+  do {
+    if (!parsePathName(path, &fname, &path)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    if (!openSFN(&fname)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+  } while (*path);
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
+bool FatFile::openSFN(FatSfn_t* fname) {
+  DirFat_t dir;
+  DirLfn_t* ldir;
+  auto vol = m_vol;
+  uint8_t lfnOrd = 0;
+  if (!isDir()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  while (true) {
+    if (read(&dir, 32) != 32) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    if (dir.name[0] == 0) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    if (isFileOrSubdir(&dir) && memcmp(fname->sfn, dir.name, 11) == 0) {
+      uint16_t dirIndex = (m_curPosition - 32) >> 5;
+      uint32_t dirCluster = m_firstCluster;
+      memset(this, 0 , sizeof(FatFile));
+      m_attributes = dir.attributes & FILE_ATTR_COPY;
+      if (isFileDir(&dir)) {
+        m_attributes |= FILE_ATTR_FILE;
+      }
+      m_lfnOrd = lfnOrd;
+      m_firstCluster = (uint32_t)getLe16(dir.firstClusterHigh) << 16;
+      m_firstCluster |= getLe16(dir.firstClusterLow);
+      m_fileSize = getLe32(dir.fileSize);
+      m_flags = isFile() ? FILE_FLAG_READ | FILE_FLAG_WRITE : FILE_FLAG_READ;
+      m_vol = vol;
+      m_dirCluster = dirCluster;
+      m_dirSector = m_vol->cacheSectorNumber();
+      m_dirIndex = dirIndex;
+      return true;
+    } else if (isLongName(&dir)) {
+      ldir = reinterpret_cast<DirLfn_t*>(&dir);
+      if (ldir->order & FAT_ORDER_LAST_LONG_ENTRY) {
+        lfnOrd = ldir->order & 0X1F;
+      }
+    } else {
+      lfnOrd = 0;
+    }
+  }
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
 // format directory name field from a 8.3 name string
-bool FatFile::parsePathName(const char* path, FatName_t* fname,
+bool FatFile::parsePathName(const char* path, FatSfn_t* fname,
                             const char** ptr) {
   uint8_t uc = 0;
   uint8_t lc = 0;
@@ -175,7 +246,7 @@ bool FatFile::parsePathName(const char* path, FatName_t* fname,
       // bit for extension.
       bit = FNAME_FLAG_LC_EXT;
     } else {
-      if (!legal83Char(c) || i > n) {
+      if (sfnReservedChar(c) || i > n) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -204,6 +275,7 @@ bool FatFile::parsePathName(const char* path, FatName_t* fname,
  fail:
   return false;
 }
+#if !USE_LONG_FILE_NAMES
 //------------------------------------------------------------------------------
 bool FatFile::remove() {
   DirFat_t* dir;

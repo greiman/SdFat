@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,7 +24,7 @@
  */
 #define DBG_FILE "ExFatVolume.cpp"
 #include "../common/DebugMacros.h"
-#include "ExFatVolume.h"
+#include "ExFatLib.h"
 ExFatVolume* ExFatVolume::m_cwv = nullptr;
 //-----------------------------------------------------------------------------
 bool ExFatVolume::chdir(const char* path) {

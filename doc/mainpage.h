@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -249,11 +249,9 @@ DirectoryFunctions - Use of chdir(), ls(), mkdir(), and rmdir().
 
 examplesV1 folder - Examples from SdFat V1 for compatibility tests.
 
-%ExFatFormatter - Produces optimal exFAT format for smaller SD cards.
-
 ExFatLogger - A data-logger optimized for exFAT features.
 
-ExFatUnicodeTest - Test program for Unicode file names.
+MinimumSizeSdReader - Example of small file reader for FAT16/FAT32.
 
 OpenNext - Open all files in the root dir and print their filename.
 
@@ -275,9 +273,15 @@ SoftwareSpi - Demo of limited Software SPI support in SdFat V2.
 
 STM32Test - Example use of two SPI ports on an STM32 board.
 
+TeensyDmaAdcLogger - Fast logger using DMA ADC.
+
 TeensyRtcTimestamp - %File timestamps for Teensy3.
 
 TeensySdioDemo - Demo of SDIO and SPI modes for the Teensy 3.5/3.6 built-in SD.
+
+TeensySdioLogger -  Fast logger using a ring buffer.
+
+UnicodeFilenames - Test program for Unicode file names.
 
 UserChipSelectFunction - Useful for port expanders or replacement of the standard GPIO functions.
 

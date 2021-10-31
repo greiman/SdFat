@@ -4,7 +4,7 @@ Earlier releases of Version 1 are here:
 
 https://github.com/greiman/SdFat/releases
 
-###### UTF-8 encoded filenames are supported in v2.1.0.
+UTF-8 encoded filenames are supported in v2.1.0 or later.
 
 Try the UnicodeFilenames example.  Here is output from ls:
 <pre>

@@ -798,7 +798,7 @@ void loop(void) {
   Serial.println(F("r - record ADC data"));
 
   while(!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   char c = tolower(Serial.read());
   if (ERROR_LED_PIN >= 0) {

@@ -27,8 +27,8 @@ void error(const char* s) {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
     yield();
   }
@@ -46,7 +46,7 @@ void loop() {
 
   // F() stores strings in flash to save RAM
   Serial.println(F("Type any character to start"));
-  
+
   while (!Serial.available()) {
     yield();
   }

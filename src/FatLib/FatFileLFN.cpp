@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -26,8 +26,7 @@
 #include "../common/DebugMacros.h"
 #include "../common/upcase.h"
 #include "../common/FsUtf.h"
-#include "FatFile.h"
-#include "FatVolume.h"
+#include "FatLib.h"
 #if USE_LONG_FILE_NAMES
 //------------------------------------------------------------------------------
 static bool isLower(char c) {
@@ -71,7 +70,7 @@ static uint16_t Bernstein(const char* bgn, const char* end, uint16_t hash) {
   return hash;
 }
 //==============================================================================
-bool FatFile::cmpName(uint16_t index, FatName_t* fname, uint8_t lfnOrd) {
+bool FatFile::cmpName(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd) {
   FatFile dir = *this;
   DirLfn_t* ldir;
   fname->reset();
@@ -109,7 +108,7 @@ bool FatFile::cmpName(uint16_t index, FatName_t* fname, uint8_t lfnOrd) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::createLFN(uint16_t index, FatName_t* fname, uint8_t lfnOrd) {
+bool FatFile::createLFN(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd) {
   FatFile dir = *this;
   DirLfn_t* ldir;
   uint8_t checksum = lfnChecksum(fname->sfn);
@@ -146,7 +145,7 @@ bool FatFile::createLFN(uint16_t index, FatName_t* fname, uint8_t lfnOrd) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::makeSFN(FatName_t* fname) {
+bool FatFile::makeSFN(FatLfn_t* fname) {
   bool is83;
 //  char c;
   uint8_t c;
@@ -177,14 +176,12 @@ bool FatFile::makeSFN(FatName_t* fname) {
 
   for (; ptr < end; ptr++) {
     c = *ptr;
-//  Could skip UTF-8 units where (0XC0 & c) == 0X80
-
     if (c == '.' && ptr == dot) {
       in = 10;  // Max index for full 8.3 name.
       i = 8;    // Place for extension.
       bit = FAT_CASE_LC_EXT;  // bit for extension.
     } else {
-      if (!legal83Char(c)) {
+      if (sfnReservedChar(c)) {
         is83 = false;
         // Skip UTF-8 trailing characters.
         if ((c & 0XC0) == 0X80) {
@@ -231,7 +228,7 @@ bool FatFile::makeSFN(FatName_t* fname) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::makeUniqueSfn(FatName_t* fname) {
+bool FatFile::makeUniqueSfn(FatLfn_t* fname) {
   const uint8_t FIRST_HASH_SEQ = 2;  // min value is 2
   uint8_t pos = fname->seqPos;
   DirFat_t* dir;
@@ -287,7 +284,7 @@ bool FatFile::makeUniqueSfn(FatName_t* fname) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
+bool FatFile::open(FatFile* dirFile, FatLfn_t* fname, oflag_t oflag) {
   bool fnameFound = false;
   uint8_t lfnOrd = 0;
   uint8_t freeNeed;
@@ -302,6 +299,7 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
   uint16_t time;
   DirFat_t* dir;
   DirLfn_t* ldir;
+  auto vol = dirFile->m_vol;
 
   if (!dirFile->isDir() || isOpen()) {
     DBG_FAIL_MACRO;
@@ -312,7 +310,7 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
   freeNeed = fname->flags & FNAME_FLAG_NEED_LFN ? 1 + nameOrd : 1;
   dirFile->rewind();
   while (1) {
-    curIndex = dirFile->m_curPosition/32;
+    curIndex = dirFile->m_curPosition/FS_DIR_SIZE;
     dir = dirFile->readDirCache();
     if (!dir) {
       if (dirFile->getError()) {
@@ -415,7 +413,7 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    freeFound += dirFile->m_vol->sectorsPerCluster();
+    freeFound += vol->dirEntriesPerCluster();
   }
   if (fnameFound) {
     if (!dirFile->makeUniqueSfn(fname)) {
@@ -456,7 +454,7 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
     }
   }
   // Force write of entry to device.
-  dirFile->m_vol->cacheDirty();
+  vol->cacheDirty();
 
  open:
   // open entry in cache.
@@ -471,7 +469,7 @@ bool FatFile::open(FatFile* dirFile, FatName_t* fname, oflag_t oflag) {
 }
 //------------------------------------------------------------------------------
 bool FatFile::parsePathName(const char* path,
-                            FatName_t* fname, const char** ptr) {
+                            FatLfn_t* fname, const char** ptr) {
   size_t len = 0;
   // Skip leading spaces.
   while (*path == ' ') {

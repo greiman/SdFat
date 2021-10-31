@@ -18,10 +18,10 @@ ArduinoOutStream cout(Serial);
 void setup() {
   int c;
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   // Initialize at the highest speed supported by the board that is
   // not over 50 MHz. Try a lower speed if SPI errors occur.

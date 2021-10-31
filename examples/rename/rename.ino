@@ -64,11 +64,11 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   cout << F("Insert an empty SD.  Type any character to start.") << endl;
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   // Initialize at the highest speed supported by the board that is

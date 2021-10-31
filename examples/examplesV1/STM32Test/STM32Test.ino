@@ -33,7 +33,7 @@ const uint16_t NWRITE = FILE_SIZE/BUF_DIM;
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
   }
 
@@ -151,7 +151,7 @@ void setup() {
   Serial.println(F(" millis"));
   // close test.bin
   file1.close();
-  file2.close(); 
+  file2.close();
   // list current directory on both cards
   Serial.println(F("------sd1 -------"));
   sd1.ls("/", LS_R | LS_DATE | LS_SIZE);

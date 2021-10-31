@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,7 +24,7 @@
  */
 #include "ExFatVolume.h"
 #include "../common/upcase.h"
-#include "ExFatFile.h"
+#include "ExFatLib.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
 static void printHex(print_t* pr, uint8_t h);
@@ -294,7 +294,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
   uint8_t* upcase = nullptr;
   uint32_t size = 0;
   uint32_t sector = clusterStartSector(m_rootDirectoryCluster);
-  uint8_t* cache = dataCacheGet(sector, FsCache::CACHE_FOR_READ);
+  uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("read root failed"));
     return;
@@ -315,7 +315,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
   }
   for (size_t i = 0; i < size/2; i++) {
     if ((i%256) == 0) {
-      upcase = dataCacheGet(sector++, FsCache::CACHE_FOR_READ);
+      upcase = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!upcase) {
         pr->println(F("read upcase failed"));
         return;
@@ -378,7 +378,7 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   uint32_t cluster = 128*start;
   pr->println(F("FAT:"));
   for (uint32_t i = 0; i < count; i++) {
-    uint8_t* cache = dataCacheGet(sector + i, FsCache::CACHE_FOR_READ);
+    uint8_t* cache = dataCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
     if (!cache) {
       pr->println(F("cache read failed"));
       return;
@@ -400,12 +400,12 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
 }
 //------------------------------------------------------------------------------
 void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
-  uint8_t* cache = dataCacheGet(sector, FsCache::CACHE_FOR_READ);
+  uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("dmpSector failed"));
     return;
   }
-  for (uint16_t i = 0; i < 512; i++) {
+  for (uint16_t i = 0; i < m_bytesPerSector; i++) {
     if (i%32 == 0) {
       if (i) {
         pr->println();
@@ -434,8 +434,8 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
 #define RAW_ROOT
 #ifndef RAW_ROOT
   while (1) {
-    uint8_t buf[32];
-    if (file->read(buf, 32) != 32) {
+    uint8_t buf[FS_DIR_SIZE];
+    if (file->read(buf, FS_DIR_SIZE) != FS_DIR_SIZE) {
       break;
     }
     dir = reinterpret_cast<DirGeneric_t*>(buf);
@@ -446,7 +446,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
   for (uint32_t iDir = 0; iDir < nDir; iDir++) {
     size_t i = iDir%16;
     if (i == 0) {
-      uint8_t* cache = dataCacheGet(sector++, FsCache::CACHE_FOR_READ);
+      uint8_t* cache = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!cache) {
         return false;
       }
@@ -556,7 +556,7 @@ void ExFatPartition::printUpcase(print_t* pr) {
   uint32_t checksum = 0;
   DirUpcase_t* dir;
   sector = clusterStartSector(m_rootDirectoryCluster);
-  upcase = dataCacheGet(sector, FsCache::CACHE_FOR_READ);
+  upcase = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   dir = reinterpret_cast<DirUpcase_t*>(upcase);
   if (!dir) {
     pr->println(F("read root dir failed"));
@@ -575,7 +575,7 @@ void ExFatPartition::printUpcase(print_t* pr) {
   }
   for (uint16_t i = 0; i < size/2; i++) {
     if ((i%256) == 0) {
-      upcase = dataCacheGet(sector++, FsCache::CACHE_FOR_READ);
+      upcase = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!upcase) {
         pr->println(F("read upcase failed"));
         return;
@@ -597,7 +597,7 @@ void ExFatPartition::printUpcase(print_t* pr) {
 }
 //------------------------------------------------------------------------------
 bool ExFatPartition::printVolInfo(print_t* pr) {
-  uint8_t* cache = dataCacheGet(0, FsCache::CACHE_FOR_READ);
+  uint8_t* cache = dataCachePrepare(0, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("read mbr failed"));
     return false;
@@ -610,7 +610,7 @@ bool ExFatPartition::printVolInfo(print_t* pr) {
     pr->print(F("bad partition size"));
     return false;
   }
-  cache = dataCacheGet(volStart, FsCache::CACHE_FOR_READ);
+  cache = dataCachePrepare(volStart, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("read pbs failed"));
     return false;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,9 +25,7 @@
 #define DBG_FILE "FatName.cpp"
 #include "../common/DebugMacros.h"
 #include "../common/FsUtf.h"
-#include "FatFile.h"
-#include "FatVolume.h"
-
+#include "FatLib.h"
 //------------------------------------------------------------------------------
 uint16_t FatFile::getLfnChar(DirLfn_t* ldir, uint8_t i) {
   if (i < 5) {

@@ -34,9 +34,6 @@ MinimumSerial MinSerial;
 //------------------------------------------------------------------------------
 // This example was designed for exFAT but will support FAT16/FAT32.
 //
-// If an exFAT SD is required, the ExFatFormatter example will format
-// smaller cards with an exFAT file system.
-//
 // Note: Uno will not support SD_FAT_TYPE = 3.
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -152,9 +149,9 @@ const uint16_t ISR_TIMER0 = 160;
 //==============================================================================
 const uint32_t MAX_FILE_SIZE = MAX_FILE_SIZE_MiB << 20;
 
-// Select fastest interface.  Max SPI rate for AVR is 10 MHx.
+// Max SPI rate for AVR is 10 MHz for F_CPU 20 MHz, 8 MHz for F_CPU 16 MHz.
 #define SPI_CLOCK SD_SCK_MHZ(10)
-
+// Select fastest interface.
 #if ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // ENABLE_DEDICATED_SPI
@@ -868,7 +865,7 @@ void loop(void) {
   Serial.println(F("r - record ADC data"));
 
   while(!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   char c = tolower(Serial.read());
   Serial.println();

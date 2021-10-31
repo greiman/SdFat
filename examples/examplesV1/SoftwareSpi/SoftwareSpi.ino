@@ -24,13 +24,13 @@ SdFile file;
 
 void setup() {
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   Serial.println("Type any character to start");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   if (!sd.begin(SD_CHIP_SELECT_PIN)) {
@@ -43,7 +43,7 @@ void setup() {
   file.println(F("This line was printed using software SPI."));
 
   file.rewind();
-  
+
   while (file.available()) {
     Serial.write(file.read());
   }

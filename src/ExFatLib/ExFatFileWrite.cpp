@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,8 +24,7 @@
  */
 #define DBG_FILE "ExFatFileWrite.cpp"
 #include "../common/DebugMacros.h"
-#include "ExFatFile.h"
-#include "ExFatVolume.h"
+#include "ExFatLib.h"
 //==============================================================================
 #if READ_ONLY
 bool ExFatFile::mkdir(ExFatFile* parent, const char* path, bool pFlag) {
@@ -131,18 +130,15 @@ bool ExFatFile::addDirCluster() {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  cache =  m_vol->cacheClear();
-  if (!cache) {
-    DBG_FAIL_MACRO;
-    goto fail;
-  }
-  memset(cache, 0, m_vol->bytesPerSector());
   sector = m_vol->clusterStartSector(m_curCluster);
-  for (uint32_t i = 0; i < m_vol->sectorsPerCluster(); i++) {
-    if (!m_vol->writeSector(sector + i, cache)) {
+  for (uint32_t i = 0; i  < m_vol->sectorsPerCluster(); i++) {
+    cache = m_vol->dataCachePrepare(sector + i,
+                                    FsCache::CACHE_RESERVE_FOR_WRITE);
+    if (!cache) {
       DBG_FAIL_MACRO;
       goto fail;
     }
+    memset(cache, 0, m_vol->bytesPerSector());
   }
   if (!isRoot()) {
     m_flags |= FILE_FLAG_DIR_DIRTY;
@@ -340,7 +336,7 @@ bool ExFatFile::rename(ExFatFile* dirFile, const char* newPath) {
 //------------------------------------------------------------------------------
 bool ExFatFile::rmdir() {
   int n;
-  uint8_t dir[32];
+  uint8_t dir[FS_DIR_SIZE];
   // must be open subdirectory
   if (!isSubDir()) {
     DBG_FAIL_MACRO;
@@ -350,11 +346,11 @@ bool ExFatFile::rmdir() {
 
   // make sure directory is empty
   while (1) {
-    n = read(dir, 32);
+    n = read(dir, FS_DIR_SIZE);
     if (n == 0) {
       break;
     }
-    if (n != 32 || dir[0] & 0X80) {
+    if (n != FS_DIR_SIZE || dir[0] & 0X80) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -493,7 +489,7 @@ bool ExFatFile::timestamp(uint8_t flags, uint16_t year, uint8_t month,
   time = FS_TIME(hour, minute, second);
   ms10 = second & 1 ? 100 : 0;
 
-  for (uint8_t is = 0;; is++) {
+  for (uint8_t is = 0; is <= m_setCount; is++) {
     cache = dirCache(is, FsCache::CACHE_FOR_READ);
     if (!cache) {
       DBG_FAIL_MACRO;
@@ -697,7 +693,7 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
         // rewrite part of sector
         cacheOption = FsCache::CACHE_FOR_WRITE;
       }
-      cache = m_vol->dataCacheGet(sector, cacheOption);
+      cache = m_vol->dataCachePrepare(sector, cacheOption);
       if (!cache) {
         DBG_FAIL_MACRO;
         goto fail;

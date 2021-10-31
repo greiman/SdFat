@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -35,7 +35,6 @@
 #include "../common/FsApiConstants.h"
 #include "../common/FsDateTime.h"
 #include "../common/FsName.h"
-#include "../common/FsStructs.h"
 #include "FatPartition.h"
 class FatVolume;
 //------------------------------------------------------------------------------
@@ -76,25 +75,41 @@ struct FatPos_t {
 #define isDirSeparator(c) ((c) == '/')
 //------------------------------------------------------------------------------
 /**
- * \class FatName_t
- * \brief Internal type for File Name - do not use in user apps.
+ * \class FatLfn_t
+ * \brief Internal type for Long File Name - do not use in user apps.
  */
-#if USE_LONG_FILE_NAMES
-class FatName_t : public FsName {
+
+class FatLfn_t : public FsName {
  public:
   /** UTF-16 length of Long File Name */
   size_t len;
   /** Position for sequence number. */
   uint8_t seqPos;
-#else  // USE_LONG_FILE_NAMES
-class FatName_t {
- public:
-#endif  // USE_LONG_FILE_NAMES
   /** Flags for base and extension character case and LFN. */
   uint8_t flags;
   /** Short File Name */
   uint8_t sfn[11];
 };
+/**
+ * \class FatSfn_t
+ * \brief Internal type for Short 8.3 File Name - do not use in user apps.
+ */
+class FatSfn_t {
+ public:
+  /** Flags for base and extension character case and LFN. */
+  uint8_t flags;
+  /** Short File Name */
+  uint8_t sfn[11];
+};
+
+#if USE_LONG_FILE_NAMES
+/** Internal class for file names */
+typedef FatLfn_t FatName_t;
+#else  // USE_LONG_FILE_NAMES
+/** Internal class for file names */
+typedef FatSfn_t FatName_t;
+#endif  // USE_LONG_FILE_NAMES
+
 /** Derived from a LFN with loss or conversion of characters. */
 const uint8_t FNAME_FLAG_LOST_CHARS = 0X01;
 /** Base-name or extension has mixed case. */
@@ -397,28 +412,6 @@ class FatFile {
   bool isSystem() const {return m_attributes & FILE_ATTR_SYSTEM;}
   /** \return True file is writable. */
   bool isWritable() const {return m_flags & FILE_FLAG_WRITE;}
-  /** Check for a legal 8.3 character.
-   * \param[in] c Character to be checked.
-   * \return true for a legal 8.3 character.
-   */
-  static bool legal83Char(uint8_t c) {
-    if (c == '"' || c == '|') {
-      return false;
-    }
-    // *+,./
-    if (0X2A <= c && c <= 0X2F && c != 0X2D) {
-      return false;
-    }
-    // :;<=>?
-    if (0X3A <= c && c <= 0X3F) {
-      return false;
-    }
-    // [\]
-    if (0X5B <= c && c <= 0X5D) {
-      return false;
-    }
-    return 0X20 < c && c < 0X7F;
-  }
   /** List directory contents.
    *
    * \param[in] pr Print stream for list.
@@ -539,6 +532,16 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool open(const char* path, oflag_t oflag = O_RDONLY);
+  /** Open existing file wih Short 8.3 names.
+   * \param[in] path with short 8.3 names.
+   *
+   * the purpose of this function is to save flash on Uno
+   * and other small boards.
+   *
+   * Directories will be opened O_RDONLY, files O_RDWR.
+   * \return true for success or false for failure.
+   */
+  bool openExistingSFN(const char* path);
   /** Open the next file or subdirectory in a directory.
    *
    * \param[in] dirFile An open FatFile instance for the directory
@@ -557,6 +560,7 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool openRoot(FatVolume* vol);
+
   /** Return the next available byte without consuming it.
    *
    * \return The byte if no error and not at eof else -1;
@@ -993,8 +997,8 @@ class FatFile {
     return seekSet(32UL*index) ? readDirCache() : nullptr;
   }
   DirFat_t* cacheDirEntry(uint8_t action);
-  bool cmpName(uint16_t index, FatName_t* fname, uint8_t lfnOrd);
-  bool createLFN(uint16_t index, FatName_t* fname, uint8_t lfnOrd);
+  bool cmpName(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd);
+  bool createLFN(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd);
   uint16_t getLfnChar(DirLfn_t* ldir, uint8_t i);
   uint8_t lfnChecksum(uint8_t* name) {
     uint8_t sum = 0;
@@ -1003,12 +1007,15 @@ class FatFile {
     }
     return sum;
   }
-  static bool makeSFN(FatName_t* fname);
-  bool makeUniqueSfn(FatName_t* fname);
+  static bool makeSFN(FatLfn_t* fname);
+  bool makeUniqueSfn(FatLfn_t* fname);
   bool openCluster(FatFile* file);
-  bool parsePathName(const char* str, FatName_t* fname, const char** ptr);
+  bool parsePathName(const char* str, FatLfn_t* fname, const char** ptr);
+  bool parsePathName(const char* str, FatSfn_t* fname, const char** ptr);
   bool mkdir(FatFile* parent, FatName_t* fname);
-  bool open(FatFile* dirFile, FatName_t* fname, oflag_t oflag);
+  bool open(FatFile* dirFile, FatLfn_t* fname, oflag_t oflag);
+  bool open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag);
+  bool openSFN(FatSfn_t* fname);
   bool openCachedEntry(FatFile* dirFile, uint16_t cacheIndex, oflag_t oflag,
                        uint8_t lfnOrd);
   DirFat_t* readDirCache(bool skipReadOk = false);

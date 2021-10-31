@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -58,7 +58,7 @@ class FsName {
   }
   void reset() {
     next = begin;
-    ls = 0;
+    ls = 0;  // lowSurrogate
   }
   uint16_t get16();
 #endif  // !USE_UTF8_LONG_NAMES

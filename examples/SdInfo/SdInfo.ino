@@ -54,7 +54,7 @@ bool cidDmp() {
   cout << F("Serial number: ") << hex << m_cid.psn << dec << endl;
   cout << F("Manufacturing date: ");
   cout << int(m_cid.mdt_month) << '/';
-  cout << (2000 + m_cid.mdt_year_low + 10 * m_cid.mdt_year_high) << endl;
+  cout << (2000 + 16*m_cid.mdt_year_high + m_cid.mdt_year_low) << endl;
   cout << endl;
   return true;
 }
@@ -206,7 +206,7 @@ void setup() {
   Serial.begin(9600);
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   cout << F("SdFat version: ") << SD_FAT_VERSION_STR << endl;
   printConfig(SD_CONFIG);
@@ -220,7 +220,7 @@ void loop() {
   // F stores strings in flash to save RAM
   cout << F("\ntype any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   uint32_t t = millis();
   if (!sd.cardBegin(SD_CONFIG)) {

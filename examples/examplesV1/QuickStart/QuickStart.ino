@@ -43,7 +43,7 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   cout << F("\nSPI pins:\n");
   cout << F("MISO: ") << int(MISO) << endl;
@@ -80,7 +80,7 @@ void loop() {
 
   cout << F("\nEnter the chip select pin number: ");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   cin.readline();
   if (cin >> chipSelect) {
@@ -156,6 +156,6 @@ void loop() {
   } while (Serial.available() && Serial.read() >= 0);
   cout << F("\nSuccess!  Type any character to restart.\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 }

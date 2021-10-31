@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -134,7 +134,7 @@ void divmod10(uint32_t in, uint32_t &div, uint32_t &mod)
   q = q >> 3;
 
   // determine error
-  uint32_t  r = in - ((q << 3) + (q << 1));   // r = in - q*10;
+  uint32_t r = in - ((q << 3) + (q << 1));   // r = in - q*10;
   div = q + (r > 9);
   if (r > 9) mod = r - 10;
   else mod = r;

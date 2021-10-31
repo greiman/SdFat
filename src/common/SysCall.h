@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -37,8 +37,7 @@
 #define nullptr NULL
 #endif  // __cplusplus < 201103
 //------------------------------------------------------------------------------
-/** Type for millis. */
-typedef uint16_t SdMillis_t;
+
 //------------------------------------------------------------------------------
 /**
  * \class SysCall
@@ -46,8 +45,6 @@ typedef uint16_t SdMillis_t;
  */
 class SysCall {
  public:
-  /** \return the time in milliseconds. */
-  static SdMillis_t curTimeMS();
   /** Halt execution of this thread. */
   static void halt() {
     while (1) {
@@ -71,11 +68,6 @@ typedef Stream stream_t;
 /** Define macro for strings stored in flash. */
 #define F(str) (str)
 #endif  // F
-//------------------------------------------------------------------------------
-/** \return the time in milliseconds. */
-inline SdMillis_t SysCall::curTimeMS() {
-  return millis();
-}
 //------------------------------------------------------------------------------
 #if defined(PLATFORM_ID)  // Only defined if a Particle device
 inline void SysCall::yield() {

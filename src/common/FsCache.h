@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -163,11 +163,12 @@ class FsCache {
   void setMirrorOffset(uint32_t offset) {
     m_mirrorOffset = offset;
   }
-  /** Fill cache with sector data.
+  /** Prepare cache to access sector.
    * \param[in] sector Sector to read.
    * \param[in] option mode for cached sector.
-   * \return Address of cached sector. */
-  uint8_t* get(uint32_t sector, uint8_t option);
+   * \return Address of cached sector. 
+   */
+  uint8_t* prepare(uint32_t sector, uint8_t option);
   /** Write current sector if dirty.
    * \return true for success or false for failure.
    */

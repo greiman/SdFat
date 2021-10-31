@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,8 +25,7 @@
 #define DBG_FILE "ExFatFormatter.cpp"
 #include "../common/DebugMacros.h"
 #include "../common/upcase.h"
-#include "../common/FsStructs.h"
-#include "ExFatFormatter.h"
+#include "ExFatLib.h"
 //------------------------------------------------------------------------------
 // Formatter assumes 512 byte sectors.
 const uint32_t BOOT_BACKUP_OFFSET = 12;
@@ -266,7 +265,7 @@ bool ExFatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   setLe64(dbm->size, bitmapSize);
 
   // upcase directory entry.
-  dup = reinterpret_cast<DirUpcase_t*>(secBuf +64);
+  dup = reinterpret_cast<DirUpcase_t*>(secBuf + 64);
   dup->type = EXFAT_TYPE_UPCASE;
   setLe32(dup->checksum, m_upcaseChecksum);
   setLe32(dup->firstCluster, UPCASE_CLUSTER);

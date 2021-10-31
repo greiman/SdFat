@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,10 +24,8 @@
  */
 #ifndef FatFormatter_h
 #define FatFormatter_h
-#include "FatFile.h"
 #include "../common/SysCall.h"
 #include "../common/BlockDevice.h"
-#include "../common/FsStructs.h"
 /**
  * \class FatFormatter
  * \brief Format a FAT volume.
@@ -59,7 +57,7 @@ class FatFormatter {
   uint32_t m_sectorCount;
   uint32_t m_totalSectors;
   BlockDevice* m_dev;
-  print_t*m_pr;
+  print_t* m_pr;
   uint8_t* m_secBuf;
   uint16_t m_reservedSectorCount;
   uint8_t m_partType;

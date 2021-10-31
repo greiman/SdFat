@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -53,6 +53,7 @@ const uint8_t DEDICATED_SPI = 1;
  * \return true for shared SPI.
  */
 inline bool spiOptionShared(uint8_t opt) {return !(opt & DEDICATED_SPI);}
+
 #else  // ENABLE_DEDICATED_SPI
 /**
  * \param[in] opt option field of SdSpiConfig.
@@ -92,7 +93,7 @@ typedef SdSpiSoftDriver SpiPort_t;
 #elif SPI_DRIVER_SELECT == 3
 class SdSpiBaseClass;
 /** Port type for extrernal SPI driver. */
-typedef SdSpiBaseClass  SpiPort_t;
+typedef SdSpiBaseClass SpiPort_t;
 #else  // SPI_DRIVER_SELECT
 typedef void*  SpiPort_t;
 #endif  // SPI_DRIVER_SELECT
@@ -136,7 +137,7 @@ class SdSpiConfig {
   /** Chip select pin. */
   const SdCsPin_t csPin;
   /** Options */
-  const uint8_t options = 0;
+  const uint8_t options = SHARED_SPI;
   /** Max SCK frequency */
   const uint32_t maxSck = SD_SCK_MHZ(50);
   /** SPI port */

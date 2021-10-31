@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -43,20 +43,6 @@ const uint8_t FAT_TYPE_FAT16 = 16;
 /** Type for FAT12 partition */
 const uint8_t FAT_TYPE_FAT32 = 32;
 
-//------------------------------------------------------------------------------
-/**
- * \brief Cache type for a sector.
- */
-union cache_t {
-  /** Used to access cached file data sectors. */
-  uint8_t  data[512];
-  /** Used to access cached FAT16 entries. */
-  uint16_t fat16[256];
-  /** Used to access cached FAT32 entries. */
-  uint32_t fat32[128];
-  /** Used to access cached directory entries. */
-  DirFat_t dir[16];
-};
 //==============================================================================
 /**
  * \class FatPartition
@@ -83,6 +69,10 @@ class FatPartition {
   /** \return The shift count required to multiply by bytesPerCluster. */
   uint8_t bytesPerSectorShift() const {
     return m_bytesPerSectorShift;
+  }
+  /** \return Number of directory entries per sector. */
+  uint16_t dirEntriesPerCluster() const {
+    return m_sectorsPerCluster*(m_bytesPerSector/FS_DIR_SIZE);
   }
   /** \return Mask for sector offset. */
   uint16_t sectorMask() const {
@@ -186,8 +176,8 @@ class FatPartition {
   friend class FatFile;
   //----------------------------------------------------------------------------
   static const uint8_t  m_bytesPerSectorShift = 9;
-  static const uint16_t m_bytesPerSector = 512;
-  static const uint16_t m_sectorMask = 0x1FF;
+  static const uint16_t m_bytesPerSector = 1 << m_bytesPerSectorShift;
+  static const uint16_t m_sectorMask = m_bytesPerSector - 1;
   //----------------------------------------------------------------------------
   BlockDevice* m_blockDev;            // sector device
   uint8_t  m_sectorsPerCluster;       // Cluster size in sectors.
@@ -215,14 +205,8 @@ class FatPartition {
   bool cacheSafeWrite(uint32_t sector, const uint8_t* dst, size_t count) {
     return m_cache.cacheSafeWrite(sector, dst, count);
   }
-  bool readSector(uint32_t sector, uint8_t* dst) {
-    return m_blockDev->readSector(sector, dst);
-  }
   bool syncDevice() {
     return m_blockDev->syncDevice();
-  }
-  bool writeSector(uint32_t sector, const uint8_t* src) {
-    return m_blockDev->writeSector(sector, src);
   }
 #if MAINTAIN_FREE_CLUSTER_COUNT
   int32_t  m_freeClusterCount;     // Count of free clusters in volume.
@@ -244,26 +228,30 @@ class FatPartition {
 #endif  // MAINTAIN_FREE_CLUSTER_COUNT
 // sector caches
   FsCache m_cache;
+  bool cachePrepare(uint32_t sector, uint8_t option) {
+    return m_cache.prepare(sector, option);
+  }
+  FsCache* dataCache() {return &m_cache;}
 #if USE_SEPARATE_FAT_CACHE
   FsCache m_fatCache;
-  cache_t* cacheFetchFat(uint32_t sector, uint8_t options) {
+  uint8_t* fatCachePrepare(uint32_t sector, uint8_t options) {
     options |= FsCache::CACHE_STATUS_MIRROR_FAT;
-    return reinterpret_cast<cache_t*>(m_fatCache.get(sector, options));
+    return m_fatCache.prepare(sector, options);
   }
   bool cacheSync() {
     return m_cache.sync() && m_fatCache.sync() && syncDevice();
   }
 #else  // USE_SEPARATE_FAT_CACHE
-  cache_t* cacheFetchFat(uint32_t sector, uint8_t options) {
+  uint8_t* fatCachePrepare(uint32_t sector, uint8_t options) {
     options |= FsCache::CACHE_STATUS_MIRROR_FAT;
-    return cacheFetchData(sector, options);
+    return dataCachePrepare(sector, options);
   }
   bool cacheSync() {
     return m_cache.sync() && syncDevice();
   }
 #endif  // USE_SEPARATE_FAT_CACHE
-  cache_t* cacheFetchData(uint32_t sector, uint8_t options) {
-    return reinterpret_cast<cache_t*>(m_cache.get(sector, options));
+  uint8_t* dataCachePrepare(uint32_t sector, uint8_t options) {
+    return m_cache.prepare(sector, options);
   }
   void cacheInvalidate() {
     m_cache.invalidate();
@@ -271,8 +259,8 @@ class FatPartition {
   bool cacheSyncData() {
     return m_cache.sync();
   }
-  cache_t* cacheAddress() {
-    return reinterpret_cast<cache_t*>(m_cache.cacheBuffer());
+  uint8_t* cacheAddress() {
+    return m_cache.cacheBuffer();
   }
   uint32_t cacheSectorNumber() {
     return m_cache.sector();
@@ -299,7 +287,4 @@ class FatPartition {
     return cluster > m_lastCluster;
   }
 };
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-bool printFatDir(print_t* pr, DirFat_t* dir);
-#endif  // DOXYGEN_SHOULD_SKIP_THIS
 #endif  // FatPartition

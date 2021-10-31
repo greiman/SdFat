@@ -17,12 +17,12 @@ const uint8_t DATAZ1 = 0x37; //Z-Axis Data 1
 
 void writeADXL345Register(const uint8_t registerAddress, const uint8_t value) {
   // Max SPI clock frequency is 5 MHz with CPOL = 1 and CPHA = 1.
-  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE3));  
+  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE3));
   digitalWrite(ADXL345_CS, LOW);
   SPI.transfer(registerAddress);
   SPI.transfer(value);
   digitalWrite(ADXL345_CS, HIGH);
-  SPI.endTransaction();  
+  SPI.endTransaction();
 }
 
 void userSetup() {
@@ -32,7 +32,7 @@ void userSetup() {
   //Put the ADXL345 into +/- 4G range by writing the value 0x01 to the DATA_FORMAT register.
   writeADXL345Register(DATA_FORMAT, 0x01);
   //Put the ADXL345 into Measurement Mode by writing 0x08 to the POWER_CTL register.
-  writeADXL345Register(POWER_CTL, 0x08);  //Measurement mode  
+  writeADXL345Register(POWER_CTL, 0x08);  //Measurement mode
 }
 
 // Acquire a data record.
@@ -45,7 +45,7 @@ void acquireData(data_t* data) {
   SPI.transfer(DATAX0 | 0XC0);
   data->accel[0] = SPI.transfer(0) | (SPI.transfer(0) << 8);
   data->accel[1] = SPI.transfer(0) | (SPI.transfer(0) << 8);
-  data->accel[2] = SPI.transfer(0) | (SPI.transfer(0) << 8); 
+  data->accel[2] = SPI.transfer(0) | (SPI.transfer(0) << 8);
   digitalWrite(ADXL345_CS, HIGH);
   SPI.endTransaction();
 }

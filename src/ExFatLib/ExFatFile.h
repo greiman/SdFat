@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -30,18 +30,28 @@
  */
 #include <limits.h>
 #include <string.h>
-#include "ExFatConfig.h"
 #include "../common/FsDateTime.h"
-#include "../common/FsStructs.h"
 #include "../common/FsApiConstants.h"
 #include "../common/FmtNumber.h"
-#include "ExFatTypes.h"
+#include "../common/FsName.h"
 #include "ExFatPartition.h"
 
 class ExFatVolume;
 //------------------------------------------------------------------------------
 /** Expression for path name separator. */
 #define isDirSeparator(c) ((c) == '/')
+//------------------------------------------------------------------------------
+/**
+ * \class ExName_t
+ * \brief Internal type for file name - do not use in user apps.
+ */
+class ExName_t : public FsName {
+ public:
+  /** Length of UTF-16 name */
+  size_t nameLength;
+  /** Hash for UTF-16 name */
+  uint16_t nameHash;
+};
 //------------------------------------------------------------------------------
 /**
  * \class ExFatFile
@@ -125,7 +135,7 @@ class ExFatFile {
   /** \return Total data length for file. */
   uint64_t dataLength() const {return m_dataLength;}
   /** \return Directory entry index. */
-  uint32_t dirIndex() const {return m_dirPos.position/32;}
+  uint32_t dirIndex() const {return m_dirPos.position/FS_DIR_SIZE;}
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.

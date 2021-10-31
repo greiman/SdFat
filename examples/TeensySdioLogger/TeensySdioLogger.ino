@@ -62,7 +62,7 @@ void logData() {
     // Amount of data in ringBuf.
     size_t n = rb.bytesUsed();
     if ((n + file.curPosition()) > (LOG_FILE_SIZE - 20)) {
-      Serial.println("File full - quiting.");
+      Serial.println("File full - quitting.");
       break;
     }
     if (n > maxUsed) {

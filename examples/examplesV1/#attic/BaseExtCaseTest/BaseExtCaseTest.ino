@@ -17,14 +17,14 @@ const char* name[] = {
 //------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-  
-  // Wait for USB Serial 
+
+  // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   Serial.println("type any character to start");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     Serial.println("begin failed");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -72,12 +72,9 @@
 #if defined(__AVR__) && FLASHEND < 0X8000
 // 32K AVR boards.
 #define SDFAT_FILE_TYPE 1
-#elif defined(__arm__)
-// ARM boards usually have plenty of memory
-#define SDFAT_FILE_TYPE 3
 #else  // defined(__AVR__) && FLASHEND < 0X8000
 // All other boards.
-#define SDFAT_FILE_TYPE 1
+#define SDFAT_FILE_TYPE 3
 #endif  // defined(__AVR__) && FLASHEND < 0X8000
 #endif  // SDFAT_FILE_TYPE
 //------------------------------------------------------------------------------

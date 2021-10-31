@@ -32,12 +32,11 @@
 #include <stddef.h>
 #include <string.h>
 
-class __FlashStringHelper;
-
 #ifdef F
 #warning F() macro defined for non Arduino System
 #elif defined(__AVR__)
 #include <avr/pgmspace.h>
+class __FlashStringHelper;
 #define F(str) (reinterpret_cast<const __FlashStringHelper *>(PSTR(str)))
 #else  // F
 #define F(str) (str)

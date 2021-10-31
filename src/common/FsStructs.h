@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,6 +24,7 @@
  */
 #ifndef FsStructs_h
 #define FsStructs_h
+#include <stddef.h>
 #include <stdint.h>
 //-----------------------------------------------------------------------------
 void lbaToMbrChs(uint8_t* chs, uint32_t capacityMB, uint32_t lba);
@@ -42,7 +43,6 @@ inline uint64_t getLe64(const uint8_t* src) {
 inline void setLe16(uint8_t* dst, uint16_t src) {
   *reinterpret_cast<uint16_t*>(dst) = src;
 }
-
 inline void setLe32(uint8_t* dst, uint32_t src) {
   *reinterpret_cast<uint32_t*>(dst) = src;
 }
@@ -92,10 +92,26 @@ inline void setLe64(uint8_t* dst, uint64_t src) {
 }
 #endif  // USE_SIMPLE_LITTLE_ENDIAN
 //------------------------------------------------------------------------------
+// Size of FAT and exFAT directory structures.
+const size_t FS_DIR_SIZE = 32;
+//------------------------------------------------------------------------------
 // Reserved characters for exFAT names and FAT LFN.
 inline bool lfnReservedChar(uint8_t c) {
   return c < 0X20 || c == '"' || c == '*' || c == '/' || c == ':'
-      || c == '<' || c == '>' || c == '?' || c == '\\'|| c == '|';
+    || c == '<' || c == '>' || c == '?' || c == '\\'|| c == '|';
+}
+//------------------------------------------------------------------------------
+// Reserved characters for FAT short 8.3 names.
+inline bool sfnReservedChar(uint8_t c) {
+  if (c == '"' || c == '|' || c == '[' || c == '\\' || c == ']') {
+    return true;
+  }
+  //  *+,./ or :;<=>?
+  if ((0X2A <= c && c <= 0X2F && c != 0X2D) || (0X3A <= c && c <= 0X3F)) {
+    return true;
+  }
+  // Reserved if not in range (0X20, 0X7F).
+  return !(0X20 < c && c < 0X7F);
 }
 //------------------------------------------------------------------------------
 const uint16_t MBR_SIGNATURE = 0xAA55;

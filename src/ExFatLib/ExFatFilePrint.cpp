@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,8 +24,8 @@
  */
 #define DBG_FILE "ExFatFilePrint.cpp"
 #include "../common/DebugMacros.h"
-#include "ExFatFile.h"
-#include "ExFatVolume.h"
+#include "ExFatLib.h"
+#include "../common/FsUtf.h"
 //------------------------------------------------------------------------------
 bool ExFatFile::ls(print_t* pr) {
   ExFatFile file;

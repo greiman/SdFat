@@ -84,7 +84,7 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   delay(1000);
   cout << F("\nUse a freshly formatted SD for best performance.\n");
@@ -108,7 +108,7 @@ void loop() {
   // F( stores strings in flash to save RAM
   cout << F("Type any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   cout << F("chipSelect: ") << int(chipSelect) << endl;
   cout << F("FreeStack: ") << FreeStack() << endl;

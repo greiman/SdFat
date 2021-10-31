@@ -12,7 +12,7 @@
  * and SDFormatter uses FAT12.
  */
 #error  use new Version 2 SdFormatter
-// Set USE_SDIO to zero for SPI card access. 
+// Set USE_SDIO to zero for SPI card access.
 #define USE_SDIO 0
 //
 // Change the value of chipSelect if your hardware does
@@ -45,7 +45,7 @@ SdioCardEX card;
 #else  // USE_SDIO
 Sd2Card card;
 #endif  // USE_SDIO
- 
+
 uint32_t cardSizeBlocks;
 uint32_t cardCapacityMB;
 
@@ -84,7 +84,7 @@ void sdErrorHalt() {
     cout << F("SD error: ") << hex << int(card.errorCode());
     cout << ',' << int(card.errorData()) << dec << endl;
   }
-  SysCall::halt();
+  while (true) {}
 }
 //------------------------------------------------------------------------------
 #if DEBUG_PRINT
@@ -171,10 +171,10 @@ void clearFatDir(uint32_t bgn, uint32_t count) {
   for (uint32_t i = 0; i < count; i++) {
     if (!card.writeBlock(bgn + i, cache.data)) {
        sdError("Clear FAT/DIR writeBlock failed");
-    }     
+    }
     if ((i & 0XFF) == 0) {
       cout << '.';
-    }    
+    }
   }
 #else  // USE_SDIO
   if (!card.writeStart(bgn, count)) {
@@ -461,13 +461,13 @@ void formatCard() {
 void setup() {
   char c;
   Serial.begin(9600);
-  // Wait for USB Serial 
+  // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   cout << F("Type any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   // Discard any extra characters.
   do {
@@ -487,7 +487,7 @@ void setup() {
          "Warning, all data on the card will be erased.\n"
          "Enter 'Y' to continue: ");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   c = Serial.read();
@@ -511,7 +511,7 @@ void setup() {
          "Enter option: ");
 
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   c = Serial.read();
   cout << c << endl;
@@ -521,7 +521,7 @@ void setup() {
   }
 #if USE_SDIO
   if (!card.begin()) {
-    sdError("card.begin failed");  
+    sdError("card.begin failed");
   }
 #else  // USE_SDIO
   if (!card.begin(chipSelect, SPI_SPEED)) {
@@ -531,7 +531,7 @@ void setup() {
            "Is chip select correct at the top of this program?\n");
     sdError("card.begin failed");
   }
-#endif  
+#endif
   cardSizeBlocks = card.cardSize();
   if (cardSizeBlocks == 0) {
     sdError("cardSize");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,13 +33,13 @@
 /* chip select register number */
 #define SPI_CHIP_SEL 3
 /* DMAC receive channel */
-#define SPI_DMAC_RX_CH  1
+#define SPI_DMAC_RX_CH 1
 /* DMAC transmit channel */
-#define SPI_DMAC_TX_CH  0
+#define SPI_DMAC_TX_CH 0
 /* DMAC Channel HW Interface Number for SPI TX. */
-#define SPI_TX_IDX  1
+#define SPI_TX_IDX 1
 /* DMAC Channel HW Interface Number for SPI RX. */
-#define SPI_RX_IDX  2
+#define SPI_RX_IDX 2
 //------------------------------------------------------------------------------
 /* Disable DMA Controller. */
 static void dmac_disable() {

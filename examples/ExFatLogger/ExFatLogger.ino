@@ -516,7 +516,7 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   delay(1000);
   Serial.println(F("Type any character to begin"));
@@ -568,7 +568,7 @@ void loop() {
   Serial.println(F("r - record data"));
   Serial.println(F("t - test without logging"));
   while(!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   char c = tolower(Serial.read());
   Serial.println();

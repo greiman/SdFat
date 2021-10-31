@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,7 +25,8 @@
 #define DBG_FILE "ExFatName.cpp"
 #include "../common/DebugMacros.h"
 #include "../common/upcase.h"
-#include "ExFatFile.h"
+#include "../common/FsUtf.h"
+#include "ExFatLib.h"
 //------------------------------------------------------------------------------
 static char toUpper(char c) {
   return 'a' <= c && c <= 'z' ? c - 'a' + 'A' : c;

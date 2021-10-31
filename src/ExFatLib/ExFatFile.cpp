@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,8 +25,7 @@
 #define DBG_FILE "ExFatFile.cpp"
 #include "../common/DebugMacros.h"
 #include "../common/FsUtf.h"
-#include "ExFatFile.h"
-#include "ExFatVolume.h"
+#include "ExFatLib.h"
 //------------------------------------------------------------------------------
 /** test for legal character.
  *
@@ -44,7 +43,7 @@ inline bool lfnLegalChar(uint8_t c) {
 //------------------------------------------------------------------------------
 uint8_t* ExFatFile::dirCache(uint8_t set, uint8_t options) {
   DirPos_t pos = m_dirPos;
-  if (m_vol->dirSeek(&pos, 32*set) != 1) {
+  if (m_vol->dirSeek(&pos, FS_DIR_SIZE*set) != 1) {
     return nullptr;
   }
   return m_vol->dirCache(&pos, options);
@@ -214,7 +213,7 @@ bool ExFatFile::open(ExFatFile* dirFile, const char* path, oflag_t oflag) {
 }
 //------------------------------------------------------------------------------
 bool ExFatFile::open(ExFatFile* dirFile, uint32_t index, oflag_t oflag) {
-  if (dirFile->seekSet(32*index) && openNext(dirFile, oflag)) {
+  if (dirFile->seekSet(FS_DIR_SIZE*index) && openNext(dirFile, oflag)) {
     if (dirIndex() == index) {
       return true;
     }
@@ -245,7 +244,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
   DirFile_t*   dirFile;
   DirStream_t* dirStream;
   DirName_t*   dirName;
-  uint8_t buf[32];
+  uint8_t buf[FS_DIR_SIZE];
   uint8_t freeCount = 0;
   uint8_t freeNeed = 3;
   bool inSet = false;
@@ -278,18 +277,18 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
   }
 
   while (1) {
-    n = dir->read(buf, 32);
+    n = dir->read(buf, FS_DIR_SIZE);
     if (n == 0) {
       goto create;
     }
-    if (n != 32) {
+    if (n != FS_DIR_SIZE) {
       DBG_FAIL_MACRO;
       goto fail;
     }
     if (!(buf[0] & 0x80)) {
       // Unused entry.
       if (freeCount == 0) {
-        freePos.position = dir->curPosition() - 32;
+        freePos.position = dir->curPosition() - FS_DIR_SIZE;
         freePos.cluster = dir->curCluster();
       }
       if (freeCount < freeNeed) {
@@ -321,7 +320,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       }
       m_vol = dir->volume();
       m_dirPos.cluster = dir->curCluster();
-      m_dirPos.position = dir->curPosition() - 32;
+      m_dirPos.position = dir->curPosition() - FS_DIR_SIZE;
       m_dirPos.isContiguous = dir->isContiguous();
     } else if (buf[0] == EXFAT_TYPE_STREAM) {
       dirStream = reinterpret_cast<DirStream_t*>(buf);
@@ -396,7 +395,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
     goto fail;
   }
   while (freeCount < freeNeed) {
-    n = dir->read(buf, 32);
+    n = dir->read(buf, FS_DIR_SIZE);
     if (n == 0) {
       curCluster = dir->m_curCluster;
       if (!dir->addDirCluster()) {
@@ -406,12 +405,12 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       dir->m_curCluster = curCluster;
       continue;
     }
-    if (n != 32) {
+    if (n != FS_DIR_SIZE) {
       DBG_FAIL_MACRO;
       goto fail;
     }
     if (freeCount == 0) {
-      freePos.position = dir->curPosition() - 32;
+      freePos.position = dir->curPosition() - FS_DIR_SIZE;
       freePos.cluster = dir->curCluster();
     }
     freeCount++;
@@ -428,7 +427,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    memset(cache, 0 , 32);
+    memset(cache, 0 , FS_DIR_SIZE);
     if (i == 0) {
       dirFile = reinterpret_cast<DirFile_t*>(cache);
       dirFile->type = EXFAT_TYPE_FILE;
@@ -586,7 +585,7 @@ int ExFatFile::read(void* buf, size_t count) {
         n = toRead;
       }
       // read sector to cache and copy data to caller
-      cache = m_vol->dataCacheGet(sector, FsCache::CACHE_FOR_READ);
+      cache = m_vol->dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
       if (!cache) {
         DBG_FAIL_MACRO;
         goto fail;
