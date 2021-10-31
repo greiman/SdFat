@@ -414,6 +414,7 @@ typedef uint8_t SdCsPin_t;
   || defined(ESP8266) || defined(ESP32)\
   || defined(PLATFORM_ID)\
   || defined(ARDUINO_SAM_DUE)\
+  || defined(__SAMD21G18A__)\
   || defined(STM32_CORE_VERSION)\
   || defined(__STM32F1__) || defined(__STM32F4__)\
   || (defined(CORE_TEENSY) && defined(__arm__))
