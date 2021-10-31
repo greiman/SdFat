@@ -79,6 +79,17 @@ static inline uint8_t spiTransfer(uint8_t b) {
 }
 
 //------------------------------------------------------------------------------
+// SPI RX Wait Cycle Optimization Table
+static const uint8_t rx_wait_clk_tbl[] = {
+  0, // SPI SCK @ 24 MHz (Invalid)
+  7, // SPI SCK @ 12 MHz
+  13, // SPI SCK @ 8 MHz
+  18, // SPI SCK @ 6 MHz
+  23, // SPI SCK @ 4.8 MHz
+  29 // SPI SCK @ 4 MHz
+};
+
+//------------------------------------------------------------------------------
 uint8_t SdSpiArduinoDriver::receive() {
   return spiTransfer(0XFF);
 }
@@ -86,15 +97,45 @@ uint8_t SdSpiArduinoDriver::receive() {
 //------------------------------------------------------------------------------
 uint8_t SdSpiArduinoDriver::receive(uint8_t* buf, size_t count) {
   int rtn = 0;
+  uint8_t wait_clk = (SPI_SERCOM->SPI.BAUD.bit.BAUD > 5) ? 0 : rx_wait_clk_tbl[SPI_SERCOM->SPI.BAUD.bit.BAUD];
 
-  for(size_t i = 0; i < count; i++) {
-    SPI_SERCOM->SPI.DATA.bit.DATA = 0XFF;
-    while(!SPI_SERCOM->SPI.INTFLAG.bit.RXC);
-    buf[i] = SPI_SERCOM->SPI.DATA.bit.DATA;
+  if (wait_clk > 0) {
+    for(size_t i = 0; i < count; i++) {
+      SPI_SERCOM->SPI.DATA.bit.DATA = 0XFF;
+      while(!SPI_SERCOM->SPI.INTFLAG.bit.DRE);
+      __asm__ __volatile__(
+      "   mov r7, %0   \n" // Use R7
+      "1:              \n"
+      "   sub r7, #1   \n" // Substract 1 From R7
+      "   bne 1b       \n" // If Result is Not 0, Jump to Label 1
+      :                    // No Output
+      :  "r" (wait_clk)    // Read wait_clk Into R7
+      :  "r7"              // Clobber R7
+      );
+      buf[i] = SPI_SERCOM->SPI.DATA.bit.DATA;
+    }
+  } else {
+    // SPI SCK Lower Than 4 MHz
+    for(size_t i = 0; i < count; i++) {
+      SPI_SERCOM->SPI.DATA.bit.DATA = 0XFF;
+      while(!SPI_SERCOM->SPI.INTFLAG.bit.RXC);
+      buf[i] = SPI_SERCOM->SPI.DATA.bit.DATA;
+    }
   }
 
   return rtn;
 }
+
+//------------------------------------------------------------------------------
+// SPI TX Wait Cycle Optimization Table
+static const uint8_t tx_wait_clk_tbl[] = {
+  0, // SPI SCK @ 24 MHz (Invalid)
+  1, // SPI SCK @ 12 MHz
+  11, // SPI SCK @ 8 MHz
+  17, // SPI SCK @ 6 MHz
+  22, // SPI SCK @ 4.8 MHz
+  27 // SPI SCK @ 4 MHz
+};
 
 //------------------------------------------------------------------------------
 void SdSpiArduinoDriver::send(uint8_t data) {
@@ -103,9 +144,28 @@ void SdSpiArduinoDriver::send(uint8_t data) {
 
 //------------------------------------------------------------------------------
 void SdSpiArduinoDriver::send(const uint8_t* buf , size_t count) {
-  for(size_t i = 0; i < count; i++) {
-    SPI_SERCOM->SPI.DATA.bit.DATA = buf[i];
-    while(!SPI_SERCOM->SPI.INTFLAG.bit.RXC);
+  uint8_t wait_clk = (SPI_SERCOM->SPI.BAUD.bit.BAUD > 5) ? 0 : tx_wait_clk_tbl[SPI_SERCOM->SPI.BAUD.bit.BAUD];
+
+  if(wait_clk > 0) {
+    for(size_t i = 0; i < count; i++) {
+      SPI_SERCOM->SPI.DATA.bit.DATA = buf[i];
+      while(!SPI_SERCOM->SPI.INTFLAG.bit.DRE);
+      __asm__ __volatile__(
+      "   mov r7, %0   \n" // Use R7
+      "1:              \n"
+      "   sub r7, #1   \n" // Substract 1 From R7
+      "   bne 1b       \n" // If Result is Not 0, Jump to Label 1
+      :                    // No Output
+      :  "r" (wait_clk)    // Read wait_clk Into R7
+      :  "r7"              // Clobber R7
+      );
+    }
+  } else {
+    // SPI SCK Lower Than 4 MHz
+    for(size_t i = 0; i < count; i++) {
+      SPI_SERCOM->SPI.DATA.bit.DATA = buf[i];
+      while(!SPI_SERCOM->SPI.INTFLAG.bit.RXC);
+    }
   }
 
   // Clear RX Overflow and Buffers
