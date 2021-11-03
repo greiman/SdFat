@@ -476,6 +476,7 @@ bool FatFile::parsePathName(const char* path,
     path++;
   }
   fname->begin = path;
+  fname->len =0;
   while (*path && !isDirSeparator(*path)) {
 #if USE_UTF8_LONG_NAMES
     uint32_t cp;
