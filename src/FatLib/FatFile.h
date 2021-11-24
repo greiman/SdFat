@@ -377,7 +377,7 @@ class FatFile {
     return isOpen() ? m_error & WRITE_ERROR : true;
   }
   /**
-   * Check for BlockDevice busy.
+   * Check for device busy.
    *
    * \return true if busy else false.
    */
@@ -442,14 +442,6 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool mkdir(FatFile* dir, const char* path, bool pFlag = true);
-  /** No longer implemented due to Long File Names.
-   *
-   * Use getName(char* name, size_t size).
-   * \return a pointer to replacement suggestion.
-   */
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-  const char* __attribute__((error("use getName(name, size)"))) name();
-#endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** Open a file in the volume root directory.
    *
    * \param[in] vol Volume where the file is located.

@@ -50,16 +50,15 @@ const uint8_t SHARED_SPI = 0;
 const uint8_t DEDICATED_SPI = 1;
 /**
  * \param[in] opt option field of SdSpiConfig.
- * \return true for shared SPI.
+ * \return true for dedicated SPI.
  */
-inline bool spiOptionShared(uint8_t opt) {return !(opt & DEDICATED_SPI);}
-
+inline bool spiOptionDedicated(uint8_t opt) {return opt & DEDICATED_SPI;}
 #else  // ENABLE_DEDICATED_SPI
 /**
  * \param[in] opt option field of SdSpiConfig.
- * \return true for shared SPI.
+ * \return true for dedicated SPI.
  */
-inline bool spiOptionShared(uint8_t opt) {(void)opt; return true;}
+inline bool spiOptionDedicated(uint8_t opt) {(void)opt; return false;}
 #endif  // ENABLE_DEDICATED_SPI
 //------------------------------------------------------------------------------
 /** SPISettings for SCK frequency in Hz. */

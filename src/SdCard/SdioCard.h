@@ -61,9 +61,9 @@ class SdioCard : public SdCardInterface {
    */
   bool begin(SdioConfig sdioConfig);
   /** Disable an SDIO card.
-   * \return false - not implemented.
+   * not implemented.
    */
-  bool end() {return false;}
+  void end() {}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
     uint32_t __attribute__((error("use sectorCount()"))) cardSize();

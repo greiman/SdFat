@@ -22,13 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsLib_h
-#define FsLib_h
-/**
- * \file
- * \brief FsLib include file.
- */
-#include "FsVolume.h"
-#include "FsFile.h"
-#include "FsFormatter.h"
-#endif  // FsLib_h
+#ifndef FsBlockDevice_h
+#define FsBlockDevice_h
+#include "SdCard/SdCard.h"
+#if HAS_SDIO_CLASS || USE_BLOCK_DEVICE_INTERFACE
+typedef FsBlockDeviceInterface FsBlockDevice;
+#else
+typedef SdCard FsBlockDevice;
+#endif
+#endif  // FsBlockDevice_h

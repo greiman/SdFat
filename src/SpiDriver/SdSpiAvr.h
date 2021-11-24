@@ -27,17 +27,21 @@
 // Use of in-line for AVR to save flash.
 #define nop asm volatile ("nop\n\t")
 //------------------------------------------------------------------------------
+inline void SdSpiArduinoDriver::activate() {
+  SPI.beginTransaction(m_spiSettings);
+}
+//------------------------------------------------------------------------------
 inline void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
   (void)spiConfig;
   SPI.begin();
 }
 //------------------------------------------------------------------------------
-inline void SdSpiArduinoDriver::activate() {
-  SPI.beginTransaction(m_spiSettings);
-}
-//------------------------------------------------------------------------------
 inline void SdSpiArduinoDriver::deactivate() {
   SPI.endTransaction();
+}
+//------------------------------------------------------------------------------
+inline void SdSpiArduinoDriver::end() {
+  SPI.end();
 }
 //------------------------------------------------------------------------------
 inline uint8_t SdSpiArduinoDriver::receive() {

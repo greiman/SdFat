@@ -266,7 +266,7 @@ uint32_t ExFatPartition::freeClusterCount() {
   }
 }
 //------------------------------------------------------------------------------
-bool ExFatPartition::init(BlockDevice* dev, uint8_t part) {
+bool ExFatPartition::init(FsBlockDevice* dev, uint8_t part) {
   uint32_t volStart = 0;
   uint8_t* cache;
   pbs_t* pbs;

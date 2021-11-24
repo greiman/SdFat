@@ -43,6 +43,8 @@ class SdSpiBaseClass {
   virtual void begin(SdSpiConfig config) = 0;
   /** Deactivate SPI hardware. */
   virtual void deactivate() {}
+  /** deactivate SPI driver. */
+  virtual void end() {}
   /** Receive a byte.
    *
    * \return The byte.

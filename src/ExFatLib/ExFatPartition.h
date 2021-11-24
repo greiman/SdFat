@@ -29,10 +29,13 @@
  * \brief ExFatPartition include file.
  */
 #include "../common/SysCall.h"
-#include "../common/BlockDevice.h"
+#include "../common/FsBlockDevice.h"
 #include "../common/FsCache.h"
 #include "../common/FsStructs.h"
-#include "ExFatConfig.h"
+/** Set EXFAT_READ_ONLY non-zero for read only */
+#ifndef EXFAT_READ_ONLY
+#define EXFAT_READ_ONLY 0
+#endif  // EXFAT_READ_ONLY
 /** Type for exFAT partition */
 const uint8_t FAT_TYPE_EXFAT = 64;
 
@@ -79,6 +82,13 @@ class ExFatPartition {
   uint32_t clusterCount() const {return m_clusterCount;}
   /** \return the cluster heap start sector. */
   uint32_t clusterHeapStartSector() const {return m_clusterHeapStartSector;}
+  /** End access to volume
+   * \return pointer to sector size buffer for format.
+   */
+  uint8_t* end() {
+    m_fatType = 0;
+    return cacheClear();
+  }
   /** \return the FAT length in sectors */
   uint32_t fatLength() const {return m_fatLength;}
   /** \return the FAT start sector number. */
@@ -96,9 +106,9 @@ class ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool init(BlockDevice* dev, uint8_t part);
+  bool init(FsBlockDevice* dev, uint8_t part);
   /**
-   * Check for BlockDevice busy.
+   * Check for device busy.
    *
    * \return true if busy else false.
    */
@@ -142,7 +152,7 @@ class ExFatPartition {
     return m_dataCache.prepare(sector, option);
 #endif  // USE_EXFAT_BITMAP_CACHE
   }
-  void cacheInit(BlockDevice* dev) {
+  void cacheInit(FsBlockDevice* dev) {
 #if USE_EXFAT_BITMAP_CACHE
     m_bitmapCache.init(dev);
 #endif  // USE_EXFAT_BITMAP_CACHE
@@ -213,7 +223,7 @@ class ExFatPartition {
   uint32_t m_rootDirectoryCluster;
   uint32_t m_clusterMask;
   uint32_t m_bytesPerCluster;
-  BlockDevice* m_blockDev;
+  FsBlockDevice* m_blockDev;
   uint8_t  m_fatType = 0;
   uint8_t  m_sectorsPerClusterShift;
 };

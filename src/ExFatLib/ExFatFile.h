@@ -250,7 +250,7 @@ class ExFatFile {
     return isOpen() ? m_error & WRITE_ERROR : true;
   }
   /**
-   * Check for BlockDevice busy.
+   * Check for FsBlockDevice busy.
    *
    * \return true if busy else false.
    */

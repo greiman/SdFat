@@ -440,7 +440,7 @@ class StdioStream : private StreamBaseFile {
     return n > 0 ? n : 0;
   }
   //----------------------------------------------------------------------------
-  /**  Print a number.
+  /** Print a number.
    *
    * \param[in] val the number to be printed.
    *

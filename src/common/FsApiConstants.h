@@ -24,8 +24,7 @@
  */
 #ifndef FsApiConstants_h
 #define FsApiConstants_h
-#include "SdFatConfig.h"
-
+#include "SysCall.h"
 #if USE_FCNTL_H
 #include <fcntl.h>
 /* values for GNU Arm Embedded Toolchain.

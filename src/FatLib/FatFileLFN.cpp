@@ -232,7 +232,7 @@ bool FatFile::makeUniqueSfn(FatLfn_t* fname) {
   const uint8_t FIRST_HASH_SEQ = 2;  // min value is 2
   uint8_t pos = fname->seqPos;
   DirFat_t* dir;
-  uint16_t hex;
+  uint16_t hex = 0;
 
   DBG_HALT_IF(!(fname->flags & FNAME_FLAG_LOST_CHARS));
   DBG_HALT_IF(fname->sfn[pos] != '~' && fname->sfn[pos + 1] != '1');
@@ -242,7 +242,7 @@ bool FatFile::makeUniqueSfn(FatLfn_t* fname) {
 #ifdef USE_LFN_HASH
     hex = Bernstein(fname->begin, fname->end, seq);
 #else
-    hex = micros();
+    hex += millis();
 #endif
     if (pos > 3) {
       // Make space in name for ~HHHH.

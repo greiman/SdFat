@@ -49,6 +49,8 @@ class SdSpiSoftDriver {
   }
   /** Deactivate SPI hardware. */
   void deactivate() {}
+  /** deactivate SPI driver. */
+  void end() {}
   /** Receive a byte.
    *
    * \return The byte.

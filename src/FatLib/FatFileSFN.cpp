@@ -37,7 +37,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
   uint8_t checksum;
 #endif  // SFN_OPEN_USES_CHKSUM
   uint8_t lfnOrd = 0;
-  uint16_t emptyIndex;
+  uint16_t emptyIndex = 0;
   uint16_t index = 0;
   DirFat_t* dir;
   DirLfn_t* ldir;
@@ -53,7 +53,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
       // At EOF if no error.
       break;
     }
-    if (dir->name[0] == FAT_NAME_FREE || dir->name[0] == FAT_NAME_FREE) {
+    if (dir->name[0] == FAT_NAME_DELETED || dir->name[0] == FAT_NAME_FREE) {
       if (!emptyFound) {
         emptyIndex = index;
         emptyFound = true;

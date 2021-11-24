@@ -48,6 +48,10 @@ void SdSpiArduinoDriver::deactivate() {
   m_spi->endTransaction();
 }
 //------------------------------------------------------------------------------
+void SdSpiArduinoDriver::end() {
+  m_spi->end();
+}
+//------------------------------------------------------------------------------
 uint8_t SdSpiArduinoDriver::receive() {
   return m_spi->transfer(0XFF);
 }

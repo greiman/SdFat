@@ -24,22 +24,24 @@
  */
 /**
  * \file
- * \brief BlockDeviceInterface include file.
+ * \brief FsBlockDeviceInterface include file.
  */
-#ifndef BlockDeviceInterface_h
-#define BlockDeviceInterface_h
+#ifndef FsBlockDeviceInterface_h
+#define FsBlockDeviceInterface_h
 #include <stdint.h>
 #include <stddef.h>
-#include "SdFatConfig.h"
 /**
- * \class BlockDeviceInterface
- * \brief BlockDeviceInterface class.
+ * \class FsBlockDeviceInterface
+ * \brief FsBlockDeviceInterface class.
  */
-class BlockDeviceInterface {
+class FsBlockDeviceInterface {
  public:
-  virtual ~BlockDeviceInterface() {}
+  virtual ~FsBlockDeviceInterface() {}
+
+  /** end use of device */
+  virtual void end() {}
   /**
-   * Check for BlockDevice busy.
+   * Check for FsBlockDevice busy.
    *
    * \return true if busy else false.
    */
@@ -90,4 +92,4 @@ class BlockDeviceInterface {
    */
   virtual bool writeSectors(uint32_t sector, const uint8_t* src, size_t ns) = 0;
 };
-#endif  // BlockDeviceInterface_h
+#endif  // FsBlockDeviceInterface_h

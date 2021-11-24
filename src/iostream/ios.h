@@ -33,7 +33,7 @@
 /** For internal use in c++ streams */
 typedef fspos_t pos_t;
 //==============================================================================
-#if SDFAT_FILE_TYPE == 1
+#if SDFAT_FILE_TYPE == 1 || defined(DOXYGEN)
 /** Set File type for iostreams. */
 typedef FatFile StreamBaseFile;
 #elif SDFAT_FILE_TYPE == 2

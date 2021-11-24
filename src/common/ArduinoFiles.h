@@ -24,7 +24,7 @@
  */
 #ifndef ArduinoFiles_h
 #define ArduinoFiles_h
-#include "SdFatConfig.h"
+#include "SysCall.h"
 //------------------------------------------------------------------------------
 /** Arduino SD.h style flag for open for read. */
 #ifndef FILE_READ
@@ -91,9 +91,8 @@ class StreamFile : public stream_t, public BaseFile {
    * \return a pointer to replacement suggestion.
    */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  const char* __attribute__((error("use getName(name, size)"))) name();
+  char* __attribute__((error("use getName(name, size)"))) name();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
-  const char* name() const {return "use getName()";}
   /** Return the next available byte without consuming it.
    *
    * \return The byte if no error and not at eof else -1;

@@ -390,7 +390,7 @@ int32_t FatPartition::freeClusterCount() {
   return -1;
 }
 //------------------------------------------------------------------------------
-bool FatPartition::init(BlockDevice* dev, uint8_t part) {
+bool FatPartition::init(FsBlockDevice* dev, uint8_t part) {
   uint32_t clusterCount;
   uint32_t totalSectors;
   uint32_t volumeStartSector = 0;

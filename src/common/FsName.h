@@ -24,7 +24,7 @@
  */
 #ifndef FsName_h
 #define FsName_h
-#include "SdFatConfig.h"
+#include "SysCall.h"
 #include <stdint.h>
 /**
  * \file

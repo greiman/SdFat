@@ -46,6 +46,10 @@ inline void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
   m_spi->begin();
 }
 //------------------------------------------------------------------------------
+inline void SdSpiArduinoDriver::end() {
+  m_spi->end();
+}
+//------------------------------------------------------------------------------
 inline void SdSpiArduinoDriver::deactivate() {
   m_spi->endTransaction();
 }

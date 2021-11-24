@@ -25,7 +25,7 @@
 #ifndef FatFormatter_h
 #define FatFormatter_h
 #include "../common/SysCall.h"
-#include "../common/BlockDevice.h"
+#include "../common/FsBlockDevice.h"
 /**
  * \class FatFormatter
  * \brief Format a FAT volume.
@@ -41,7 +41,7 @@ class FatFormatter {
    *
    * \return true for success or false for failure.
    */
-  bool format(BlockDevice* dev, uint8_t* secBuffer, print_t* pr = nullptr);
+  bool format(FsBlockDevice* dev, uint8_t* secBuffer, print_t* pr = nullptr);
 
  private:
   bool initFatDir(uint8_t fatType, uint32_t sectorCount);
@@ -56,7 +56,7 @@ class FatFormatter {
   uint32_t m_relativeSectors;
   uint32_t m_sectorCount;
   uint32_t m_totalSectors;
-  BlockDevice* m_dev;
+  FsBlockDevice* m_dev;
   print_t* m_pr;
   uint8_t* m_secBuf;
   uint16_t m_reservedSectorCount;

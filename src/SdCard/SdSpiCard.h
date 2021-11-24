@@ -41,7 +41,7 @@
 #if HAS_SDIO_CLASS
 class SharedSpiCard : public SdCardInterface {
 #elif USE_BLOCK_DEVICE_INTERFACE
-class SharedSpiCard : public BlockDeviceInterface {
+class SharedSpiCard : public FsBlockDeviceInterface {
 #else  // HAS_SDIO_CLASS
 class SharedSpiCard {
 #endif  // HAS_SDIO_CLASS
@@ -59,6 +59,10 @@ class SharedSpiCard {
    * \return true for success or false for failure.
    */
   bool begin(SdSpiConfig spiConfig);
+  /** End use of card */
+  void end() {
+    spiEnd();
+  }
   /** Erase a range of sectors.
    *
    * \param[in] firstSector The address of the first sector in the range.
@@ -96,12 +100,16 @@ class SharedSpiCard {
   uint32_t errorData() const {
     return m_status;
   }
+  /** \return false for shared class. */
+  bool hasDedicatedSpi() {return false;}
   /**
    * Check for busy.  MISO low indicates the card is busy.
    *
    * \return true if busy else false.
    */
   bool isBusy();
+  /** \return false, can't be in dedicated state. */
+  bool isDedicatedSpi() {return false;}
   /**
    * Read a card's CID register. The CID contains card identification
    * information such as Manufacturer ID, Product name, Product serial
@@ -189,6 +197,14 @@ class SharedSpiCard {
   // Use sectorCount(). cardSize() will be removed in the future.
   uint32_t __attribute__((error("use sectorCount()"))) cardSize();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
+  /** Set SPI sharing state
+   * \param[in] value desired state.
+   * \return false for shared card
+   */
+  bool setDedicatedSpi(bool value) {
+    (void)value;
+    return false;
+  }
   /** end a mult-sector transfer.
    *
    * \return true for success or false for failure.
@@ -263,7 +279,6 @@ class SharedSpiCard {
   }
   bool waitReady(uint16_t ms);
   bool writeData(uint8_t token, const uint8_t* src);
-
 #if SPI_DRIVER_SELECT < 2
   void spiActivate() {
     m_spiDriver.activate();
@@ -273,6 +288,9 @@ class SharedSpiCard {
   }
   void spiDeactivate() {
     m_spiDriver.deactivate();
+  }
+  void spiEnd() {
+    m_spiDriver.end();
   }
   uint8_t spiReceive() {
     return m_spiDriver.receive();
@@ -300,6 +318,9 @@ class SharedSpiCard {
   void spiDeactivate() {
     m_spiDriverPtr->deactivate();
   }
+  void spiEnd() {
+    m_spiDriverPtr->end();
+  }
   uint8_t spiReceive() {
     return m_spiDriverPtr->receive();
   }
@@ -317,7 +338,6 @@ class SharedSpiCard {
   }
   SdSpiDriver* m_spiDriverPtr;
 #endif  // SPI_DRIVER_SELECT < 2
-
   SdCsPin_t m_csPin;
   uint8_t m_errorCode = SD_CARD_ERROR_INIT_NOT_CALLED;
   bool    m_spiActive;
@@ -340,6 +360,10 @@ class DedicatedSpiCard : public SharedSpiCard {
    * \return true for success or false for failure.
    */
   bool begin(SdSpiConfig spiConfig);
+  /** \return true, can be in dedicaded state. */
+  bool hasDedicatedSpi() {return true;}
+  /** \return true if in dedicated SPI state. */
+  bool isDedicatedSpi() {return m_dedicatedSpi;}
   /**
    * Read a 512 byte sector from an SD card.
    *
@@ -357,6 +381,11 @@ class DedicatedSpiCard : public SharedSpiCard {
    * \return true for success or false for failure.
    */
   bool readSectors(uint32_t sector, uint8_t* dst, size_t ns);
+  /** Set SPI sharing state
+   * \param[in] value desired state.
+   * \return true for success else false;
+   */
+  bool setDedicatedSpi(bool value);
   /**
    * Write a 512 byte sector to an SD card.
    *
@@ -377,7 +406,7 @@ class DedicatedSpiCard : public SharedSpiCard {
 
  private:
   uint32_t m_curSector;
-  bool m_sharedSpi = true;
+  bool m_dedicatedSpi = false;
 };
 //==============================================================================
 #if ENABLE_DEDICATED_SPI

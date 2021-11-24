@@ -83,8 +83,12 @@ size_t ExFatFile::getName7(char* name, size_t count) {
     }
     for (uint8_t in = 0; in < 15; in++) {
       uint16_t c = getLe16(dn->unicode + 2*in);
-      if (c == 0 || (n + 1) >= count) {
+      if (c == 0) {
         goto done;
+      }
+      if ((n + 1) >= count) {
+        DBG_FAIL_MACRO;
+        goto fail;
       }
       name[n++] = c < 0X7F ? c : '?';
     }
@@ -140,8 +144,8 @@ size_t ExFatFile::getName8(char* name, size_t count) {
       // Save space for zero byte.
       ptr = FsUtf::cpToMb(cp, str, end - 1);
       if (!ptr) {
-        // Truncate name.  Could goto fail.
-        goto done;
+        DBG_FAIL_MACRO;
+        goto fail;
       }
       str = ptr;
     }

@@ -361,13 +361,13 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
   }
   // Write, truncate, or at end is an error for a directory or read-only file.
   if ((oflag & (O_TRUNC | O_AT_END)) || (m_flags & FILE_FLAG_WRITE)) {
-    if (isSubDir() || isReadOnly() || READ_ONLY) {
+    if (isSubDir() || isReadOnly() || EXFAT_READ_ONLY) {
       DBG_FAIL_MACRO;
       goto fail;
     }
   }
 
-#if !READ_ONLY
+#if !EXFAT_READ_ONLY
   if (oflag & O_TRUNC) {
     if (!(m_flags & FILE_FLAG_WRITE)) {
       DBG_FAIL_MACRO;
@@ -381,14 +381,14 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-#endif  // !READ_ONLY
+#endif  // !EXFAT_READ_ONLY
   return true;
 
  create:
-#if READ_ONLY
+#if EXFAT_READ_ONLY
   DBG_FAIL_MACRO;
   goto fail;
-#else  // READ_ONLY
+#else  // EXFAT_READ_ONLY
   // don't create unless O_CREAT and write
   if (!(oflag & O_CREAT) || !(modeFlags & FILE_FLAG_WRITE) || !fname) {
     DBG_WARN_MACRO;
@@ -471,7 +471,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
     }
   }
   return sync();
-#endif  // READ_ONLY
+#endif  // EXFAT_READ_ONLY
 
  fail:
   // close file

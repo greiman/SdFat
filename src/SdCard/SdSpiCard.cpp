@@ -665,7 +665,7 @@ bool DedicatedSpiCard::begin(SdSpiConfig spiConfig) {
   if (!SharedSpiCard::begin(spiConfig)) {
     return false;
   }
-  m_sharedSpi = spiOptionShared(spiConfig.options);
+  m_dedicatedSpi = spiOptionDedicated(spiConfig.options);
   return true;
 }
 //------------------------------------------------------------------------------
@@ -687,18 +687,25 @@ bool DedicatedSpiCard::readSectors(
     }
   }
   m_curSector += ns;
-  return m_sharedSpi ? readStop() : true;
+  return m_dedicatedSpi ? true : readStop();
 
  fail:
   return false;
 }
 //------------------------------------------------------------------------------
+bool DedicatedSpiCard::setDedicatedSpi(bool value) {
+  if (!syncDevice()) {
+    return false;
+  }
+  m_dedicatedSpi = value;
+  return true;
+}
+//------------------------------------------------------------------------------
 bool DedicatedSpiCard::writeSector(uint32_t sector, const uint8_t* src) {
-  if (m_sharedSpi) {
-    return SharedSpiCard::writeSector(sector, src);
-  } else {
+  if (m_dedicatedSpi) {
     return writeSectors(sector, src, 1);
   }
+  return SharedSpiCard::writeSector(sector, src);
 }
 //------------------------------------------------------------------------------
 bool DedicatedSpiCard::writeSectors(
@@ -715,7 +722,7 @@ bool DedicatedSpiCard::writeSectors(
     }
   }
   m_curSector += ns;
-  return m_sharedSpi ? writeStop() : true;
+  return m_dedicatedSpi ? true : writeStop();
 
 fail:
   return false;

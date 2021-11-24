@@ -62,25 +62,6 @@ static bool dmac_channel_transfer_done(uint32_t ul_num) {
   return (DMAC->DMAC_CHSR & (DMAC_CHSR_ENA0 << ul_num)) ? false : true;
 }
 //------------------------------------------------------------------------------
-void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
-  (void)spiConfig;
-  SPI.begin();
-#if USE_SAM3X_DMAC
-  pmc_enable_periph_clk(ID_DMAC);
-  dmac_disable();
-  DMAC->DMAC_GCFG = DMAC_GCFG_ARB_CFG_FIXED;
-  dmac_enable();
-#if USE_SAM3X_BUS_MATRIX_FIX
-  MATRIX->MATRIX_WPMR = 0x4d415400;
-  MATRIX->MATRIX_MCFG[1] = 1;
-  MATRIX->MATRIX_MCFG[2] = 1;
-  MATRIX->MATRIX_SCFG[0] = 0x01000010;
-  MATRIX->MATRIX_SCFG[1] = 0x01000010;
-  MATRIX->MATRIX_SCFG[7] = 0x01000010;
-#endif  // USE_SAM3X_BUS_MATRIX_FIX
-#endif  // USE_SAM3X_DMAC
-}
-//------------------------------------------------------------------------------
 // start RX DMA
 static void spiDmaRX(uint8_t* dst, uint16_t count) {
   dmac_channel_disable(SPI_DMAC_RX_CH);
@@ -141,8 +122,31 @@ void SdSpiArduinoDriver::activate() {
   pSpi->SPI_CR |= SPI_CR_SPIEN;
 }
 //------------------------------------------------------------------------------
+void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
+  (void)spiConfig;
+  SPI.begin();
+#if USE_SAM3X_DMAC
+  pmc_enable_periph_clk(ID_DMAC);
+  dmac_disable();
+  DMAC->DMAC_GCFG = DMAC_GCFG_ARB_CFG_FIXED;
+  dmac_enable();
+#if USE_SAM3X_BUS_MATRIX_FIX
+  MATRIX->MATRIX_WPMR = 0x4d415400;
+  MATRIX->MATRIX_MCFG[1] = 1;
+  MATRIX->MATRIX_MCFG[2] = 1;
+  MATRIX->MATRIX_SCFG[0] = 0x01000010;
+  MATRIX->MATRIX_SCFG[1] = 0x01000010;
+  MATRIX->MATRIX_SCFG[7] = 0x01000010;
+#endif  // USE_SAM3X_BUS_MATRIX_FIX
+#endif  // USE_SAM3X_DMAC
+}
+//------------------------------------------------------------------------------
 void SdSpiArduinoDriver::deactivate() {
   SPI.endTransaction();
+}
+//------------------------------------------------------------------------------
+void SdSpiArduinoDriver::end() {
+  SPI.end();
 }
 //------------------------------------------------------------------------------
 static inline uint8_t spiTransfer(uint8_t b) {

@@ -30,7 +30,7 @@
  */
 #include <stddef.h>
 #include "../common/SysCall.h"
-#include "../common/BlockDevice.h"
+#include "../common/FsBlockDevice.h"
 #include "../common/FsCache.h"
 #include "../common/FsStructs.h"
 
@@ -107,6 +107,13 @@ class FatPartition {
   uint32_t dataStartSector() const {
     return m_dataStartSector;
   }
+  /** End access to volume
+   * \return pointer to sector size buffer for format.
+   */
+  uint8_t* end() {
+    m_fatType = 0;
+    return cacheClear();
+  }
   /** \return The number of File Allocation Tables. */
   uint8_t fatCount() const {
     return 2;
@@ -126,7 +133,7 @@ class FatPartition {
   int32_t freeClusterCount();
   /** Initialize a FAT partition.
    *
-   * \param[in] dev BlockDevice for this partition.
+   * \param[in] dev FsBlockDevice for this partition.
    * \param[in] part The partition to be used.  Legal values for \a part are
    * 1-4 to use the corresponding partition on a device formatted with
    * a MBR, Master Boot Record, or zero if the device is formatted as
@@ -134,7 +141,7 @@ class FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool init(BlockDevice* dev, uint8_t part = 1);
+  bool init(FsBlockDevice* dev, uint8_t part = 1);
   /** \return The number of entries in the root directory for FAT16 volumes. */
   uint16_t rootDirEntryCount() const {
     return m_rootDirEntryCount;
@@ -158,7 +165,7 @@ class FatPartition {
     return fatGet(n, v);
   }
   /**
-   * Check for BlockDevice busy.
+   * Check for FsBlockDevice busy.
    *
    * \return true if busy else false.
    */
@@ -179,7 +186,7 @@ class FatPartition {
   static const uint16_t m_bytesPerSector = 1 << m_bytesPerSectorShift;
   static const uint16_t m_sectorMask = m_bytesPerSector - 1;
   //----------------------------------------------------------------------------
-  BlockDevice* m_blockDev;            // sector device
+  FsBlockDevice* m_blockDev;            // sector device
   uint8_t  m_sectorsPerCluster;       // Cluster size in sectors.
   uint8_t  m_clusterSectorMask;       // Mask to extract sector of cluster.
   uint8_t  m_sectorsPerClusterShift;  // Cluster count to sector count shift.

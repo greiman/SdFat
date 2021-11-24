@@ -572,7 +572,6 @@ static bool transferStop() {
   if (!cardCommand(CMD12_XFERTYP, 0)) {
     return sdError(SD_CARD_ERROR_CMD12);
   }
-//  if (yieldTimeout(isBusyCMD13)) {
   if (yieldTimeout(isBusyDat)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
@@ -599,7 +598,7 @@ static bool yieldTimeout(bool (*fcn)()) {
       m_busyFcn = 0;
       return true;
     }
-    SysCall::yield();
+    yield();
   }
   m_busyFcn = 0;
   return false;  // Caller will set errorCode.

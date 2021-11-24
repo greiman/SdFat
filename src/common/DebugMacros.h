@@ -24,7 +24,7 @@
  */
 #ifndef DebugMacros_h
 #define DebugMacros_h
-#include "SdFatConfig.h"
+#include "SysCall.h"
 
 // 0 - disable, 1 - fail, halt 2 - fail, halt, warn
 #define USE_DBG_MACROS 0

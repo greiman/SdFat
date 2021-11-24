@@ -45,7 +45,7 @@ const uint16_t FAT16_ROOT_SECTOR_COUNT =
 #define writeMsg(str) if (m_pr) m_pr->write(str)
 #endif  // PRINT_FORMAT_PROGRESS
 //------------------------------------------------------------------------------
-bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
+bool FatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   bool rtn;
   m_dev = dev;
   m_secBuf = secBuf;

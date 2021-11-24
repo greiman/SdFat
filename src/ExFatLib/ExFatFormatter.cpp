@@ -46,7 +46,7 @@ const uint32_t ROOT_CLUSTER = 4;
 #define writeMsg(pr, str) if (pr) pr->write(str)
 #endif  // PRINT_FORMAT_PROGRESS
 //------------------------------------------------------------------------------
-bool ExFatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
+bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
 #if !PRINT_FORMAT_PROGRESS
 (void)pr;
 #endif  //  !PRINT_FORMAT_PROGRESS

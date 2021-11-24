@@ -239,7 +239,7 @@ class FsBaseFile {
            m_xFile ? m_xFile->getWriteError() : true;
   }
   /**
-   * Check for BlockDevice busy.
+   * Check for FsBlockDevice busy.
    *
    * \return true if busy else false.
    */
@@ -355,14 +355,6 @@ class FsBaseFile {
    * \return true for success or false for failure.
    */
   bool mkdir(FsBaseFile* dir, const char* path, bool pFlag = true);
-  /** No longer implemented due to Long File Names.
-   *
-   * Use getName(char* name, size_t size).
-   * \return a pointer to replacement suggestion.
-   */
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-  const char* __attribute__((error("use getName(name, size)"))) name();
-#endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** Open a file or directory by name.
    *
    * \param[in] dir An open file instance for the directory containing
@@ -760,6 +752,14 @@ class FsBaseFile {
   bool truncate(uint64_t length) {
     return m_fFile ? length < (1ULL << 32) && m_fFile->truncate(length) :
            m_xFile ? m_xFile->truncate(length) : false;
+  }
+  /** Write a string to a file. Used by the Arduino Print class.
+   * \param[in] str Pointer to the string.
+   * Use getWriteError to check for errors.
+   * \return count of characters written for success or -1 for failure.
+   */
+  size_t write(const char* str) {
+    return write(str, strlen(str));
   }
   /** Write a byte to a file. Required by the Arduino Print class.
    * \param[in] b the byte to be written.

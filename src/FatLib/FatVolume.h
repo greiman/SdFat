@@ -43,7 +43,7 @@ class FatVolume : public  FatPartition {
    * \param[in] part partition to initialize.
    * \return true for success or false for failure.
    */
-  bool begin(BlockDevice* dev, bool setCwv = true, uint8_t part = 1) {
+  bool begin(FsBlockDevice* dev, bool setCwv = true, uint8_t part = 1) {
     if (!init(dev, part)) {
       return false;
     }
@@ -72,7 +72,6 @@ class FatVolume : public  FatPartition {
    * \return true for success or false for failure.
    */
   bool chdir(const char *path);
-
   //----------------------------------------------------------------------------
   /**
    * Test for the existence of a file.

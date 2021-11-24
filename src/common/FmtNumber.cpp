@@ -139,8 +139,7 @@ void divmod10(uint32_t in, uint32_t &div, uint32_t &mod)
   if (r > 9) mod = r - 10;
   else mod = r;
 }
-// Hackers delight function is here:
-// http://www.hackersdelight.org/hdcodetxt/divuc.c.txt
+// See: https://github.com/hcs0/Hackers-Delight
 // Code below uses 8/10 = 0.1100 1100 1100 1100 1100 1100 1100 1100.
 // 15 ops including the multiply, or 17 elementary ops.
 unsigned divu10(unsigned n) {
