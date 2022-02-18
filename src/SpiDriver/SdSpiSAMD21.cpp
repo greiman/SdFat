@@ -57,6 +57,11 @@ void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
 }
 
 //------------------------------------------------------------------------------
+void SdSpiArduinoDriver::end() {
+  m_spi->end();
+}
+
+//------------------------------------------------------------------------------
 void SdSpiArduinoDriver::activate() {
 #if USE_SAMD21_MAX_SCK_OVERRIDE
   // Reinitialize SPI Configuration if Specified SCK Clock > SD_SCK_MHZ(12)
