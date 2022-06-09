@@ -230,7 +230,7 @@ uint8_t SharedSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
     spiStart();
   }
   if (cmd != CMD12) {
-    if (!waitReady(SD_CMD_TIMEOUT) && cmd != CMD0) {
+    if (cmd != CMD0 && !waitReady(SD_CMD_TIMEOUT)) {
       return 0XFF;
     }
   }
