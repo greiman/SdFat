@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -268,7 +268,7 @@ bool FatFile::makeUniqueSfn(FatLfn_t* fname) {
       if (dir->name[0] == FAT_NAME_FREE) {
         goto done;
       }
-      if (isFileOrSubdir(dir) && !memcmp(fname->sfn, dir->name, 11)) {
+      if (isFatFileOrSubdir(dir) && !memcmp(fname->sfn, dir->name, 11)) {
         // Name found - try another.
         break;
       }
@@ -338,7 +338,7 @@ bool FatFile::open(FatFile* dirFile, FatLfn_t* fname, oflag_t oflag) {
     // skip empty slot or '.' or '..'
     if (dir->name[0] == FAT_NAME_DELETED || dir->name[0] == '.') {
       lfnOrd = 0;
-    } else if (isLongName(dir)) {
+    } else if (isFatLongName(dir)) {
       ldir = reinterpret_cast<DirLfn_t*>(dir);
       if (!lfnOrd) {
         order = ldir->order & 0X1F;
@@ -357,7 +357,7 @@ bool FatFile::open(FatFile* dirFile, FatLfn_t* fname, oflag_t oflag) {
           lfnOrd = 0;
         }
       }
-    } else if (isFileOrSubdir(dir)) {
+    } else if (isFatFileOrSubdir(dir)) {
       if (lfnOrd) {
         if (1 == order && lfnChecksum(dir->name) == checksum) {
           goto found;
@@ -476,6 +476,7 @@ bool FatFile::parsePathName(const char* path,
     path++;
   }
   fname->begin = path;
+  fname->len = 0;
   while (*path && !isDirSeparator(*path)) {
 #if USE_UTF8_LONG_NAMES
     uint32_t cp;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -95,18 +95,19 @@ class ExFatPartition {
   uint32_t fatStartSector() const {return m_fatStartSector;}
   /** \return Type FAT_TYPE_EXFAT for exFAT partition or zero for error. */
   uint8_t fatType() const {return m_fatType;}
-  /** \return the free cluster count. */
-  uint32_t freeClusterCount();
+  /** \return free cluster count or -1 if an error occurs. */
+  int32_t freeClusterCount();
   /** Initialize a exFAT partition.
    * \param[in] dev The blockDevice for the partition.
    * \param[in] part The partition to be used.  Legal values for \a part are
    * 1-4 to use the corresponding partition on a device formatted with
    * a MBR, Master Boot Record, or zero if the device is formatted as
-   * a super floppy with the FAT boot sector in sector zero.
+   * a super floppy with the FAT boot sector in sector volStart.
+   * \param[in] volStart location of volume if part is zero.
    *
    * \return true for success or false for failure.
    */
-  bool init(FsBlockDevice* dev, uint8_t part);
+  bool init(FsBlockDevice* dev, uint8_t part, uint32_t volStart = 0);
   /**
    * Check for device busy.
    *

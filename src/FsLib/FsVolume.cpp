@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,19 +25,19 @@
 #include "FsLib.h"
 FsVolume* FsVolume::m_cwv = nullptr;
 //------------------------------------------------------------------------------
-bool FsVolume::begin(FsBlockDevice* blockDev, bool setCwv, uint8_t part) {
+bool FsVolume::begin(FsBlockDevice* blockDev, bool setCwv,
+                     uint8_t part, uint32_t volStart) {
   m_blockDev = blockDev;
   m_fVol = nullptr;
   m_xVol = new (m_volMem) ExFatVolume;
-  if (m_xVol && m_xVol->begin(m_blockDev, false, part)) {
+  if (m_xVol && m_xVol->begin(m_blockDev, false, part, volStart)) {
     goto done;
   }
   m_xVol = nullptr;
   m_fVol = new (m_volMem) FatVolume;
-  if (m_fVol && m_fVol->begin(m_blockDev, false, part)) {
+  if (m_fVol && m_fVol->begin(m_blockDev, false, part, volStart)) {
     goto done;
   }
-  m_cwv = nullptr;
   m_fVol = nullptr;
   return false;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -41,6 +41,7 @@
 // #define ENABLE_DEDICATED_SPI 0
 // #define USE_LONG_FILE_NAMES 0
 // #define SDFAT_FILE_TYPE 1
+// #define CHECK_FLASH_PROGRAMMING 0  // May cause SD to sleep at high current.
 //
 // Options can be set in a makefile or an IDE like platformIO
 // if they are in a #ifndef/#endif block below.
@@ -258,7 +259,7 @@ typedef uint8_t SdCsPin_t;
  * is non-zero.
  */
 #ifndef CHECK_FLASH_PROGRAMMING
-#define CHECK_FLASH_PROGRAMMING 0
+#define CHECK_FLASH_PROGRAMMING 1
 #endif  // CHECK_FLASH_PROGRAMMING
 //------------------------------------------------------------------------------
 /**

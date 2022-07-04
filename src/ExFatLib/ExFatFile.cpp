@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -39,6 +39,29 @@ inline bool lfnLegalChar(uint8_t c) {
 #else  // USE_UTF8_LONG_NAMES
   return !(lfnReservedChar(c) || c & 0X80);
 #endif  // USE_UTF8_LONG_NAMES
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::attrib(uint8_t bits) {
+  if (!isFileOrSubDir() || (bits & FS_ATTRIB_USER_SETTABLE) != bits) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  // Don't allow read-only to be set if the file is open for write.
+  if ((bits & FS_ATTRIB_READ_ONLY) && isWritable()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  m_attributes = (m_attributes & ~FS_ATTRIB_USER_SETTABLE) | bits;
+  // insure sync() will update dir entry
+  m_flags |= FILE_FLAG_DIR_DIRTY;
+  if (!sync()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  return true;
+
+ fail:
+  return false;
 }
 //------------------------------------------------------------------------------
 uint8_t* ExFatFile::dirCache(uint8_t set, uint8_t options) {
@@ -212,6 +235,11 @@ bool ExFatFile::open(ExFatFile* dirFile, const char* path, oflag_t oflag) {
   return false;
 }
 //------------------------------------------------------------------------------
+bool ExFatFile::open(uint32_t index, oflag_t oflag) {
+  ExFatVolume* vol = ExFatVolume::cwv();
+  return vol ? open(vol->vwd(), index, oflag) : false;
+}
+//------------------------------------------------------------------------------
 bool ExFatFile::open(ExFatFile* dirFile, uint32_t index, oflag_t oflag) {
   if (dirFile->seekSet(FS_DIR_SIZE*index) && openNext(dirFile, oflag)) {
     if (dirIndex() == index) {
@@ -220,6 +248,19 @@ bool ExFatFile::open(ExFatFile* dirFile, uint32_t index, oflag_t oflag) {
     close();
     DBG_FAIL_MACRO;
   }
+  return false;
+}
+//------------------------------------------------------------------------------
+bool ExFatFile::openCwd() {
+  if (isOpen() || !ExFatVolume::cwv()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *this = *ExFatVolume::cwv()->vwd();
+  rewind();
+  return true;
+
+ fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -285,7 +326,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    if (!(buf[0] & 0x80)) {
+    if (!(buf[0] & EXFAT_TYPE_USED)) {
       // Unused entry.
       if (freeCount == 0) {
         freePos.position = dir->curPosition() - FS_DIR_SIZE;
@@ -294,7 +335,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       if (freeCount < freeNeed) {
         freeCount++;
       }
-      if (!buf[0]) {
+      if (buf[0] == EXFAT_TYPE_END_DIR) {
         if (fname) {
           goto create;
         }
@@ -314,8 +355,8 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
       memset(this, 0, sizeof(ExFatFile));
       dirFile = reinterpret_cast<DirFile_t*>(buf);
       m_setCount = dirFile->setCount;
-      m_attributes = getLe16(dirFile->attributes) & FILE_ATTR_COPY;
-      if (!(m_attributes & EXFAT_ATTRIB_DIRECTORY)) {
+      m_attributes = getLe16(dirFile->attributes) & FS_ATTRIB_COPY;
+      if (!(m_attributes & FS_ATTRIB_DIRECTORY)) {
         m_attributes |= FILE_ATTR_FILE;
       }
       m_vol = dir->volume();
@@ -381,6 +422,9 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
     DBG_FAIL_MACRO;
     goto fail;
   }
+  if (isWritable()) {
+    m_attributes |= FS_ATTRIB_ARCHIVE;
+  }
 #endif  // !EXFAT_READ_ONLY
   return true;
 
@@ -418,7 +462,7 @@ bool ExFatFile::openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag) {
   freePos.isContiguous = dir->isContiguous();
   memset(this, 0, sizeof(ExFatFile));
   m_vol = dir->volume();
-  m_attributes = FILE_ATTR_FILE;
+  m_attributes = FILE_ATTR_FILE | FS_ATTRIB_ARCHIVE;
   m_dirPos = freePos;
   fname->reset();
   for (uint8_t i = 0; i < freeNeed; i++) {

@@ -30,7 +30,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if HAS_SDIO_CLASS
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif ENABLE_DEDICATED_SPI
+#elif  ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_SDIO_CLASS
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
@@ -89,22 +89,19 @@ ArduinoOutStream cout(Serial);
 void cidDmp() {
   cid_t cid;
   if (!sd.card()->readCID(&cid)) {
-
     error("readCID failed");
   }
   cout << F("\nManufacturer ID: ");
-  cout << hex << int(cid.mid) << dec << endl;
+  cout << uppercase << showbase << hex << int(cid.mid) << dec << endl;
   cout << F("OEM ID: ") << cid.oid[0] << cid.oid[1] << endl;
   cout << F("Product: ");
   for (uint8_t i = 0; i < 5; i++) {
     cout << cid.pnm[i];
   }
-  cout << F("\nVersion: ");
-  cout << int(cid.prv_n) << '.' << int(cid.prv_m) << endl;
-  cout << F("Serial number: ") << hex << cid.psn << dec << endl;
+  cout << F("\nRevision: ") << cid.prvN() << '.' << cid.prvM() << endl;
+  cout << F("Serial number: ") << hex << cid.psn() << dec << endl;
   cout << F("Manufacturing date: ");
-  cout << int(cid.mdt_month) << '/';
-  cout << (2000 + cid.mdt_year_low + 10 * cid.mdt_year_high) << endl;
+  cout << cid.mdtMonth() << '/' << cid.mdtYear() << endl;
   cout << endl;
 }
 //------------------------------------------------------------------------------
@@ -273,4 +270,5 @@ void loop() {
   }
   cout << endl << F("Done") << endl;
   file.close();
+  sd.end();
 }

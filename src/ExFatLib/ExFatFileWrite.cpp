@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -204,7 +204,7 @@ bool ExFatFile::mkdir(ExFatFile* parent, ExName_t* fname) {
     goto fail;
   }
   // convert file to directory
-  m_attributes = FILE_ATTR_SUBDIR;
+  m_attributes = FILE_ATTR_SUBDIR | FS_ATTRIB_ARCHIVE;
 
   // allocate and zero first cluster
   if (!addDirCluster()) {
@@ -402,7 +402,7 @@ bool ExFatFile::syncDir() {
     switch (cache[0]) {
       case EXFAT_TYPE_FILE:
         df = reinterpret_cast<DirFile_t*>(cache);
-        setLe16(df->attributes, m_attributes & FILE_ATTR_COPY);
+        setLe16(df->attributes, m_attributes & FS_ATTRIB_COPY);
         if (FsDateTime::callback) {
           uint16_t date, time;
           uint8_t ms10;
@@ -498,7 +498,7 @@ bool ExFatFile::timestamp(uint8_t flags, uint16_t year, uint8_t month,
     switch (cache[0]) {
       case EXFAT_TYPE_FILE:
         df = reinterpret_cast<DirFile_t*>(cache);
-        setLe16(df->attributes, m_attributes & FILE_ATTR_COPY);
+        setLe16(df->attributes, m_attributes & FS_ATTRIB_COPY);
         m_vol->dataCacheDirty();
         if (flags & T_ACCESS) {
           setLe16(df->accessTime, time);

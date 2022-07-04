@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -156,6 +156,21 @@ class FatFile {
    * \return true if a file is open.
    */
   operator bool() const {return isOpen();}
+  /**
+   * \return user settable file attributes for success else -1.
+   */
+  int attrib() {
+    return isFileOrSubDir() ? m_attributes & FS_ATTRIB_USER_SETTABLE : -1;
+  }
+  /** Set file attributes
+   *
+   * \param[in] bits bit-wise or of selected attributes: FS_ATTRIB_READ_ONLY,
+   *            FS_ATTRIB_HIDDEN, FS_ATTRIB_SYSTEM, FS_ATTRIB_ARCHIVE.
+   *
+   * \note attrib() will fail for set read-only if the file is open for write.
+   * \return true for success or false for failure.
+   */
+  bool attrib(uint8_t bits);
   /** \return The number of bytes available from the current position
    * to EOF for normal files.  INT_MAX is returned for very large files.
    *
@@ -390,8 +405,10 @@ class FatFile {
   bool isDir() const {return m_attributes & FILE_ATTR_DIR;}
   /** \return True if this is a normal file. */
   bool isFile() const {return m_attributes & FILE_ATTR_FILE;}
+  /** \return True if this is a normal file or sub-directory. */
+  bool isFileOrSubDir() const {return isFile() || isSubDir();}
   /** \return True if this is a hidden file. */
-  bool isHidden() const {return m_attributes & FILE_ATTR_HIDDEN;}
+  bool isHidden() const {return m_attributes & FS_ATTRIB_HIDDEN;}
   /** \return true if this file has a Long File Name. */
   bool isLFN() const {return m_lfnOrd;}
   /** \return True if this is an open file/directory. */
@@ -399,17 +416,17 @@ class FatFile {
   /** \return True file is readable. */
   bool isReadable() const {return m_flags & FILE_FLAG_READ;}
   /** \return True if file is read-only */
-  bool isReadOnly() const {return m_attributes & FILE_ATTR_READ_ONLY;}
+  bool isReadOnly() const {return m_attributes & FS_ATTRIB_READ_ONLY;}
   /** \return True if this is the root directory. */
   bool isRoot() const {return m_attributes & FILE_ATTR_ROOT;}
   /** \return True if this is the FAT32 root directory. */
   bool isRoot32() const {return m_attributes & FILE_ATTR_ROOT32;}
   /** \return True if this is the FAT12 of FAT16 root directory. */
   bool isRootFixed() const {return m_attributes & FILE_ATTR_ROOT_FIXED;}
-  /** \return True if this is a subdirectory. */
+  /** \return True if this is a sub-directory. */
   bool isSubDir() const {return m_attributes & FILE_ATTR_SUBDIR;}
   /** \return True if this is a system file. */
-  bool isSystem() const {return m_attributes & FILE_ATTR_SYSTEM;}
+  bool isSystem() const {return m_attributes & FS_ATTRIB_SYSTEM;}
   /** \return True file is writable. */
   bool isWritable() const {return m_flags & FILE_FLAG_WRITE;}
   /** List directory contents.
@@ -453,7 +470,7 @@ class FatFile {
    *
    * \return true for success or false for failure.
    */
-  bool open(FatVolume* vol, const char* path, oflag_t oflag);
+  bool open(FatVolume* vol, const char* path, oflag_t oflag = O_RDONLY);
   /** Open a file by index.
    *
    * \param[in] dirFile An open FatFile instance for the directory.
@@ -467,7 +484,19 @@ class FatFile {
    * See open() by path for definition of flags.
    * \return true for success or false for failure.
    */
-  bool open(FatFile* dirFile, uint16_t index, oflag_t oflag);
+  bool open(FatFile* dirFile, uint16_t index, oflag_t oflag = O_RDONLY);
+  /** Open a file by index in the current working directory.
+   *
+   * \param[in] index The \a index of the directory entry for the file to be
+   * opened.  The value for \a index is (directory file position)/32.
+   *
+   * \param[in] oflag bitwise-inclusive OR of open flags.
+   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *
+   * See open() by path for definition of flags.
+   * \return true for success or false for failure.
+   */
+  bool open(uint16_t index, oflag_t oflag = O_RDONLY);
   /** Open a file or directory by name.
    *
    * \param[in] dirFile An open FatFile instance for the directory containing
@@ -513,7 +542,7 @@ class FatFile {
    *
    * \return true for success or false for failure.
    */
-  bool open(FatFile* dirFile, const char* path, oflag_t oflag);
+  bool open(FatFile* dirFile, const char* path, oflag_t oflag = O_RDONLY);
   /** Open a file in the current working volume.
    *
    * \param[in] path A path with a valid name for a file to be opened.
@@ -524,6 +553,11 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool open(const char* path, oflag_t oflag = O_RDONLY);
+   /** Open the current working directory.
+   *
+   * \return true for success or false for failure.
+   */
+  bool openCwd();
   /** Open existing file wih Short 8.3 names.
    * \param[in] path with short 8.3 names.
    *
@@ -957,29 +991,19 @@ class FatFile {
 
   /** This file has not been opened. */
   static const uint8_t FILE_ATTR_CLOSED = 0;
-  /** File is read-only. */
-  static const uint8_t FILE_ATTR_READ_ONLY = FAT_ATTRIB_READ_ONLY;
-  /** File should be hidden in directory listings. */
-  static const uint8_t FILE_ATTR_HIDDEN = FAT_ATTRIB_HIDDEN;
-  /** Entry is for a system file. */
-  static const uint8_t FILE_ATTR_SYSTEM = FAT_ATTRIB_SYSTEM;
   /** Entry for normal data file */
   static const uint8_t FILE_ATTR_FILE = 0X08;
   /** Entry is for a subdirectory */
-  static const uint8_t FILE_ATTR_SUBDIR = FAT_ATTRIB_DIRECTORY;
+  static const uint8_t FILE_ATTR_SUBDIR = FS_ATTRIB_DIRECTORY;
   /** A FAT12 or FAT16 root directory */
-  static const uint8_t FILE_ATTR_ROOT_FIXED = 0X20;
+  static const uint8_t FILE_ATTR_ROOT_FIXED = 0X40;
   /** A FAT32 root directory */
-  static const uint8_t FILE_ATTR_ROOT32 = 0X40;
+  static const uint8_t FILE_ATTR_ROOT32 = 0X80;
   /** Entry is for root. */
   static const uint8_t FILE_ATTR_ROOT =
                        FILE_ATTR_ROOT_FIXED | FILE_ATTR_ROOT32;
   /** Directory type bits */
   static const uint8_t FILE_ATTR_DIR = FILE_ATTR_SUBDIR | FILE_ATTR_ROOT;
-  /** Attributes to copy from directory entry */
-  static const uint8_t FILE_ATTR_COPY =
-                       FAT_ATTRIB_READ_ONLY | FAT_ATTRIB_HIDDEN |
-                       FAT_ATTRIB_SYSTEM | FAT_ATTRIB_DIRECTORY;
 
   // private functions
 

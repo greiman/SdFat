@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -62,7 +62,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
         break;
       }
       lfnOrd = 0;
-    } else if (isFileOrSubdir(dir)) {
+    } else if (isFatFileOrSubdir(dir)) {
       if (!memcmp(fname->sfn, dir->name, 11)) {
         // don't open existing file if O_EXCL
         if (oflag & O_EXCL) {
@@ -83,7 +83,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
       } else {
         lfnOrd = 0;
       }
-    } else if (isLongName(dir)) {
+    } else if (isFatLongName(dir)) {
       ldir = reinterpret_cast<DirLfn_t*>(dir);
       if (ldir->order & FAT_ORDER_LAST_LONG_ENTRY) {
         lfnOrd = ldir->order & 0X1F;
@@ -191,25 +191,29 @@ bool FatFile::openSFN(FatSfn_t* fname) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    if (isFileOrSubdir(&dir) && memcmp(fname->sfn, dir.name, 11) == 0) {
+    if (isFatFileOrSubdir(&dir) && memcmp(fname->sfn, dir.name, 11) == 0) {
       uint16_t dirIndex = (m_curPosition - 32) >> 5;
       uint32_t dirCluster = m_firstCluster;
       memset(this, 0 , sizeof(FatFile));
-      m_attributes = dir.attributes & FILE_ATTR_COPY;
-      if (isFileDir(&dir)) {
+      m_attributes = dir.attributes & FS_ATTRIB_COPY;
+      m_flags = FILE_FLAG_READ;
+      if (isFatFile(&dir)) {
         m_attributes |= FILE_ATTR_FILE;
+        if (!isReadOnly()) {
+          m_attributes |= FS_ATTRIB_ARCHIVE;
+          m_flags |= FILE_FLAG_WRITE;
+        }
       }
       m_lfnOrd = lfnOrd;
       m_firstCluster = (uint32_t)getLe16(dir.firstClusterHigh) << 16;
       m_firstCluster |= getLe16(dir.firstClusterLow);
       m_fileSize = getLe32(dir.fileSize);
-      m_flags = isFile() ? FILE_FLAG_READ | FILE_FLAG_WRITE : FILE_FLAG_READ;
       m_vol = vol;
       m_dirCluster = dirCluster;
       m_dirSector = m_vol->cacheSectorNumber();
       m_dirIndex = dirIndex;
       return true;
-    } else if (isLongName(&dir)) {
+    } else if (isFatLongName(&dir)) {
       ldir = reinterpret_cast<DirLfn_t*>(&dir);
       if (ldir->order & FAT_ORDER_LAST_LONG_ENTRY) {
         lfnOrd = ldir->order & 0X1F;

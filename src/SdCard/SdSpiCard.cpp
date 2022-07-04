@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -132,6 +132,7 @@ static uint16_t CRC_CCITT(const uint8_t* data, size_t n) {
 bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   Timeout timeout;
   m_spiActive = false;
+  m_beginCalled = false;
   m_errorCode = SD_CARD_ERROR_NONE;
   m_type = 0;
   m_csPin = spiConfig.csPin;
@@ -146,6 +147,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   spiUnselect();
   spiSetSckSpeed(1000UL*SD_MAX_INIT_RATE_KHZ);
   spiBegin(spiConfig);
+  m_beginCalled = true;
   uint32_t arg;
   m_state = IDLE_STATE;
   spiStart();
@@ -165,6 +167,10 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
       error(SD_CARD_ERROR_CMD0);
       goto fail;
     }
+    // Force any active transfer to end for an already initialized card.
+    for (uint8_t j = 0; j < 0XFF; j++) {
+      spiSend(0XFF);
+    }
   }
 #if USE_SD_CRC
   if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
@@ -172,7 +178,6 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
     goto fail;
   }
 #endif  // USE_SD_CRC
-
   // check SD version
   if (!(cardCommand(CMD8, 0x1AA) & R1_ILLEGAL_COMMAND)) {
     type(SD_CARD_TYPE_SD2);
@@ -220,6 +225,22 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   return false;
 }
 //------------------------------------------------------------------------------
+bool SharedSpiCard::cardCMD6(uint32_t arg, uint8_t* status) {
+  if (cardCommand(CMD6, arg)) {
+    error(SD_CARD_ERROR_CMD6);
+    goto fail;
+  }
+  if (!readData(status, 64)) {
+    goto fail;
+  }
+  spiStop();
+  return true;
+
+ fail:
+  spiStop();
+  return false;
+}
+//------------------------------------------------------------------------------
 // send command and return error code.  Return zero for OK
 uint8_t SharedSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
   if (!syncDevice()) {
@@ -229,12 +250,9 @@ uint8_t SharedSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
   if (!m_spiActive) {
     spiStart();
   }
-  if (cmd != CMD12) {
-    if (!waitReady(SD_CMD_TIMEOUT) && cmd != CMD0) {
-      return 0XFF;
-    }
+  if (cmd != CMD0 && cmd != CMD12 && !waitReady(SD_CMD_TIMEOUT)) {
+    return 0XFF;
   }
-
 #if USE_SD_CRC
   // form message
   uint8_t buf[6];
@@ -274,15 +292,23 @@ uint8_t SharedSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
   return m_status;
 }
 //------------------------------------------------------------------------------
+void SharedSpiCard::end() {
+  if (m_beginCalled) {
+    spiStop();
+    spiEnd();
+    m_beginCalled = false;
+  }
+}
+//------------------------------------------------------------------------------
 bool SharedSpiCard::erase(uint32_t firstSector, uint32_t lastSector) {
   csd_t csd;
   if (!readCSD(&csd)) {
     goto fail;
   }
   // check for single sector erase
-  if (!csd.v1.erase_blk_en) {
+  if (!csd.eraseSingleBlock()) {
     // erase size mask
-    uint8_t m = (csd.v1.sector_size_high << 1) | csd.v1.sector_size_low;
+    uint8_t m = csd.eraseSize() - 1;
     if ((firstSector & m) != 0 || ((lastSector + 1) & m) != 0) {
       // error card can't erase specified area
       error(SD_CARD_ERROR_ERASE_SINGLE_SECTOR);
@@ -313,7 +339,7 @@ bool SharedSpiCard::erase(uint32_t firstSector, uint32_t lastSector) {
 //------------------------------------------------------------------------------
 bool SharedSpiCard::eraseSingleSectorEnable() {
   csd_t csd;
-  return readCSD(&csd) ? csd.v1.erase_blk_en : false;
+  return readCSD(&csd) ? csd.eraseSingleBlock() : false;
 }
 //------------------------------------------------------------------------------
 bool SharedSpiCard::isBusy() {
@@ -384,7 +410,11 @@ bool SharedSpiCard::readOCR(uint32_t* ocr) {
     goto fail;
   }
   for (uint8_t i = 0; i < 4; i++) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     p[3 - i] = spiReceive();
+#else  // __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    p[i] = spiReceive();
+#endif  // __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   }
   spiStop();
   return true;
@@ -402,6 +432,23 @@ bool SharedSpiCard::readRegister(uint8_t cmd, void* buf) {
     goto fail;
   }
   if (!readData(dst, 16)) {
+    goto fail;
+  }
+  spiStop();
+  return true;
+
+ fail:
+  spiStop();
+  return false;
+}
+//------------------------------------------------------------------------------
+bool SharedSpiCard::readSCR(scr_t* scr) {
+  uint8_t* dst = reinterpret_cast<uint8_t*>(scr);
+  if (cardAcmd(ACMD51, 0)) {
+    error(SD_CARD_ERROR_ACMD51);
+    goto fail;
+  }
+  if (!readData(dst, sizeof(scr_t))) {
     goto fail;
   }
   spiStop();
@@ -462,13 +509,14 @@ bool SharedSpiCard::readStart(uint32_t sector) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool SharedSpiCard::readStatus(uint8_t* status) {
+bool SharedSpiCard::readStatus(SdStatus* status) {
+  uint8_t* dst = reinterpret_cast<uint8_t*>(status);
   // retrun is R2 so read extra status byte.
   if (cardAcmd(ACMD13, 0) || spiReceive()) {
     error(SD_CARD_ERROR_ACMD13);
     goto fail;
   }
-  if (!readData(status, 64)) {
+  if (!readData(dst, 64)) {
     goto fail;
   }
   spiStop();
@@ -495,16 +543,16 @@ bool SharedSpiCard::readStop() {
 //------------------------------------------------------------------------------
 uint32_t SharedSpiCard::sectorCount() {
   csd_t csd;
-  return readCSD(&csd) ? sdCardCapacity(&csd) : 0;
+  return readCSD(&csd) ? csd.capacity() : 0;
 }
 //------------------------------------------------------------------------------
 void SharedSpiCard::spiStart() {
   if (!m_spiActive) {
     spiActivate();
+    m_spiActive = true;
     spiSelect();
     // Dummy byte to drive MISO busy status.
     spiSend(0XFF);
-    m_spiActive = true;
   }
 }
 //------------------------------------------------------------------------------

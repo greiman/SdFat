@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -42,15 +42,35 @@ class FsVolume {
   FsVolume() {}
 
   ~FsVolume() {end();}
-
+  /** Get file's user settable attributes.
+   * \param[in] path path to file.
+   * \return user settable file attributes for success else -1.
+   */
+  int attrib(const char* path) {
+    return m_fVol ? m_fVol->attrib(path) :
+           m_xVol ? m_xVol->attrib(path) : -1;
+  }
+  /** Set file's user settable attributes.
+   * \param[in] path path to file.
+   * \param[in] bits bit-wise or of selected attributes: FS_ATTRIB_READ_ONLY,
+   *            FS_ATTRIB_HIDDEN, FS_ATTRIB_SYSTEM, FS_ATTRIB_ARCHIVE.
+   *
+   * \return true for success or false for failure.
+   */
+  bool attrib(const char* path, uint8_t bits) {
+    return m_fVol ? m_fVol->attrib(path, bits) :
+           m_xVol ? m_xVol->attrib(path, bits) : false;
+  }
   /**
    * Initialize an FatVolume object.
    * \param[in] blockDev Device block driver.
    * \param[in] setCwv Set current working volume if true.
    * \param[in] part partition to initialize.
+   * \param[in] volStart Start sector of volume if part is zero.
    * \return true for success or false for failure.
    */
-  bool begin(FsBlockDevice* blockDev, bool setCwv = true, uint8_t part = 1);
+  bool begin(FsBlockDevice* blockDev, bool setCwv = true, uint8_t
+             part = 1, uint32_t volStart = 0);
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   uint32_t __attribute__((error("use sectorsPerCluster()"))) blocksPerCluster();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
@@ -119,10 +139,10 @@ class FsVolume {
     return m_fVol ? m_fVol->fatType() :
            m_xVol ? m_xVol->fatType() : 0;
   }
-  /** \return the free cluster count. */
-  uint32_t freeClusterCount() const {
+  /** \return free cluster count or -1 if an error occurs. */
+  int32_t freeClusterCount() const {
     return m_fVol ? m_fVol->freeClusterCount() :
-           m_xVol ? m_xVol->freeClusterCount() : 0;
+           m_xVol ? m_xVol->freeClusterCount() : -1;
   }
   /**
    * Check for device busy.

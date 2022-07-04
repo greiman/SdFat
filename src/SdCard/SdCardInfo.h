@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -32,10 +32,14 @@
 // Part 1
 // Physical Layer
 // Simplified Specification
-// Version 5.00
-// Aug 10, 2016
+// Version 8.00
+// Sep 23, 2020
 //
 // https://www.sdcard.org/downloads/pls/
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+// SD registers are big endian.
+#error bit fields in structures assume little endian processor.
+#endif  // __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 //------------------------------------------------------------------------------
 // SD card errors
 // See the SD Specification for command info.
@@ -64,6 +68,7 @@
   SD_CARD_ERROR(ACMD13, "Read extended status")\
   SD_CARD_ERROR(ACMD23, "Set pre-erased count")\
   SD_CARD_ERROR(ACMD41, "Activate card initialization")\
+  SD_CARD_ERROR(ACMD51, "Read SCR data")\
   SD_CARD_ERROR(READ_TOKEN, "Bad read data token")\
   SD_CARD_ERROR(READ_CRC, "Read CRC error")\
   SD_CARD_ERROR(READ_FIFO, "SDIO fifo read timeout")\
@@ -170,6 +175,8 @@ const uint8_t ACMD23 = 0X17;
 /** SD_SEND_OP_COMD - Sends host capacity support information and
     activates the card's initialization process */
 const uint8_t ACMD41 = 0X29;
+/** Reads the SD Configuration Register (SCR). */
+const uint8_t ACMD51 = 0X33;
 //==============================================================================
 // CARD_STATUS
 /** The command's argument was out of the allowed range for this card. */
@@ -259,231 +266,154 @@ const uint8_t DATA_RES_ACCEPTED = 0X05;
 typedef struct CID {
   // byte 0
   /** Manufacturer ID */
-  unsigned char mid;
+  uint8_t mid;
   // byte 1-2
-  /** OEM/Application ID */
+  /** OEM/Application ID. */
   char oid[2];
   // byte 3-7
-  /** Product name */
+  /** Product name. */
   char pnm[5];
   // byte 8
-  /** Product revision least significant digit */
-  unsigned char prv_m : 4;
-  /** Product revision most significant digit */
-  unsigned char prv_n : 4;
+  /** Product revision - n.m two 4-bit nibbles. */
+  uint8_t prv;
   // byte 9-12
-  /** Product serial number */
-  uint32_t psn;
-  // byte 13
-  /** Manufacturing date year high digit */
-  unsigned char mdt_year_high : 4;
-  /** not used */
-  unsigned char reserved : 4;
-  // byte 14
-  /** Manufacturing date month */
-  unsigned char mdt_month : 4;
-  /** Manufacturing date year low digit */
-  unsigned char mdt_year_low : 4;
+  /** Product serial 32-bit number Big Endian format. */
+  uint8_t psn8[4];
+  // byte 13-14
+  /** Manufacturing date big endian - four nibbles RYYM Reserved Year Month. */
+  uint8_t mdt[2];
   // byte 15
-  /** not used always 1 */
-  unsigned char always1 : 1;
-  /** CRC7 checksum */
-  unsigned char crc : 7;
+  /** CRC7 bits 1-7 checksum, bit 0 always 1 */
+  uint8_t crc;
+  // Extract big endian fields.
+  /** \return major revision number. */
+  int prvN() const {return prv >> 4;}
+  /** \return minor revision number. */
+  int prvM() const {return prv & 0XF;}
+  /** \return Manufacturing Year. */
+  int mdtYear() const {return 2000 + ((mdt[0] & 0XF) << 4) + (mdt[1] >> 4);}
+  /** \return Manufacturing Month. */
+  int mdtMonth() const {return mdt[1] & 0XF;}
+  /** \return Product Serial Number. */
+  uint32_t psn() const {
+  return (uint32_t)psn8[0] << 24 |
+         (uint32_t)psn8[1] << 16 |
+         (uint32_t)psn8[2] <<  8 |
+         (uint32_t)psn8[3];
+  }
 } __attribute__((packed)) cid_t;
-
-//==============================================================================
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-/**
- * \class CSDV1
- * \brief CSD register for version 1.00 cards .
- */
-typedef struct CSDV1 {
-  // byte 0
-  unsigned char reserved1 : 6;
-  unsigned char csd_ver : 2;
-  // byte 1
-  unsigned char taac;
-  // byte 2
-  unsigned char nsac;
-  // byte 3
-  unsigned char tran_speed;
-  // byte 4
-  unsigned char ccc_high;
-  // byte 5
-  unsigned char read_bl_len : 4;
-  unsigned char ccc_low : 4;
-  // byte 6
-  unsigned char c_size_high : 2;
-  unsigned char reserved2 : 2;
-  unsigned char dsr_imp : 1;
-  unsigned char read_blk_misalign : 1;
-  unsigned char write_blk_misalign : 1;
-  unsigned char read_bl_partial : 1;
-  // byte 7
-  unsigned char c_size_mid;
-  // byte 8
-  unsigned char vdd_r_curr_max : 3;
-  unsigned char vdd_r_curr_min : 3;
-  unsigned char c_size_low : 2;
-  // byte 9
-  unsigned char c_size_mult_high : 2;
-  unsigned char vdd_w_cur_max : 3;
-  unsigned char vdd_w_curr_min : 3;
-  // byte 10
-  unsigned char sector_size_high : 6;
-  unsigned char erase_blk_en : 1;
-  unsigned char c_size_mult_low : 1;
-  // byte 11
-  unsigned char wp_grp_size : 7;
-  unsigned char sector_size_low : 1;
-  // byte 12
-  unsigned char write_bl_len_high : 2;
-  unsigned char r2w_factor : 3;
-  unsigned char reserved3 : 2;
-  unsigned char wp_grp_enable : 1;
-  // byte 13
-  unsigned char reserved4 : 5;
-  unsigned char write_partial : 1;
-  unsigned char write_bl_len_low : 2;
-  // byte 14
-  unsigned char reserved5: 2;
-  unsigned char file_format : 2;
-  unsigned char tmp_write_protect : 1;
-  unsigned char perm_write_protect : 1;
-  unsigned char copy : 1;
-  /** Indicates the file format on the card */
-  unsigned char file_format_grp : 1;
-  // byte 15
-  unsigned char always1 : 1;
-  unsigned char crc : 7;
-} __attribute__((packed)) csd1_t;
 //==============================================================================
 /**
- * \class CSDV2
- * \brief CSD register for version 2.00 cards.
- */
-typedef struct CSDV2 {
-  // byte 0
-  unsigned char reserved1 : 6;
-  unsigned char csd_ver : 2;
-  // byte 1
-  /** fixed to 0X0E */
-  unsigned char taac;
-  // byte 2
-  /** fixed to 0 */
-  unsigned char nsac;
-  // byte 3
-  unsigned char tran_speed;
-  // byte 4
-  unsigned char ccc_high;
-  // byte 5
-  /** This field is fixed to 9h, which indicates READ_BL_LEN=512 Byte */
-  unsigned char read_bl_len : 4;
-  unsigned char ccc_low : 4;
-  // byte 6
-  /** not used */
-  unsigned char reserved2 : 4;
-  unsigned char dsr_imp : 1;
-  /** fixed to 0 */
-  unsigned char read_blk_misalign : 1;
-  /** fixed to 0 */
-  unsigned char write_blk_misalign : 1;
-  /** fixed to 0 - no partial read */
-  unsigned char read_bl_partial : 1;
-  // byte 7
-  /** high part of card size */
-  unsigned char c_size_high : 6;
-  /** not used */
-  unsigned char reserved3 : 2;
-  // byte 8
-  /** middle part of card size */
-  unsigned char c_size_mid;
-  // byte 9
-  /** low part of card size */
-  unsigned char c_size_low;
-  // byte 10
-  /** sector size is fixed at 64 KB */
-  unsigned char sector_size_high : 6;
-  /** fixed to 1 - erase single is supported */
-  unsigned char erase_blk_en : 1;
-  /** not used */
-  unsigned char reserved4 : 1;
-  // byte 11
-  unsigned char wp_grp_size : 7;
-  /** sector size is fixed at 64 KB */
-  unsigned char sector_size_low : 1;
-  // byte 12
-  /** write_bl_len fixed for 512 byte sectors */
-  unsigned char write_bl_len_high : 2;
-  /** fixed value of 2 */
-  unsigned char r2w_factor : 3;
-  /** not used */
-  unsigned char reserved5 : 2;
-  /** fixed value of 0 - no write protect groups */
-  unsigned char wp_grp_enable : 1;
-  // byte 13
-  unsigned char reserved6 : 5;
-  /** always zero - no partial sector read*/
-  unsigned char write_partial : 1;
-  /** write_bl_len fixed for 512 byte sectors */
-  unsigned char write_bl_len_low : 2;
-  // byte 14
-  unsigned char reserved7: 2;
-  /** Do not use always 0 */
-  unsigned char file_format : 2;
-  unsigned char tmp_write_protect : 1;
-  unsigned char perm_write_protect : 1;
-  unsigned char copy : 1;
-  /** Do not use always 0 */
-  unsigned char file_format_grp : 1;
-  // byte 15
-  /** not used always 1 */
-  unsigned char always1 : 1;
-  /** checksum */
-  unsigned char crc : 7;
-} __attribute__((packed)) csd2_t;
-//==============================================================================
-/**
- * \class csd_t
+ * \class CSD
  * \brief Union of old and new style CSD register.
  */
-union csd_t {
-  csd1_t v1;
-  csd2_t v2;
-};
-//-----------------------------------------------------------------------------
-inline uint32_t sdCardCapacity(csd_t* csd) {
-  if (csd->v1.csd_ver == 0) {
-    uint8_t read_bl_len = csd->v1.read_bl_len;
-    uint16_t c_size = (csd->v1.c_size_high << 10)
-                      | (csd->v1.c_size_mid << 2) | csd->v1.c_size_low;
-    uint8_t c_size_mult = (csd->v1.c_size_mult_high << 1)
-                          | csd->v1.c_size_mult_low;
-    return (uint32_t)(c_size + 1) << (c_size_mult + read_bl_len - 7);
-  } else if (csd->v2.csd_ver == 1) {
-    return (((uint32_t)csd->v2.c_size_high << 16) +
-           ((uint16_t)csd->v2.c_size_mid << 8) + csd->v2.c_size_low + 1) << 10;
-  } else {
-    return 0;
+typedef struct CSD {
+  /** union of all CSD versions */
+  uint8_t csd[16];
+  // Extract big endian fields.
+  /** \return Capacity in sectors */
+  uint32_t capacity() const {
+    uint32_t c_size;
+    uint8_t ver = csd[0] >> 6;
+    if (ver == 0) {
+      c_size = (uint32_t)(csd[6] & 3) << 10;
+      c_size |= (uint32_t)csd[7] << 2 | csd[8] >> 6;
+      uint8_t c_size_mult = (csd[9] & 3) << 1 | csd[10] >> 7;
+      uint8_t read_bl_len = csd[5] & 15;
+      return (c_size + 1) << (c_size_mult + read_bl_len + 2 - 9);
+    } else if (ver == 1) {
+      c_size = (uint32_t)(csd[7] & 63) << 16;
+      c_size |= (uint32_t)csd[8] << 8;
+      c_size |= csd[9];
+      return (c_size + 1) << 10;
+    } else {
+      return 0;
+    }
   }
-}
-//-----------------------------------------------------------------------------
+  /** \return true if erase granularity is single block. */
+  bool eraseSingleBlock() const {return csd[10] & 0X40;}
+  /** \return erase size in 512 byte blocks if eraseSingleBlock is false. */
+  int eraseSize() const {return ((csd[10] & 0X3F) << 1 | csd[11] >> 7) + 1;}
+  /** \return true if the contents is copied or true if original. */
+  bool copy() const {return csd[14] & 0X40;}
+  /** \return true if the entire card is permanently write protected. */
+  bool permWriteProtect() const {return  csd[14] & 0X20;}
+  /** \return true if the entire card is temporarily write protected. */
+  bool tempWriteProtect() const {return  csd[14] & 0X10;}
+} csd_t;
+//==============================================================================
+/**
+ * \class SCR
+ * \brief SCR register.
+ */
+typedef struct SCR {
+  /** Bytes 0-3 SD Association, bytes 4-7 reserved for manufacturer. */
+  uint8_t scr[8];
+  /** \return SCR_STRUCTURE field  - must be zero.*/
+  uint8_t srcStructure() {return scr[0] >> 4;}
+  /** \return SD_SPEC field 0 - v1.0 or V1.01, 1 - 1.10, 2 - V2.00 or greater */
+  uint8_t sdSpec() {return scr[0] & 0XF;}
+  /** \return false if all zero, true if all one. */
+  bool dataAfterErase() {return 0X80 & scr[1];}
+  /** \return CPRM Security Version. */
+  uint8_t sdSecurity() {return (scr[1] >> 4) & 0X7;}
+  /** \return 0101b.  */
+  uint8_t sdBusWidths() {return scr[1] & 0XF;}
+  /** \return true if V3.0 or greater. */
+  bool sdSpec3() {return scr[2] & 0X80;}
+  /** \return if true and sdSpecX is zero V4.xx. */
+  bool sdSpec4() {return scr[2] & 0X4;}
+  /** \return nonzero for version 5 or greater if sdSpec == 2,
+              sdSpec3 == true. Version is return plus four.*/
+  uint8_t sdSpecX() {return (scr[2] & 0X3) << 2 | scr[3] >> 6;}
+  /** \return bit map for support CMD58/59, CMD48/49, CMD23, and CMD20 */
+  uint8_t cmdSupport() {return scr[3] &0XF;}
+  /** \return SD spec version */
+  int16_t sdSpecVer() {
+    if (sdSpec() > 2) {
+      return -1;
+    } else if (sdSpec() < 2) {
+      return sdSpec() ? 110 : 101;
+    } else if (!sdSpec3()) {
+      return 200;
+    } else if (!sdSpec4() && !sdSpecX()) {
+      return 300;
+    }
+    return 400 + 100*sdSpecX();
+  }
+} scr_t;
+//==============================================================================
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 // fields are big endian
 typedef struct SdStatus {
+  //
   uint8_t busWidthSecureMode;
   uint8_t reserved1;
+  // byte 2
   uint8_t sdCardType[2];
+  // byte 4
   uint8_t sizeOfProtectedArea[4];
+  // byte 8
   uint8_t speedClass;
+  // byte 9
   uint8_t performanceMove;
+  // byte 10
   uint8_t auSize;
+  // byte 11
   uint8_t eraseSize[2];
+  // byte 13
   uint8_t eraseTimeoutOffset;
+  // byte 14
   uint8_t uhsSpeedAuSize;
+  // byte 15
   uint8_t videoSpeed;
+  // byte 16
   uint8_t vscAuSize[2];
+  // byte 18
   uint8_t susAddr[3];
+  // byte 21
   uint8_t reserved2[3];
+  // byte 24
   uint8_t reservedManufacturer[40];
 } SdStatus_t;
 #endif  // DOXYGEN_SHOULD_SKIP_THIS

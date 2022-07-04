@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -390,10 +390,9 @@ int32_t FatPartition::freeClusterCount() {
   return -1;
 }
 //------------------------------------------------------------------------------
-bool FatPartition::init(FsBlockDevice* dev, uint8_t part) {
+bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   uint32_t clusterCount;
   uint32_t totalSectors;
-  uint32_t volumeStartSector = 0;
   m_blockDev = dev;
   pbs_t* pbs;
   BpbFat32_t* bpb;
@@ -414,19 +413,25 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part) {
     }
     mbr = reinterpret_cast<MbrSector_t*>
           (dataCachePrepare(0, FsCache::CACHE_FOR_READ));
-    MbrPart_t* mp = mbr->part + part - 1;
-
-    if (!mbr || mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
+    if (!mbr) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    volumeStartSector = getLe32(mp->relativeSectors);
+    MbrPart_t* mp = mbr->part + part - 1;
+    if (mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    volStart = getLe32(mp->relativeSectors);
   }
   pbs = reinterpret_cast<pbs_t*>
-        (dataCachePrepare(volumeStartSector, FsCache::CACHE_FOR_READ));
+        (dataCachePrepare(volStart, FsCache::CACHE_FOR_READ));
+  if (!pbs) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
   bpb = reinterpret_cast<BpbFat32_t*>(pbs->bpb);
-  if (!pbs || bpb->fatCount != 2 ||
-    getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
+  if (bpb->fatCount != 2 || getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -445,7 +450,7 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part) {
   if (m_sectorsPerFat == 0) {
     m_sectorsPerFat = getLe32(bpb->sectorsPerFat32);
   }
-  m_fatStartSector = volumeStartSector + getLe16(bpb->reservedSectorCount);
+  m_fatStartSector = volStart + getLe16(bpb->reservedSectorCount);
 
   // count for FAT16 zero for FAT32
   m_rootDirEntryCount = getLe16(bpb->rootDirEntryCount);
@@ -462,7 +467,7 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part) {
     totalSectors = getLe32(bpb->totalSectors32);
   }
   // total data sectors
-  clusterCount = totalSectors - (m_dataStartSector - volumeStartSector);
+  clusterCount = totalSectors - (m_dataStartSector - volStart);
 
   // divide by cluster size to get cluster count
   clusterCount >>= m_sectorsPerClusterShift;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -455,7 +455,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
       dir++;
     }
 #endif  // RAW_ROOT
-    if (dir->type == 0) {
+    if (dir->type == EXFAT_TYPE_END_DIR) {
       break;
     }
     pr->println();
@@ -520,7 +520,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
         break;
 
       default:
-        if (dir->type & 0x80) {
+        if (dir->type & EXFAT_TYPE_USED) {
           pr->print(F("Unknown dirType: 0x"));
         } else {
           pr->print(F("Unused dirType: 0x"));

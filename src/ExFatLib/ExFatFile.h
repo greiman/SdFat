@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -87,6 +87,21 @@ class ExFatFile {
   operator bool() {
     return isOpen();
   }
+  /**
+   * \return user settable file attributes for success else -1.
+   */
+  int attrib() {
+    return isFileOrSubDir() ? m_attributes & FS_ATTRIB_COPY : -1;
+  }
+  /** Set file attributes
+   *
+   * \param[in] bits bit-wise or of selected attributes: FS_ATTRIB_READ_ONLY,
+   *            FS_ATTRIB_HIDDEN, FS_ATTRIB_SYSTEM, FS_ATTRIB_ARCHIVE.
+   *
+   * \note attrib() will fail for set read-only if the file is open for write.
+   * \return true for success or false for failure.
+   */
+  bool attrib(uint8_t bits);
   /** \return The number of bytes available from the current position
    * to EOF for normal files.  INT_MAX is returned for very large files.
    *
@@ -129,9 +144,10 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector);
+  /** \return The current cluster number for a file or directory. */
+  uint32_t curCluster() const {return m_curCluster;}
   /** \return The current position for a file or directory. */
   uint64_t curPosition() const {return m_curPosition;}
-
   /** \return Total data length for file. */
   uint64_t dataLength() const {return m_dataLength;}
   /** \return Directory entry index. */
@@ -261,18 +277,22 @@ class ExFatFile {
   bool isDir() const  {return m_attributes & FILE_ATTR_DIR;}
   /** \return True if this is a normal file. */
   bool isFile() const {return m_attributes & FILE_ATTR_FILE;}
+  /** \return True if this is a normal file or sub-directory. */
+  bool isFileOrSubDir() const {return isFile() || isSubDir();}
   /** \return True if this is a hidden. */
-  bool isHidden() const {return m_attributes & FILE_ATTR_HIDDEN;}
+  bool isHidden() const {return m_attributes & FS_ATTRIB_HIDDEN;}
   /** \return true if the file is open. */
   bool isOpen() const {return m_attributes;}
   /** \return True if file is read-only */
-  bool isReadOnly() const {return m_attributes & FILE_ATTR_READ_ONLY;}
+  bool isReadOnly() const {return m_attributes & FS_ATTRIB_READ_ONLY;}
   /** \return True if this is the root directory. */
   bool isRoot() const {return m_attributes & FILE_ATTR_ROOT;}
   /** \return True file is readable. */
   bool isReadable() const {return m_flags & FILE_FLAG_READ;}
-  /** \return True if this is a subdirectory. */
+  /** \return True if this is a sub-directory. */
   bool isSubDir() const {return m_attributes & FILE_ATTR_SUBDIR;}
+  /** \return True if this is a system file. */
+  bool isSystem() const {return m_attributes & FS_ATTRIB_SYSTEM;}
   /** \return True file is writable. */
   bool isWritable() const {return m_flags & FILE_FLAG_WRITE;}
   /** List directory contents.
@@ -291,10 +311,10 @@ class ExFatFile {
    *
    * LS_SIZE - %Print file size.
    *
-   * LS_R - Recursive list of subdirectories.
+   * LS_R - Recursive list of sub-directories.
    *
    * \param[in] indent Amount of space before file name. Used for recursive
-   * list to indicate subdirectory level.
+   * list to indicate sub-directory level.
    *
    * \return true for success or false for failure.
    */
@@ -355,7 +375,7 @@ class ExFatFile {
    *
    * \return true for success or false for failure.
    */
-  bool open(ExFatFile* dirFile, const char* path, oflag_t oflag);
+  bool open(ExFatFile* dirFile, const char* path, oflag_t oflag = O_RDONLY);
   /** Open a file in the volume working directory.
    *
    * \param[in] vol Volume where the file is located.
@@ -367,7 +387,7 @@ class ExFatFile {
    *
    * \return true for success or false for failure.
    */
-  bool open(ExFatVolume* vol, const char* path, oflag_t oflag);
+  bool open(ExFatVolume* vol, const char* path, oflag_t oflag = O_RDONLY);
   /** Open a file by index.
    *
    * \param[in] dirFile An open ExFatFile instance for the directory.
@@ -381,7 +401,19 @@ class ExFatFile {
    * See open() by path for definition of flags.
    * \return true for success or false for failure.
    */
-  bool open(ExFatFile* dirFile, uint32_t index, oflag_t oflag);
+  bool open(ExFatFile* dirFile, uint32_t index, oflag_t oflag = O_RDONLY);
+  /** Open a file by index in the current working directory.
+   *
+   * \param[in] index The \a index of the directory entry for the file to be
+   * opened.  The value for \a index is (directory file position)/32.
+   *
+   * \param[in] oflag bitwise-inclusive OR of open flags.
+   *                  See see FatFile::open(FatFile*, const char*, uint8_t).
+   *
+   * See open() by path for definition of flags.
+   * \return true for success or false for failure.
+   */
+  bool open(uint32_t index, oflag_t oflag = O_RDONLY);
   /** Open a file in the current working directory.
    *
    * \param[in] path A path with a valid name for a file to be opened.
@@ -392,6 +424,11 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool open(const char* path, oflag_t oflag = O_RDONLY);
+   /** Open the current working directory.
+   *
+   * \return true for success or false for failure.
+   */
+  bool openCwd();
   /** Open the next file or subdirectory in a directory.
    *
    * \param[in] dirFile An open instance for the directory
@@ -769,7 +806,6 @@ class ExFatFile {
   bool openPrivate(ExFatFile* dir, ExName_t* fname, oflag_t oflag);
   bool parsePathName(const char* path,
                             ExName_t* fname, const char** ptr);
-  uint32_t curCluster() const {return m_curCluster;}
   ExFatVolume* volume() const {return m_vol;}
   bool syncDir();
   //----------------------------------------------------------------------------
@@ -778,25 +814,14 @@ class ExFatFile {
 
   /** This file has not been opened. */
   static const uint8_t FILE_ATTR_CLOSED = 0;
-  /** File is read-only. */
-  static const uint8_t FILE_ATTR_READ_ONLY = EXFAT_ATTRIB_READ_ONLY;
-  /** File should be hidden in directory listings. */
-  static const uint8_t FILE_ATTR_HIDDEN = EXFAT_ATTRIB_HIDDEN;
-  /** Entry is for a system file. */
-  static const uint8_t FILE_ATTR_SYSTEM = EXFAT_ATTRIB_SYSTEM;
   /** Entry for normal data file */
   static const uint8_t FILE_ATTR_FILE = 0X08;
   /** Entry is for a subdirectory */
-  static const uint8_t FILE_ATTR_SUBDIR = EXFAT_ATTRIB_DIRECTORY;
-  static const uint8_t FILE_ATTR_ARCHIVE = EXFAT_ATTRIB_ARCHIVE;
+  static const uint8_t FILE_ATTR_SUBDIR = FS_ATTRIB_DIRECTORY;
   /** Root directory */
   static const uint8_t FILE_ATTR_ROOT = 0X40;
   /** Directory type bits */
   static const uint8_t FILE_ATTR_DIR = FILE_ATTR_SUBDIR | FILE_ATTR_ROOT;
-  /** Attributes to copy from directory entry */
-  static const uint8_t FILE_ATTR_COPY = EXFAT_ATTRIB_READ_ONLY |
-                       EXFAT_ATTRIB_HIDDEN | EXFAT_ATTRIB_SYSTEM |
-                       EXFAT_ATTRIB_DIRECTORY | EXFAT_ATTRIB_ARCHIVE;
 
   static const uint8_t FILE_FLAG_READ = 0X01;
   static const uint8_t FILE_FLAG_WRITE = 0X02;

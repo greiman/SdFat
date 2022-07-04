@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,6 +33,17 @@
 #include "SdCardInfo.h"
 #include "SdCardInterface.h"
 #include "../SpiDriver/SdSpiDriver.h"
+/** Verify correct SPI active if non-zero. */
+#define CHECK_SPI_ACTIVE 0
+#if CHECK_SPI_ACTIVE
+/** Check SPI active. */
+#define SPI_ASSERT_ACTIVE {if (!m_spiActive) {\
+  Serial.print(F("SPI_ASSERTACTIVE"));\
+  Serial.println(__LINE__);}}
+#else  // CHECK_SPI_ACTIVE
+/** Do not check SPI active. */
+#define SPI_ASSERT_ACTIVE
+#endif  // CHECK_SPI_ACTIVE
 //==============================================================================
 /**
  * \class SharedSpiCard
@@ -59,10 +70,15 @@ class SharedSpiCard {
    * \return true for success or false for failure.
    */
   bool begin(SdSpiConfig spiConfig);
+  /** CMD6 Switch mode: Check Function Set Function.
+   * \param[in] arg CMD6 argument.
+   * \param[out] status return status data.
+   *
+   * \return true for success or false for failure.
+   */
+  bool cardCMD6(uint32_t arg, uint8_t* status);
   /** End use of card */
-  void end() {
-    spiEnd();
-  }
+  void end();
   /** Erase a range of sectors.
    *
    * \param[in] firstSector The address of the first sector in the range.
@@ -146,6 +162,12 @@ class SharedSpiCard {
    * \return true for success or false for failure.
    */
   bool readOCR(uint32_t* ocr);
+  /** Read SCR register.
+   *
+   * \param[out] scr Value of SCR register.
+   * \return true for success or false for failure.
+   */
+  bool readSCR(scr_t* scr);
   /**
    * Read a 512 byte sector from an SD card.
    *
@@ -178,7 +200,7 @@ class SharedSpiCard {
    * \param[out] status location for 64 status bytes.
    * \return true for success or false for failure.
    */
-  bool readStatus(uint8_t* status);
+  bool readStatus(SdStatus* status);
   /** End a read multiple sectors sequence.
    *
    * \return true for success or false for failure.
@@ -293,15 +315,19 @@ class SharedSpiCard {
     m_spiDriver.end();
   }
   uint8_t spiReceive() {
+    SPI_ASSERT_ACTIVE;
     return m_spiDriver.receive();
   }
   uint8_t spiReceive(uint8_t* buf, size_t n) {
+    SPI_ASSERT_ACTIVE;
     return m_spiDriver.receive(buf, n);
   }
   void spiSend(uint8_t data) {
+    SPI_ASSERT_ACTIVE;
     m_spiDriver.send(data);
   }
   void spiSend(const uint8_t* buf, size_t n) {
+    SPI_ASSERT_ACTIVE;
     m_spiDriver.send(buf, n);
   }
   void spiSetSckSpeed(uint32_t maxSck) {
@@ -322,22 +348,28 @@ class SharedSpiCard {
     m_spiDriverPtr->end();
   }
   uint8_t spiReceive() {
+    SPI_ASSERT_ACTIVE;
     return m_spiDriverPtr->receive();
   }
   uint8_t spiReceive(uint8_t* buf, size_t n) {
+    SPI_ASSERT_ACTIVE;
     return m_spiDriverPtr->receive(buf, n);
   }
   void spiSend(uint8_t data) {
+    SPI_ASSERT_ACTIVE;
     m_spiDriverPtr->send(data);
   }
   void spiSend(const uint8_t* buf, size_t n) {
+    SPI_ASSERT_ACTIVE;
     m_spiDriverPtr->send(buf, n);
   }
   void spiSetSckSpeed(uint32_t maxSck) {
     m_spiDriverPtr->setSckSpeed(maxSck);
   }
   SdSpiDriver* m_spiDriverPtr;
+
 #endif  // SPI_DRIVER_SELECT < 2
+  bool m_beginCalled = false;
   SdCsPin_t m_csPin;
   uint8_t m_errorCode = SD_CARD_ERROR_INIT_NOT_CALLED;
   bool    m_spiActive;

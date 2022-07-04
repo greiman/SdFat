@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -80,6 +80,29 @@ bool FatFile::addDirCluster() {
   }
   // Set position to EOF to avoid inconsistent curCluster/curPosition.
   m_curPosition += m_vol->bytesPerCluster();
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
+bool FatFile::attrib(uint8_t bits) {
+  if (!isFileOrSubDir() || (bits & FS_ATTRIB_USER_SETTABLE) != bits) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  // Don't allow read-only to be set if the file is open for write.
+  if ((bits & FS_ATTRIB_READ_ONLY) && isWritable()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  m_attributes = (m_attributes & ~FS_ATTRIB_USER_SETTABLE) | bits;
+  // insure sync() will update dir entry
+  m_flags |= FILE_FLAG_DIR_DIRTY;
+  if (!sync()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
   return true;
 
  fail:
@@ -382,7 +405,7 @@ bool FatFile::mkdir(FatFile* parent, FatName_t* fname) {
     goto fail;
   }
   // change directory entry attribute
-  dir->attributes = FAT_ATTRIB_DIRECTORY;
+  dir->attributes = FS_ATTRIB_DIRECTORY;
 
   // make entry for '.'
   memcpy(&dot, dir, sizeof(dot));
@@ -466,6 +489,11 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
   return false;
 }
 //------------------------------------------------------------------------------
+bool FatFile::open(uint16_t index, oflag_t oflag) {
+  FatVolume* vol = FatVolume::cwv();
+  return vol ? open(vol->vwd(), index, oflag) : false;
+}
+//------------------------------------------------------------------------------
 bool FatFile::open(FatFile* dirFile, uint16_t index, oflag_t oflag) {
   if (index) {
     // Find start of LFN.
@@ -519,12 +547,12 @@ bool FatFile::openCachedEntry(FatFile* dirFile, uint16_t dirIndex,
   dir += 0XF & dirIndex;
 
   // Must be file or subdirectory.
-  if (!isFileOrSubdir(dir)) {
+  if (!isFatFileOrSubdir(dir)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  m_attributes = dir->attributes & FILE_ATTR_COPY;
-  if (isFileDir(dir)) {
+  m_attributes = dir->attributes & FS_ATTRIB_COPY;
+  if (isFatFile(dir)) {
     m_attributes |= FILE_ATTR_FILE;
   }
   m_lfnOrd = lfnOrd;
@@ -556,6 +584,7 @@ bool FatFile::openCachedEntry(FatFile* dirFile, uint16_t dirIndex,
       DBG_FAIL_MACRO;
       goto fail;
     }
+    m_attributes |= FS_ATTRIB_ARCHIVE;
   }
   m_flags |= (oflag & O_APPEND ? FILE_FLAG_APPEND : 0);
 
@@ -570,7 +599,6 @@ bool FatFile::openCachedEntry(FatFile* dirFile, uint16_t dirIndex,
       DBG_FAIL_MACRO;
       goto fail;
     }
-
     // need to update directory entry
     m_flags |= FILE_FLAG_DIR_DIRTY;
   } else {
@@ -601,6 +629,19 @@ bool FatFile::openCluster(FatFile* file) {
   return true;
 }
 //------------------------------------------------------------------------------
+bool FatFile::openCwd() {
+  if (isOpen() || !FatVolume::cwv()) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *this = *FatVolume::cwv()->vwd();
+  rewind();
+  return true;
+
+ fail:
+  return false;
+}
+//------------------------------------------------------------------------------
 bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint8_t checksum = 0;
   DirLfn_t* ldir;
@@ -629,7 +670,7 @@ bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
     // skip empty slot or '.' or '..'
     if (dir->name[0] == '.' || dir->name[0] == FAT_NAME_DELETED) {
       lfnOrd = 0;
-    } else if (isFileOrSubdir(dir)) {
+    } else if (isFatFileOrSubdir(dir)) {
       if (lfnOrd && checksum != lfnChecksum(dir->name)) {
         DBG_FAIL_MACRO;
         goto fail;
@@ -639,7 +680,7 @@ bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
         goto fail;
       }
       return true;
-    } else if (isLongName(dir)) {
+    } else if (isFatLongName(dir)) {
       ldir = reinterpret_cast<DirLfn_t*>(dir);
       if (ldir->order & FAT_ORDER_LAST_LONG_ENTRY) {
         lfnOrd = ldir->order & 0X1F;
@@ -855,7 +896,7 @@ int8_t FatFile::readDir(DirFat_t* dir) {
       continue;
     }
     // return if normal file or subdirectory
-    if (isFileOrSubdir(dir)) {
+    if (isFatFileOrSubdir(dir)) {
       return n;
     }
   }
@@ -1040,7 +1081,7 @@ bool FatFile::rmdir() {
       continue;
     }
     // error not empty
-    if (isFileOrSubdir(dir)) {
+    if (isFatFileOrSubdir(dir)) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -1086,7 +1127,7 @@ bool FatFile::rmRfStar() {
     }
 
     // skip if part of long file name or volume label in root
-    if (!isFileOrSubdir(dir)) {
+    if (!isFatFileOrSubdir(dir)) {
       continue;
     }
 
@@ -1207,6 +1248,7 @@ bool FatFile::sync() {
       DBG_FAIL_MACRO;
       goto fail;
     }
+    dir->attributes = m_attributes & FS_ATTRIB_COPY;
     // do not set filesize for dir files
     if (isFile()) {
       setLe32(dir->fileSize, m_fileSize);

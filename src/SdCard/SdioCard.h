@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -60,6 +60,13 @@ class SdioCard : public SdCardInterface {
    * \return true for success or false for failure.
    */
   bool begin(SdioConfig sdioConfig);
+  /** CMD6 Switch mode: Check Function Set Function.
+   * \param[in] arg CMD6 argument.
+   * \param[out] status return status data.
+   *
+   * \return true for success or false for failure.
+   */
+  bool cardCMD6(uint32_t arg, uint8_t* status);
   /** Disable an SDIO card.
    * not implemented.
    */
@@ -146,6 +153,12 @@ class SdioCard : public SdCardInterface {
    * \return true for success or false for failure.
    */
   bool readOCR(uint32_t* ocr);
+  /** Read SCR register.
+   *
+   * \param[out] scr Value of SCR register.
+   * \return true for success or false for failure.
+   */
+  bool readSCR(scr_t *scr);
   /** Start a read multiple sectors sequence.
    *
    * \param[in] sector Address of first sector in sequence.

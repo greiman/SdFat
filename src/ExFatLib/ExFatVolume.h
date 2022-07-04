@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,15 +33,36 @@
 class ExFatVolume : public ExFatPartition {
  public:
   ExFatVolume() {}
+  /** Get file's user settable attributes.
+   * \param[in] path path to file.
+   * \return user settable file attributes for success else -1.
+   */
+  int attrib(const char* path) {
+    ExFatFile tmpFile;
+    return tmpFile.open(this, path, O_RDONLY) ? tmpFile.attrib() : -1;
+  }
+  /** Set file's user settable attributes.
+   * \param[in] path path to file.
+   * \param[in] bits bit-wise or of selected attributes: FS_ATTRIB_READ_ONLY,
+   *            FS_ATTRIB_HIDDEN, FS_ATTRIB_SYSTEM, FS_ATTRIB_ARCHIVE.
+   *
+   * \return true for success or false for failure.
+   */
+  bool attrib(const char* path, uint8_t bits) {
+    ExFatFile tmpFile;
+    return tmpFile.open(this, path, O_RDONLY) ? tmpFile.attrib(bits) : false;
+  }
   /**
    * Initialize an FatVolume object.
    * \param[in] dev Device block driver.
    * \param[in] setCwv Set current working volume if true.
-   * \param[in] part partition to initialize.
+   * \param[in] part Partition to initialize.
+   * \param[in] volStart Start sector of volume if part is zero.
    * \return true for success or false for failure.
    */
-  bool begin(FsBlockDevice* dev, bool setCwv = true, uint8_t part = 1) {
-    if (!init(dev, part)) {
+  bool begin(FsBlockDevice* dev, bool setCwv = true,
+             uint8_t part = 1, uint32_t volStart = 0) {
+    if (!init(dev, part, volStart)) {
       return false;
     }
     if (!chdir()) {

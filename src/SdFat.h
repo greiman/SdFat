@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -38,9 +38,9 @@
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version for cpp use. */
-#define SD_FAT_VERSION 20102
+#define SD_FAT_VERSION 20200
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.1.2"
+#define SD_FAT_VERSION_STR "2.2.0"
 //==============================================================================
 /**
  * \class SdBase
@@ -174,11 +174,11 @@ class SdBase : public Vol {
     }
     bool switchSpi = hasDedicatedSpi() && !isDedicatedSpi();
     if (switchSpi && !setDedicatedSpi(true)) {
-      return 0;
+      return false;
     }
     bool rtn = fmt.format(card(), mem, pr);
     if (switchSpi && !setDedicatedSpi(false)) {
-      return 0;
+      return false;
     }
     return rtn;
   }

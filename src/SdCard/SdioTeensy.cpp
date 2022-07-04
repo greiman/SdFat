@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -130,6 +130,9 @@ const uint32_t ACMD6_XFERTYP = SDHC_XFERTYP_CMDINX(ACMD6) | CMD_RESP_R1;
 
 const uint32_t ACMD41_XFERTYP = SDHC_XFERTYP_CMDINX(ACMD41) | CMD_RESP_R3;
 
+const uint32_t ACMD51_XFERTYP = SDHC_XFERTYP_CMDINX(ACMD51) | CMD_RESP_R1 |
+                                DATA_READ_DMA;
+
 const uint32_t CMD0_XFERTYP = SDHC_XFERTYP_CMDINX(CMD0) | CMD_RESP_NONE;
 
 const uint32_t CMD2_XFERTYP = SDHC_XFERTYP_CMDINX(CMD2) | CMD_RESP_R2;
@@ -208,6 +211,7 @@ static uint32_t m_sdClkKhz = 0;
 static uint32_t m_ocr;
 static cid_t m_cid;
 static csd_t m_csd;
+static scr_t m_scr;
 //==============================================================================
 #define DBG_TRACE Serial.print("TRACE."); Serial.println(__LINE__); delay(200);
 #define USE_DEBUG_MODE 0
@@ -402,17 +406,17 @@ static bool cardCommand(uint32_t xfertyp, uint32_t arg) {
          !(m_irqstat & SDHC_IRQSTAT_CMD_ERROR);
 }
 //------------------------------------------------------------------------------
-static bool cardCMD6(uint32_t arg, uint8_t* status) {
-  // CMD6 returns 64 bytes.
+static bool cardACMD51(scr_t* scr) {
+  // ACMD51 returns 8 bytes.
   if (waitTimeout(isBusyCMD13)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
   enableDmaIrs();
-  SDHC_DSADDR  = (uint32_t)status;
-  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(64);
+  SDHC_DSADDR  = (uint32_t)scr;
+  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(8);
   SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
-  if (!cardCommand(CMD6_XFERTYP, arg)) {
-    return sdError(SD_CARD_ERROR_CMD6);
+  if (!cardAcmd(m_rca, ACMD51_XFERTYP, 0)) {
+    return sdError(SD_CARD_ERROR_ACMD51);
   }
   if (!waitDmaStatus()) {
     return sdError(SD_CARD_ERROR_DMA);
@@ -662,7 +666,10 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
       m_version2 = true;
       break;
     }
+    SDHC_SYSCTL |= SDHC_SYSCTL_RSTA;
+    while (SDHC_SYSCTL & SDHC_SYSCTL_RSTA) {}
   }
+  // Must support 3.2-3.4 Volts
   arg = m_version2 ? 0X40300000 : 0x00300000;
   int m = micros();
   do {
@@ -703,10 +710,14 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
 
   SDHC_WML = SDHC_WML_RDWML(FIFO_WML) | SDHC_WML_WRWML(FIFO_WML);
 
+  if (!cardACMD51(&m_scr)) {
+    return false;
+  }
   // Determine if High Speed mode is supported and set frequency.
   // Check status[16] for error 0XF or status[16] for new mode 0X1.
   uint8_t status[64];
-  if (cardCMD6(0X00FFFFFF, status) && (2 & status[13]) &&
+  if (m_scr.sdSpec() > 0 &&
+      cardCMD6(0X00FFFFFF, status) && (2 & status[13]) &&
       cardCMD6(0X80FFFFF1, status) && (status[16] & 0XF) == 1) {
     kHzSdClk = 50000;
   } else {
@@ -724,16 +735,32 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   return true;
 }
 //------------------------------------------------------------------------------
+bool SdioCard::cardCMD6(uint32_t arg, uint8_t* status) {
+  // CMD6 returns 64 bytes.
+  if (waitTimeout(isBusyCMD13)) {
+    return sdError(SD_CARD_ERROR_CMD13);
+  }
+  enableDmaIrs();
+  SDHC_DSADDR  = (uint32_t)status;
+  SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(64);
+  SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
+  if (!cardCommand(CMD6_XFERTYP, arg)) {
+    return sdError(SD_CARD_ERROR_CMD6);
+  }
+  if (!waitDmaStatus()) {
+    return sdError(SD_CARD_ERROR_DMA);
+  }
+  return true;
+}
+//------------------------------------------------------------------------------
 bool SdioCard::erase(uint32_t firstSector, uint32_t lastSector) {
-#if ENABLE_TEENSY_SDIO_MOD
   if (m_curState != IDLE_STATE && !syncDevice()) {
     return false;
   }
-#endif  // ENABLE_TEENSY_SDIO_MOD
   // check for single sector erase
-  if (!m_csd.v1.erase_blk_en) {
+  if (!m_csd.eraseSingleBlock()) {
     // erase size mask
-    uint8_t m = (m_csd.v1.sector_size_high << 1) | m_csd.v1.sector_size_low;
+    uint8_t m = m_csd.eraseSize() - 1;
     if ((firstSector & m) != 0 || ((lastSector + 1) & m) != 0) {
       // error card can't erase specified area
       return sdError(SD_CARD_ERROR_ERASE_SINGLE_SECTOR);
@@ -843,6 +870,11 @@ bool SdioCard::readOCR(uint32_t* ocr) {
   return true;
 }
 //------------------------------------------------------------------------------
+bool SdioCard::readSCR(scr_t* scr) {
+  memcpy(scr, &m_scr, 8);
+  return true;
+}
+//------------------------------------------------------------------------------
 bool SdioCard::readSector(uint32_t sector, uint8_t* dst) {
   if (m_sdioConfig.useDma()) {
     uint8_t aligned[512];
@@ -933,7 +965,7 @@ bool SdioCard::readStop() {
 }
 //------------------------------------------------------------------------------
 uint32_t SdioCard::sectorCount() {
-  return sdCardCapacity(&m_csd);
+  return m_csd.capacity();
 }
 //------------------------------------------------------------------------------
 uint32_t SdioCard::status() {

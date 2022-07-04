@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -32,6 +32,13 @@
  */
 class SdCardInterface : public FsBlockDeviceInterface {
  public:
+  /** CMD6 Switch mode: Check Function Set Function.
+   * \param[in] arg CMD6 argument.
+   * \param[out] status return status data.
+   *
+   * \return true for success or false for failure.
+   */
+  virtual bool cardCMD6(uint32_t arg, uint8_t* status) = 0;
   /** end use of card */
   virtual void end() = 0;
    /** Erase a range of sectors.
@@ -82,6 +89,12 @@ class SdCardInterface : public FsBlockDeviceInterface {
    * \return true for success or false for failure.
    */
   virtual bool readOCR(uint32_t* ocr) = 0;
+  /** Read SCR register.
+   *
+   * \param[out] scr Value of SCR register.
+   * \return true for success or false for failure.
+   */
+  virtual bool readSCR(scr_t *scr) = 0;
   /**
    * Determine the size of an SD flash memory card.
    *

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -126,10 +126,7 @@ class FatPartition {
   uint8_t fatType() const {
     return m_fatType;
   }
-  /** Volume free space in clusters.
-   *
-   * \return Count of free clusters for success or -1 if an error occurs.
-   */
+  /** \return free cluster count or -1 if an error occurs. */
   int32_t freeClusterCount();
   /** Initialize a FAT partition.
    *
@@ -137,11 +134,12 @@ class FatPartition {
    * \param[in] part The partition to be used.  Legal values for \a part are
    * 1-4 to use the corresponding partition on a device formatted with
    * a MBR, Master Boot Record, or zero if the device is formatted as
-   * a super floppy with the FAT boot sector in sector zero.
+   * a super floppy with the FAT boot sector in sector volStart.
+   * \param[in] volStart location of volume if part is zero.
    *
    * \return true for success or false for failure.
    */
-  bool init(FsBlockDevice* dev, uint8_t part = 1);
+  bool init(FsBlockDevice* dev, uint8_t part = 1, uint32_t volStart = 0);
   /** \return The number of entries in the root directory for FAT16 volumes. */
   uint16_t rootDirEntryCount() const {
     return m_rootDirEntryCount;

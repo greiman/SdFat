@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -37,7 +37,7 @@ FsBaseFile::FsBaseFile(const FsBaseFile& from) {
 }
 //------------------------------------------------------------------------------
 FsBaseFile& FsBaseFile::operator=(const FsBaseFile& from) {
-  if (this == &from) return *this;
+  if (this == &from) {return *this;}
   close();
   if (from.m_fFile) {
     m_fFile = new (m_fileMem) FatFile;
@@ -50,15 +50,10 @@ FsBaseFile& FsBaseFile::operator=(const FsBaseFile& from) {
 }
 //------------------------------------------------------------------------------
 bool FsBaseFile::close() {
-  if (m_fFile && m_fFile->close()) {
-    m_fFile = nullptr;
-    return true;
-  }
-  if (m_xFile && m_xFile->close()) {
-    m_xFile = nullptr;
-    return true;
-  }
-  return false;
+  bool rtn = m_fFile ? m_fFile->close() : m_xFile ? m_xFile->close() : true;
+  m_fFile = nullptr;
+  m_xFile = nullptr;
+  return rtn;
 }
 //------------------------------------------------------------------------------
 bool FsBaseFile::mkdir(FsBaseFile* dir, const char* path, bool pFlag) {
@@ -129,6 +124,24 @@ bool FsBaseFile::open(FsBaseFile* dir, uint32_t index, oflag_t oflag) {
   } else if (dir->m_xFile) {
     m_xFile = new (m_fileMem) ExFatFile;
     if (m_xFile->open(dir->m_xFile, index, oflag)) {
+      return true;
+    }
+    m_xFile = nullptr;
+  }
+  return false;
+}
+//------------------------------------------------------------------------------
+bool FsBaseFile::openCwd() {
+  close();
+  if (FsVolume::m_cwv && FsVolume::m_cwv->m_fVol) {
+    m_fFile = new (m_fileMem) FatFile;
+    if (m_fFile->openCwd()) {
+      return true;
+    }
+    m_fFile = nullptr;
+  } else if (FsVolume::m_cwv && FsVolume::m_cwv->m_xVol) {
+    m_xFile = new (m_fileMem) ExFatFile;
+    if (m_xFile->openCwd()) {
       return true;
     }
     m_xFile = nullptr;

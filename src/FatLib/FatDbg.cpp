@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2021 Bill Greiman
+ * Copyright (c) 2011-2022 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -98,7 +98,7 @@ static bool printFatDir(print_t* pr, DirFat_t* dir) {
     return false;
   } else if (dir->name[0] == FAT_NAME_DELETED) {
     pr->println(F("Deleted"));
-  } else if (isFileOrSubdir(dir)) {
+  } else if (isFatFileOrSubdir(dir)) {
     pr->print(F("SFN: "));
     for (uint8_t i = 0; i < 11; i++) {
       printHex(pr, dir->name[i]);
@@ -117,7 +117,7 @@ static bool printFatDir(print_t* pr, DirFat_t* dir) {
     pr->println(fc, HEX);
     pr->print(F("fileSize: "));
     pr->println(getLe32(dir->fileSize));
-  } else if (isLongName(dir)) {
+  } else if (isFatLongName(dir)) {
     pr->print(F("LFN: "));
     for (uint8_t i = 0; i < 13; i++) {
       uint16_t c = getLfnChar(ldir, i);
