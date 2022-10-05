@@ -431,10 +431,11 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
     goto fail;
   }
   bpb = reinterpret_cast<BpbFat32_t*>(pbs->bpb);
-  if (bpb->fatCount != 2 || getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
+  if ( !(bpb->fatCount == 1 || bpb->fatCount == 2) || getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
     DBG_FAIL_MACRO;
     goto fail;
   }
+  m_fatCount = bpb->fatCount;
   m_sectorsPerCluster = bpb->sectorsPerCluster;
   m_clusterSectorMask = m_sectorsPerCluster - 1;
   // determine shift that is same as multiply by m_sectorsPerCluster
@@ -456,7 +457,7 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   m_rootDirEntryCount = getLe16(bpb->rootDirEntryCount);
 
   // directory start for FAT16 dataStart for FAT32
-  m_rootDirStart = m_fatStartSector + 2 * m_sectorsPerFat;
+  m_rootDirStart = m_fatStartSector + m_fatCount * m_sectorsPerFat;
   // data start for FAT16 and FAT32
   m_dataStartSector = m_rootDirStart +
     ((FS_DIR_SIZE*m_rootDirEntryCount + m_bytesPerSector - 1)/m_bytesPerSector);
