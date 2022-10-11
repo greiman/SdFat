@@ -1082,5 +1082,14 @@ class File32 : public StreamFile<FatFile, uint32_t> {
     tmpFile.openNext(this, oflag);
     return tmpFile;
   }
+
+  /** No longer implemented due to Long File Names.
+   *
+   * Use getName(char* name, size_t size).
+   * \return a pointer to replacement suggestion.
+   */
+  __attribute__((warning("use getName(name, size) instead"))) const char* name() const {
+    return "use getName()";
+  }
 };
 #endif  // FatFile_h

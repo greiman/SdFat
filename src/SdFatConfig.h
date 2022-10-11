@@ -32,6 +32,20 @@
 #ifdef __AVR__
 #include <avr/io.h>
 #endif  // __AVR__
+
+//------------- Adafruit configuration -------------//
+#ifndef SDFAT_FILE_TYPE
+#define SDFAT_FILE_TYPE 1
+#endif
+
+#ifndef USE_BLOCK_DEVICE_INTERFACE
+#define USE_BLOCK_DEVICE_INTERFACE 1
+#endif
+
+#ifndef FAT12_SUPPORT
+#define FAT12_SUPPORT 1
+#endif
+
 //
 // To try UTF-8 encoded filenames.
 // #define USE_UTF8_LONG_NAMES 1
