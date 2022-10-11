@@ -217,7 +217,10 @@ class SharedSpiCard {
   uint32_t sectorCount();
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   // Use sectorCount(). cardSize() will be removed in the future.
-  uint32_t __attribute__((error("use sectorCount()"))) cardSize();
+  // Adafruit for backward-compatible
+  uint32_t __attribute__((warning("use sectorCount() instead"))) cardSize() {
+    return sectorCount();
+  }
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
   /** Set SPI sharing state
    * \param[in] value desired state.
