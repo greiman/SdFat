@@ -64,9 +64,18 @@ class FatVolume : public  FatPartition {
    * \return true for success or false for failure.
    */
   bool begin(FsBlockDevice* dev, bool setCwv = true,
-             uint8_t part = 1, uint32_t volStart = 0) {
-    if (!init(dev, part, volStart)) {
-      return false;
+             uint8_t part = 0, uint32_t volStart = 0) {
+    // Adafruit modification to support SFD in existing board for backward-compatible
+    // part is default to 0 (changed from 1)
+    if (part) {
+      if (!init(dev, part, volStart)) {
+        return false;
+      }
+    }else {
+      // try with both part = 1 (mbr) and part = 0 (sfd)
+      if ( !init(dev, 1, volStart) && !init(dev, 0, volStart) ) {
+        return false;
+      }
     }
     if (!chdir()) {
       return false;

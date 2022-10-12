@@ -46,6 +46,12 @@
 #define FAT12_SUPPORT 1
 #endif
 
+// Backward-compatible define
+#define ENABLE_EXTENDED_TRANSFER_CLASS USE_BLOCK_DEVICE_INTERFACE
+#define BaseBlockDriver FsBlockDeviceInterface
+#define FatFileSystem FatVolume
+#define SdFatEX   SdFat
+
 //
 // To try UTF-8 encoded filenames.
 // #define USE_UTF8_LONG_NAMES 1
