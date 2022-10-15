@@ -34,16 +34,14 @@
 #endif  // __AVR__
 
 //------------- Adafruit configuration -------------//
-#ifndef SDFAT_FILE_TYPE
-#define SDFAT_FILE_TYPE 1
-#endif
-
-#ifndef USE_BLOCK_DEVICE_INTERFACE
 #define USE_BLOCK_DEVICE_INTERFACE 1
-#endif
-
-#ifndef FAT12_SUPPORT
 #define FAT12_SUPPORT 1
+#define SDFAT_FILE_TYPE 1
+#define USE_SPI_ARRAY_TRANSFER 1
+
+// This option will take around 2K of flash, skip for AVR
+#ifndef __AVR__
+#define USE_UTF8_LONG_NAMES 1
 #endif
 
 // Backward-compatible define

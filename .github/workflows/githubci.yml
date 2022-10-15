@@ -1,0 +1,41 @@
+name: Build
+
+on: [pull_request, push, repository_dispatch]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        arduino-platform:
+          - 'feather_esp32s2'
+          - 'feather_esp32s3'
+          - 'feather_rp2040'
+          - 'metro_m0'
+          - 'metro_m4'
+          - 'nrf52840'
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+        
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Checkout adafruit/ci-arduino
+      uses: actions/checkout@v3
+      with:
+         repository: adafruit/ci-arduino
+         path: ci
+
+    - name: pre-install
+      run: bash ci/actions_install.sh
+
+    - name: Install Libraries for building examples
+      run: arduino-cli lib install RTClib SD
+
+    - name: test platforms
+      run: python3 ci/build_platform.py ${{ matrix.arduino-platform }}

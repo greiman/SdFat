@@ -61,7 +61,7 @@ void loop() {
   }
 
   // fill buf with known data
-  for (size_t_t i = 0; i < (BUF_SIZE-2); i++) {
+  for (size_t i = 0; i < (BUF_SIZE-2); i++) {
     buf[i] = 'A' + (i % 26);
   }
   buf[BUF_SIZE-2] = '\r';
