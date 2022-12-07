@@ -132,6 +132,36 @@ typedef struct masterBootRecordSector {
   uint8_t   signature[2];
 } MbrSector_t;
 //------------------------------------------------------------------------------
+// GPT partition structures based on https://github.com/KirollousMoheb/GUID-Partition-Table-Parser
+// Copyright (c) 2022 Kirollous Moheb, under MIT License
+typedef struct
+{
+  uint8_t part_type_guid[16];
+  uint8_t unique_part_guid[16];
+  uint8_t first_lba[8];
+  uint8_t last_lba[8];
+  uint8_t attr_flags[8];
+  uint8_t part_name[72];
+} GPT_PartitionEntry_t;
+//------------------------------------------------------------------------------
+typedef struct
+{
+  uint8_t signature[8];
+  uint8_t revision[4];
+  uint8_t header_size[4];
+  uint8_t crc32[4];
+  uint8_t reserved[4];
+  uint8_t current_lba[8];
+  uint8_t backup_lba[8];
+  uint8_t first_usable_lba[8];
+  uint8_t last_usable_lba[8];
+  uint8_t disk_guid[16];
+  uint8_t part_entry_start_lba[8];
+  uint8_t num_part_entries[4];
+  uint8_t part_entry_size[4];
+  uint8_t crc32_part_array[4];
+} GPT_Header_t;
+//------------------------------------------------------------------------------
 typedef struct partitionBootSector {
   uint8_t  jmpInstruction[3];
   char     oemName[8];

@@ -25,6 +25,7 @@
 #include <string.h>
 #define DBG_FILE "FatPartition.cpp"
 #include "../common/DebugMacros.h"
+#include "../common/PartitionTable.h"
 #include "FatLib.h"
 //------------------------------------------------------------------------------
 bool FatPartition::allocateCluster(uint32_t current, uint32_t* next) {
@@ -396,7 +397,6 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   m_blockDev = dev;
   pbs_t* pbs;
   BpbFat32_t* bpb;
-  MbrSector_t* mbr;
   uint8_t tmp;
   m_fatType = 0;
   m_allocSearchStart = 1;
@@ -405,24 +405,14 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   m_fatCache.init(dev);
 #endif  // USE_SEPARATE_FAT_CACHE
   // if part == 0 assume super floppy with FAT boot sector in sector zero
-  // if part > 0 assume mbr volume with partition table
+  // if part > 0 read MBR/GPT partition table
   if (part) {
-    if (part > 4) {
+    volStart = partitionTableGetVolumeStartSector(m_cache, part);
+
+    if (!volStart) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    mbr = reinterpret_cast<MbrSector_t*>
-          (dataCachePrepare(0, FsCache::CACHE_FOR_READ));
-    if (!mbr) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    MbrPart_t* mp = mbr->part + part - 1;
-    if (mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    volStart = getLe32(mp->relativeSectors);
   }
   pbs = reinterpret_cast<pbs_t*>
         (dataCachePrepare(volStart, FsCache::CACHE_FOR_READ));
