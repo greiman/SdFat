@@ -24,6 +24,7 @@
  */
 #define DBG_FILE "ExFatPartition.cpp"
 #include "../common/DebugMacros.h"
+#include "../common/PartitionTable.h"
 #include "ExFatLib.h"
 //------------------------------------------------------------------------------
 // return 0 if error, 1 if no space, else start cluster.
@@ -269,29 +270,18 @@ int32_t ExFatPartition::freeClusterCount() {
 bool ExFatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   pbs_t* pbs;
   BpbExFat_t* bpb;
-  MbrSector_t* mbr;
   m_fatType = 0;
   m_blockDev = dev;
   cacheInit(m_blockDev);
   // if part == 0 assume super floppy with FAT boot sector in sector zero
-  // if part > 0 assume mbr volume with partition table
+  // if part > 0 read MBR / GPT partition table
   if (part) {
-    if (part > 4) {
+    volStart = partitionTableGetVolumeStartSector(m_dataCache, part);
+
+    if (!volStart) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    mbr = reinterpret_cast<MbrSector_t*>
-          (dataCachePrepare(0, FsCache::CACHE_FOR_READ));
-    if (!mbr) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    MbrPart_t* mp = mbr->part + part - 1;
-    if (mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
-      DBG_FAIL_MACRO;
-      goto fail;
-    }
-    volStart = getLe32(mp->relativeSectors);
   }
   pbs = reinterpret_cast<pbs_t*>
         (dataCachePrepare(volStart, FsCache::CACHE_FOR_READ));
