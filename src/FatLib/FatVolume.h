@@ -34,7 +34,7 @@
  * \class FatVolume
  * \brief Integration class for the FatLib library.
  */
-class FatVolume : public  FatPartition {
+class FatVolume : public FatPartition {
  public:
   /** Get file's user settable attributes.
    * \param[in] path path to file.
@@ -63,8 +63,8 @@ class FatVolume : public  FatPartition {
    * \param[in] volStart Start sector of volume if part is zero.
    * \return true for success or false for failure.
    */
-  bool begin(FsBlockDevice* dev, bool setCwv = true,
-             uint8_t part = 1, uint32_t volStart = 0) {
+  bool begin(FsBlockDevice* dev, bool setCwv = true, uint8_t part = 1,
+             uint32_t volStart = 0) {
     if (!init(dev, part, volStart)) {
       return false;
     }
@@ -77,7 +77,7 @@ class FatVolume : public  FatPartition {
     return true;
   }
   /** Change global current working volume to this volume. */
-  void chvol() {m_cwv = this;}
+  void chvol() { m_cwv = this; }
 
   /**
    * Set volume working directory to root.
@@ -92,7 +92,7 @@ class FatVolume : public  FatPartition {
    * \param[in] path Path for volume working directory.
    * \return true for success or false for failure.
    */
-  bool chdir(const char *path);
+  bool chdir(const char* path);
   //----------------------------------------------------------------------------
   /**
    * Test for the existence of a file.
@@ -120,9 +120,7 @@ class FatVolume : public  FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool ls(print_t* pr, uint8_t flags = 0) {
-    return m_vwd.ls(pr, flags);
-  }
+  bool ls(print_t* pr, uint8_t flags = 0) { return m_vwd.ls(pr, flags); }
   //----------------------------------------------------------------------------
   /** List the contents of a directory.
    *
@@ -164,7 +162,7 @@ class FatVolume : public  FatPartition {
    * \param[in] oflag open flags.
    * \return a File32 object.
    */
-  File32 open(const char *path, oflag_t oflag = O_RDONLY) {
+  File32 open(const char* path, oflag_t oflag = O_RDONLY) {
     File32 tmpFile;
     tmpFile.open(this, path, oflag);
     return tmpFile;
@@ -195,7 +193,7 @@ class FatVolume : public  FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool rename(const char *oldPath, const char *newPath) {
+  bool rename(const char* oldPath, const char* newPath) {
     FatFile file;
     return file.open(vwd(), oldPath, O_RDONLY) && file.rename(vwd(), newPath);
   }
@@ -226,7 +224,7 @@ class FatVolume : public  FatPartition {
     return file.open(this, path, O_WRONLY) && file.truncate(length);
   }
 #if ENABLE_ARDUINO_SERIAL
-   /** List the directory contents of the root directory to Serial.
+  /** List the directory contents of the root directory to Serial.
    *
    * \param[in] flags The inclusive OR of
    *
@@ -238,9 +236,7 @@ class FatVolume : public  FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool ls(uint8_t flags = 0) {
-    return ls(&Serial, flags);
-  }
+  bool ls(uint8_t flags = 0) { return ls(&Serial, flags); }
   /** List the directory contents of a directory to Serial.
    *
    * \param[in] path directory to list.
@@ -266,19 +262,15 @@ class FatVolume : public  FatPartition {
    * \param[in] path Path for volume working directory.
    * \return true for success or false for failure.
    */
-  bool chdir(const String& path) {
-    return chdir(path.c_str());
-  }
-   /**
+  bool chdir(const String& path) { return chdir(path.c_str()); }
+  /**
    * Test for the existence of a file.
    *
    * \param[in] path Path of the file to be tested for.
    *
    * \return true if the file exists else false.
    */
-  bool exists(const String& path) {
-    return exists(path.c_str());
-  }
+  bool exists(const String& path) { return exists(path.c_str()); }
   /** Make a subdirectory in the volume root directory.
    *
    * \param[in] path A path with a valid name for the subdirectory.
@@ -297,7 +289,7 @@ class FatVolume : public  FatPartition {
    * \return a File32 object.
    */
   File32 open(const String& path, oflag_t oflag = O_RDONLY) {
-    return open(path.c_str(), oflag );
+    return open(path.c_str(), oflag);
   }
   /** Remove a file from the volume root directory.
    *
@@ -305,9 +297,7 @@ class FatVolume : public  FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool remove(const String& path) {
-    return remove(path.c_str());
-  }
+  bool remove(const String& path) { return remove(path.c_str()); }
   /** Rename a file or subdirectory.
    *
    * \param[in] oldPath Path name to the file or subdirectory to be renamed.
@@ -333,9 +323,7 @@ class FatVolume : public  FatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool rmdir(const String& path) {
-    return rmdir(path.c_str());
-  }
+  bool rmdir(const String& path) { return rmdir(path.c_str()); }
   /** Truncate a file to a specified length.  The current file position
    * will be at the new EOF.
    *
@@ -351,8 +339,8 @@ class FatVolume : public  FatPartition {
 
  private:
   friend FatFile;
-  static FatVolume* cwv() {return m_cwv;}
-  FatFile* vwd() {return &m_vwd;}
+  static FatVolume* cwv() { return m_cwv; }
+  FatFile* vwd() { return &m_vwd; }
   static FatVolume* m_cwv;
   FatFile m_vwd;
 };

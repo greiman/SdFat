@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
- /**
+/**
  * \file
  * \brief Minimal AVR Serial driver.
  */
@@ -37,7 +37,7 @@
 class MinimumSerial : public print_t {
  public:
   /** \return true for hardware serial */
-  operator bool() {return true;}
+  operator bool() { return true; }
   /**
    * \return one if data is available.
    */

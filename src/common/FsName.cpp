@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "FsName.h"
+
 #include "FsUtf.h"
 #if USE_UTF8_LONG_NAMES
 uint16_t FsName::get16() {
@@ -48,7 +49,7 @@ uint16_t FsName::get16() {
   }
   return rtn;
 
- fail:
+fail:
   return 0XFFFF;
 }
 #endif  // USE_UTF8_LONG_NAMES

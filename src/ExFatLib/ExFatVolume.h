@@ -60,8 +60,8 @@ class ExFatVolume : public ExFatPartition {
    * \param[in] volStart Start sector of volume if part is zero.
    * \return true for success or false for failure.
    */
-  bool begin(FsBlockDevice* dev, bool setCwv = true,
-             uint8_t part = 1, uint32_t volStart = 0) {
+  bool begin(FsBlockDevice* dev, bool setCwv = true, uint8_t part = 1,
+             uint32_t volStart = 0) {
     if (!init(dev, part, volStart)) {
       return false;
     }
@@ -89,7 +89,7 @@ class ExFatVolume : public ExFatPartition {
   bool chdir(const char* path);
 
   /** Change global working volume to this volume. */
-  void chvol() {m_cwv = this;}
+  void chvol() { m_cwv = this; }
 
   /**
    * Test for the existence of a file.
@@ -117,9 +117,7 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool ls(print_t* pr, uint8_t flags = 0) {
-    return m_vwd.ls(pr, flags);
-  }
+  bool ls(print_t* pr, uint8_t flags = 0) { return m_vwd.ls(pr, flags); }
   /** List the contents of a directory.
    *
    * \param[in] pr Print stream for list.
@@ -223,10 +221,8 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool ls() {
-    return ls(&Serial);
-  }
-   /** List the directory contents of the volume root to Serial.
+  bool ls() { return ls(&Serial); }
+  /** List the directory contents of the volume root to Serial.
    *
    * \param[in] flags The inclusive OR of
    *
@@ -238,9 +234,7 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool ls(uint8_t flags) {
-    return ls(&Serial, flags);
-  }
+  bool ls(uint8_t flags) { return ls(&Serial, flags); }
   /** List the directory contents of a directory to Serial.
    *
    * \param[in] path directory to list.
@@ -265,18 +259,14 @@ class ExFatVolume : public ExFatPartition {
    * \param[in] path Path for volume working directory.
    * \return true for success or false for failure.
    */
-  bool chdir(const String& path) {
-    return chdir(path.c_str());
-  }
+  bool chdir(const String& path) { return chdir(path.c_str()); }
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.
    *
    * \return true if the file exists else false.
    */
-  bool exists(const String &path) {
-    return exists(path.c_str());
-  }
+  bool exists(const String& path) { return exists(path.c_str()); }
   /** Make a subdirectory in the volume root directory.
    *
    * \param[in] path A path with a valid 8.3 DOS name for the subdirectory.
@@ -285,7 +275,7 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool mkdir(const String &path, bool pFlag = true) {
+  bool mkdir(const String& path, bool pFlag = true) {
     return mkdir(path.c_str(), pFlag);
   }
   /** open a file
@@ -294,7 +284,7 @@ class ExFatVolume : public ExFatPartition {
    * \param[in] oflag open oflag flags.
    * \return a ExFile object.
    */
-  ExFile open(const String &path, oflag_t oflag = O_RDONLY) {
+  ExFile open(const String& path, oflag_t oflag = O_RDONLY) {
     return open(path.c_str(), oflag);
   }
   /** Remove a file from the volume root directory.
@@ -303,9 +293,7 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool remove(const String& path) {
-    return remove(path.c_str());
-  }
+  bool remove(const String& path) { return remove(path.c_str()); }
   /** Rename a file or subdirectory.
    *
    * \param[in] oldPath Path name to the file or subdirectory to be renamed.
@@ -331,9 +319,7 @@ class ExFatVolume : public ExFatPartition {
    *
    * \return true for success or false for failure.
    */
-  bool rmdir(const String& path) {
-    return rmdir(path.c_str());
-  }
+  bool rmdir(const String& path) { return rmdir(path.c_str()); }
   /** Truncate a file to a specified length.  The current file position
    * will be at the new EOF.
    *
@@ -349,8 +335,8 @@ class ExFatVolume : public ExFatPartition {
 
  private:
   friend ExFatFile;
-  static ExFatVolume* cwv() {return m_cwv;}
-  ExFatFile* vwd() {return &m_vwd;}
+  static ExFatVolume* cwv() { return m_cwv; }
+  ExFatFile* vwd() { return &m_vwd; }
   static ExFatVolume* m_cwv;
   ExFatFile m_vwd;
 };

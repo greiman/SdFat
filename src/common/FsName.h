@@ -24,8 +24,9 @@
  */
 #ifndef FsName_h
 #define FsName_h
-#include "SysCall.h"
 #include <stdint.h>
+
+#include "SysCall.h"
 /**
  * \file
  * \brief FsName class.
@@ -44,18 +45,16 @@ class FsName {
   const char* end;
 #if !USE_UTF8_LONG_NAMES
   /** \return true if at end. */
-  bool atEnd() {return next == end;}
+  bool atEnd() { return next == end; }
   /** Reset to start of LFN. */
-  void reset() {next = begin;}
+  void reset() { next = begin; }
   /** \return next char of LFN. */
-  char getch() {return atEnd() ? 0 : *next++;}
+  char getch() { return atEnd() ? 0 : *next++; }
   /** \return next UTF-16 unit of LFN. */
-  uint16_t get16() {return atEnd() ? 0 : *next++;}
-#else  // !USE_UTF8_LONG_NAMES
+  uint16_t get16() { return atEnd() ? 0 : *next++; }
+#else   // !USE_UTF8_LONG_NAMES
   uint16_t ls = 0;
-  bool atEnd() {
-    return !ls && next == end;
-  }
+  bool atEnd() { return !ls && next == end; }
   void reset() {
     next = begin;
     ls = 0;  // lowSurrogate

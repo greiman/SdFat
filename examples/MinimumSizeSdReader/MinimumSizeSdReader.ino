@@ -14,7 +14,8 @@ File file;
 #include "SdFat.h"
 // Setting ENABLE_DEDICATED_SPI to zero saves over 200 more bytes.
 #if ENABLE_DEDICATED_SPI
-#warning "Set ENABLE_DEDICATED_SPI zero in SdFat/src/SdFatConfig.h for minimum size"
+#warning \
+    "Set ENABLE_DEDICATED_SPI zero in SdFat/src/SdFatConfig.h for minimum size"
 #endif  // ENABLE_DEDICATED_SPI
 // Insure FAT16/FAT32 only.
 SdFat32 SD;
@@ -24,17 +25,19 @@ FatFile file;
 
 void error(const char* msg) {
   Serial.println(msg);
-  while(true);
+  while (true) {
+  }
 }
-
 void setup() {
   int n;
   char buf[4];
 
   Serial.begin(9600);
-  while (!Serial) {}
+  while (!Serial) {
+  }
   Serial.println("Type any character to begin");
-  while (!Serial.available()) {}
+  while (!Serial.available()) {
+  }
 
   if (!SD.begin(CS_PIN)) error("SD.begin");
 
@@ -47,12 +50,11 @@ void setup() {
   if (!file.openExistingSFN(SFN_PATH)) error("open");
 #endif
   while ((n = file.read(buf, sizeof(buf)))) {
-   Serial.write(buf, n);
+    Serial.write(buf, n);
   }
-// close() is only needed if you write to the file. For example, read
-// config data, modify the data, rewind the file and write the data.
-// file.close();
+  // close() is only needed if you write to the file. For example, read
+  // config data, modify the data, rewind the file and write the data.
+  // file.close();
 }
 
-void loop() {
-}
+void loop() {}

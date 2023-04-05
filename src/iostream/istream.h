@@ -36,14 +36,12 @@
  */
 class istream : public virtual ios {
  public:
-  istream() {}
+  istream() = default;
   /** call manipulator
    * \param[in] pf function to call
    * \return the stream
    */
-  istream& operator>>(istream& (*pf)(istream& str)) {
-    return pf(*this);
-  }
+  istream& operator>>(istream& (*pf)(istream& str)) { return pf(*this); }
   /** call manipulator
    * \param[in] pf function to call
    * \return the stream
@@ -65,7 +63,7 @@ class istream : public virtual ios {
    * \param[out] str location to store the string.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream& operator>>(char *str) {
+  istream& operator>>(char* str) {
     getStr(str);
     return *this;
   }
@@ -83,7 +81,7 @@ class istream : public virtual ios {
    * \param[out] str location to store the string.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream& operator>>(signed char *str) {
+  istream& operator>>(signed char* str) {
     getStr(reinterpret_cast<char*>(str));
     return *this;
   }
@@ -101,7 +99,7 @@ class istream : public virtual ios {
    * \param[out] str location to store the string.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream& operator>>(unsigned char *str) {
+  istream& operator>>(unsigned char* str) {
     getStr(reinterpret_cast<char*>(str));
     return *this;
   }
@@ -128,7 +126,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(short& arg) {  // NOLINT
+  istream& operator>>(short& arg) {  // NOLINT
     getNumber(&arg);
     return *this;
   }
@@ -137,7 +135,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(unsigned short& arg) {  // NOLINT
+  istream& operator>>(unsigned short& arg) {  // NOLINT
     getNumber(&arg);
     return *this;
   }
@@ -146,7 +144,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(int& arg) {
+  istream& operator>>(int& arg) {
     getNumber(&arg);
     return *this;
   }
@@ -155,7 +153,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(unsigned int& arg) {
+  istream& operator>>(unsigned int& arg) {
     getNumber(&arg);
     return *this;
   }
@@ -164,7 +162,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(long& arg) {  // NOLINT
+  istream& operator>>(long& arg) {  // NOLINT
     getNumber(&arg);
     return *this;
   }
@@ -173,16 +171,16 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>>(unsigned long& arg) {  // NOLINT
+  istream& operator>>(unsigned long& arg) {  // NOLINT
     getNumber(&arg);
     return *this;
   }
   /**
-  * Extract a value of type double.
-  * \param[out] arg location to store the value.
-  * \return Is always *this.  Failure is indicated by the state of *this.
-  */
-  istream &operator>> (double& arg) {
+   * Extract a value of type double.
+   * \param[out] arg location to store the value.
+   * \return Is always *this.  Failure is indicated by the state of *this.
+   */
+  istream& operator>>(double& arg) {
     getDouble(&arg);
     return *this;
   }
@@ -191,7 +189,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream &operator>> (float& arg) {
+  istream& operator>>(float& arg) {
     double v;
     getDouble(&v);
     arg = v;
@@ -202,7 +200,7 @@ class istream : public virtual ios {
    * \param[out] arg location to store the value.
    * \return Is always *this.  Failure is indicated by the state of *this.
    */
-  istream& operator>> (void*& arg) {
+  istream& operator>>(void*& arg) {
     uint32_t val;
     getNumber(&val);
     arg = reinterpret_cast<void*>(val);
@@ -212,9 +210,7 @@ class istream : public virtual ios {
    * \return The number of characters extracted by the last unformatted
    * input function.
    */
-  streamsize gcount() const {
-    return m_gcount;
-  }
+  streamsize gcount() const { return m_gcount; }
   /**
    * Extract a character if one is available.
    *
@@ -244,7 +240,7 @@ class istream : public virtual ios {
    *
    * \return always returns *this. A failure is indicated by the stream state.
    */
-  istream& get(char *str, streamsize n, char delim = '\n');
+  istream& get(char* str, streamsize n, char delim = '\n');
   /**
    * Extract characters
    *
@@ -261,7 +257,7 @@ class istream : public virtual ios {
    *
    * \return always returns *this. A failure is indicated by the stream state.
    */
-  istream& getline(char *str, streamsize n, char delim = '\n');
+  istream& getline(char* str, streamsize n, char delim = '\n');
   /**
    * Extract characters and discard them.
    *
@@ -290,9 +286,7 @@ class istream : public virtual ios {
   /**
    * \return the stream position
    */
-  pos_type tellg() {
-    return tellpos();
-  }
+  pos_type tellg() { return tellpos(); }
   /**
    * Set the stream position
    * \param[in] pos The absolute position in which to move the read pointer.
@@ -323,9 +317,9 @@ class istream : public virtual ios {
  protected:
   /// @cond SHOW_PROTECTED
   /**
-  * Internal - do not use
-  * \return
-  */
+   * Internal - do not use
+   * \return
+   */
   virtual int16_t getch() = 0;
   /**
    * Internal - do not use
@@ -352,15 +346,16 @@ class istream : public virtual ios {
 
   /// @endcond
  private:
-  void getBool(bool *b);
+  void getBool(bool* b);
   void getChar(char* ch);
   bool getDouble(double* value);
-  template <typename T>  void getNumber(T* value);
+  template <typename T>
+  void getNumber(T* value);
   bool getNumber(uint32_t posMax, uint32_t negMax, uint32_t* num);
-  void getStr(char *str);
+  void getStr(char* str);
   int16_t readSkip();
 
-  size_t m_gcount;
+  size_t m_gcount = 0;
 };
 //------------------------------------------------------------------------------
 template <typename T>

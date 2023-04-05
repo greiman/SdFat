@@ -28,19 +28,19 @@
  * \file
  * \brief main SdFs include file.
  */
-#include "common/SysCall.h"
-#include "SdCard/SdCard.h"
 #include "ExFatLib/ExFatLib.h"
 #include "FatLib/FatLib.h"
 #include "FsLib/FsLib.h"
+#include "SdCard/SdCard.h"
+#include "common/SysCall.h"
 #if INCLUDE_SDIOS
 #include "sdios.h"
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version for cpp use. */
-#define SD_FAT_VERSION 20200
+#define SD_FAT_VERSION 20202
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.2.0"
+#define SD_FAT_VERSION_STR "2.2.2"
 //==============================================================================
 /**
  * \class SdBase
@@ -93,7 +93,7 @@ class SdBase : public Vol {
   }
   //----------------------------------------------------------------------------
   /** \return Pointer to SD card object. */
-  SdCard* card() {return m_card;}
+  SdCard* card() { return m_card; }
   //----------------------------------------------------------------------------
   /** Initialize SD card in SPI mode.
    *
@@ -136,7 +136,8 @@ class SdBase : public Vol {
     } else if (!Vol::fatType()) {
       pr->println(F("Check SD format."));
     }
-    while (true) {}
+    while (true) {
+    }
   }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
@@ -197,7 +198,7 @@ class SdBase : public Vol {
   }
   //----------------------------------------------------------------------------
   /** \return true if can be in dedicated SPI state */
-  bool hasDedicatedSpi() {return m_card ? m_card->hasDedicatedSpi() : false;}
+  bool hasDedicatedSpi() { return m_card ? m_card->hasDedicatedSpi() : false; }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
    *
@@ -205,7 +206,8 @@ class SdBase : public Vol {
    */
   void initErrorHalt(print_t* pr) {
     initErrorPrint(pr);
-    while (true) {}
+    while (true) {
+    }
   }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
@@ -244,7 +246,7 @@ class SdBase : public Vol {
   }
   //----------------------------------------------------------------------------
   /** \return true if in dedicated SPI state. */
-  bool isDedicatedSpi() {return m_card ? m_card->isDedicatedSpi() : false;}
+  bool isDedicatedSpi() { return m_card ? m_card->isDedicatedSpi() : false; }
   //----------------------------------------------------------------------------
   /** %Print volume FAT/exFAT type.
    *
@@ -325,7 +327,7 @@ class SdBase : public Vol {
   }
   //----------------------------------------------------------------------------
   /** \return SD card error data. */
-  uint8_t sdErrorData() {return m_card ? m_card->errorData() : 0;}
+  uint8_t sdErrorData() { return m_card ? m_card->errorData() : 0; }
   //----------------------------------------------------------------------------
   /** Set SPI sharing state
    * \param[in] value desired state.
@@ -339,57 +341,51 @@ class SdBase : public Vol {
   }
   //----------------------------------------------------------------------------
   /** \return pointer to base volume */
-  Vol* vol() {return reinterpret_cast<Vol*>(this);}
+  Vol* vol() { return reinterpret_cast<Vol*>(this); }
   //----------------------------------------------------------------------------
   /** Initialize file system after call to cardBegin.
    *
    * \return true for success or false for failure.
    */
-  bool volumeBegin() {
-     return Vol::begin(m_card);
-  }
+  bool volumeBegin() { return Vol::begin(m_card); }
 #if ENABLE_ARDUINO_SERIAL
   /** Print error details after begin() fails. */
-  void initErrorPrint() {
-    initErrorPrint(&Serial);
-  }
+  void initErrorPrint() { initErrorPrint(&Serial); }
   //----------------------------------------------------------------------------
   /** %Print msg to Serial and halt.
    *
    * \param[in] msg Message to print.
    */
-  void errorHalt(const __FlashStringHelper* msg) {
-    errorHalt(&Serial, msg);
-  }
+  void errorHalt(const __FlashStringHelper* msg) { errorHalt(&Serial, msg); }
   //----------------------------------------------------------------------------
   /** %Print error info to Serial and halt. */
-  void errorHalt() {errorHalt(&Serial);}
+  void errorHalt() { errorHalt(&Serial); }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
    *
    * \param[in] msg Message to print.
    */
-  void errorHalt(const char* msg) {errorHalt(&Serial, msg);}
+  void errorHalt(const char* msg) { errorHalt(&Serial, msg); }
   //----------------------------------------------------------------------------
   /** %Print error info and halt. */
-  void initErrorHalt() {initErrorHalt(&Serial);}
+  void initErrorHalt() { initErrorHalt(&Serial); }
   //----------------------------------------------------------------------------
   /** %Print msg, any SD error code.
    *
    * \param[in] msg Message to print.
    */
-  void errorPrint(const char* msg) {errorPrint(&Serial, msg);}
-   /** %Print msg, any SD error code.
+  void errorPrint(const char* msg) { errorPrint(&Serial, msg); }
+  /** %Print msg, any SD error code.
    *
    * \param[in] msg Message to print.
    */
-  void errorPrint(const __FlashStringHelper* msg) {errorPrint(&Serial, msg);}
+  void errorPrint(const __FlashStringHelper* msg) { errorPrint(&Serial, msg); }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
    *
    * \param[in] msg Message to print.
    */
-  void initErrorHalt(const char* msg) {initErrorHalt(&Serial, msg);}
+  void initErrorHalt(const char* msg) { initErrorHalt(&Serial, msg); }
   //----------------------------------------------------------------------------
   /** %Print error info and halt.
    *
@@ -473,9 +469,7 @@ class SdFile : public PrintFile<SdBaseFile> {
    * \param[in] path path for file.
    * \param[in] oflag open flags.
    */
-  SdFile(const char* path, oflag_t oflag) {
-    open(path, oflag);
-  }
+  SdFile(const char* path, oflag_t oflag) { open(path, oflag); }
   /** Set the date/time callback function
    *
    * \param[in] dateTime The user's call back function.  The callback
@@ -502,13 +496,11 @@ class SdFile : public PrintFile<SdBaseFile> {
    * sync() maintains the last access date and last modify date/time.
    *
    */
-  static void dateTimeCallback(
-    void (*dateTime)(uint16_t* date, uint16_t* time)) {
+  static void dateTimeCallback(void (*dateTime)(uint16_t* date,
+                                                uint16_t* time)) {
     FsDateTime::setCallback(dateTime);
   }
   /**  Cancel the date/time callback function. */
-  static void dateTimeCallbackCancel() {
-    FsDateTime::clearCallback();
-  }
+  static void dateTimeCallbackCancel() { FsDateTime::clearCallback(); }
 };
 #endif  // SdFat_h
