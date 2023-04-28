@@ -442,12 +442,10 @@ typedef FsBaseFile SdBaseFile;
 //
 // Only define File if FS.h is not included.
 // Line with test for __has_include must not have operators or parentheses.
-#if defined __has_include
-#if __has_include(<FS.h>)
+#if defined FS_H
 #define HAS_INCLUDE_FS_H
-#warning File not defined because __has_include(FS.h)
-#endif  // __has_include(<FS.h>)
-#endif  // defined __has_include
+#warning File not defined because FS.h was included
+#endif  // defined FS_H
 #ifndef HAS_INCLUDE_FS_H
 #if SDFAT_FILE_TYPE == 1 || defined(DOXYGEN)
 /** Select type for File. */
