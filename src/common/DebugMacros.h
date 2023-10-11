@@ -28,6 +28,7 @@
 
 // 0 - disable, 1 - fail, halt 2 - fail, halt, warn
 #define USE_DBG_MACROS 0
+#define DBG_PORT Serial
 
 #if USE_DBG_MACROS
 #include "Arduino.h"
@@ -36,16 +37,16 @@
 #endif  // DBG_FILE
 
 __attribute__((unused)) static void dbgFail(uint16_t line) {
-  Serial.print(F("DBG_FAIL: "));
-  Serial.print(F(DBG_FILE));
-  Serial.write('.');
-  Serial.println(line);
+  DBG_PORT.print(F("DBG_FAIL: "));
+  DBG_PORT.print(F(DBG_FILE));
+  DBG_PORT.write('.');
+  DBG_PORT.println(line);
 }
 __attribute__((unused)) static void dbgHalt(uint16_t line) {
-  Serial.print(F("DBG_HALT: "));
-  Serial.print(F(DBG_FILE));
-  Serial.write('.');
-  Serial.println(line);
+  DBG_PORT.print(F("DBG_HALT: "));
+  DBG_PORT.print(F(DBG_FILE));
+  DBG_PORT.write('.');
+  DBG_PORT.println(line);
   while (true) {
   }
 }
@@ -64,10 +65,10 @@ __attribute__((unused)) static void dbgHalt(uint16_t line) {
 
 #if USE_DBG_MACROS > 1
 __attribute__((unused)) static void dbgWarn(uint16_t line) {
-  Serial.print(F("DBG_WARN: "));
-  Serial.print(F(DBG_FILE));
-  Serial.write('.');
-  Serial.println(line);
+  DBG_PORT.print(F("DBG_WARN: "));
+  DBG_PORT.print(F(DBG_FILE));
+  DBG_PORT.write('.');
+  DBG_PORT.println(line);
 }
 #define DBG_WARN_MACRO dbgWarn(__LINE__)
 #define DBG_WARN_IF(b) \
