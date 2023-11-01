@@ -714,6 +714,15 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
     while (SDHC_SYSCTL & SDHC_SYSCTL_RSTA) {
     }
   }
+  #if defined(__IMXRT1062__)
+  // Old version 1 cards have trouble with Teensy 4.1 after CMD8.
+  // For reasons unknown, SDIO stops working after the cards does
+  // not reply.  Simply restarting and CMD0 is a crude workaround.
+  if (!m_version2) {
+    initSDHC();
+    cardCommand(CMD0_XFERTYP, 0);
+  }
+  #endif
   // Must support 3.2-3.4 Volts
   arg = m_version2 ? 0X40300000 : 0x00300000;
   int m = micros();
@@ -764,11 +773,33 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   // Determine if High Speed mode is supported and set frequency.
   // Check status[16] for error 0XF or status[16] for new mode 0X1.
   uint8_t status[64];
-  if (m_scr.sdSpec() > 0 && cardCMD6(0X00FFFFFF, status) && (2 & status[13]) &&
-      cardCMD6(0X80FFFFF1, status) && (status[16] & 0XF) == 1) {
-    kHzSdClk = 50000;
-  } else {
-    kHzSdClk = 25000;
+  // Thanks to tompilot :-)
+  // https://forum.pjrc.com/threads/69460?p=331762&viewfull=1#post331762
+  // Ask if highspeed mode supported. Returns true if SD card reacts to the command within timeout.
+  bool highSpeedModeAsk = cardCMD6(0X00FFFFFF, status);
+  // Check the SD-card's response. This bit must be set.
+  bool highspeedModeSupported = (2 & status[13]);
+  // safely ask for a switch request and accept in this case if there is no response.
+  kHzSdClk = 25000;
+  if (highSpeedModeAsk && highspeedModeSupported) {
+    uint8_t err_code_before = m_errorCode;
+    uint32_t m_errorLine_before = m_errorLine;
+    // Switch to highspeed mode request. Returns true if SD card reacts within timeout.
+    bool switchRequestAsk = cardCMD6(0X80FFFFF1, status);
+    // Check the SD-card's response. This bit must be set.
+    bool switchRequestDone = ((status[16] & 0XF) == 1);
+    if (switchRequestAsk && switchRequestDone) {
+      kHzSdClk = 50000;
+    } else {
+      // Maybe there are cards that say they support highspeed mode, but won't respond to
+      // a switch request.  If it says that highspeed mode was supported, but the card did
+      // not react to the switch request, we accept the timeout in this case and proceed
+      // with non-highspeed mode.
+      // We also need to revert to the error code from before, as cardCMD6(0X80FFFFF1, status)
+      // will change the error code & line otherwise.
+      m_errorCode = err_code_before;
+      m_errorLine = m_errorLine_before;
+    }
   }
   // Disable GPIO.
   enableGPIO(false);
