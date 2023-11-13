@@ -560,6 +560,17 @@ class FsBaseFile {
            : m_xFile ? m_xFile->printCreateDateTime(pr)
                      : 0;
   }
+  /** Print a file's creation date and time
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printCreateDateTimeSeconds(print_t* pr) {
+    return m_fFile   ? m_fFile->printCreateDateTimeSeconds(pr)
+           : m_xFile ? m_xFile->printCreateDateTimeSeconds(pr)
+                     : 0;
+  }
   /** Print a number followed by a field terminator.
    * \param[in] value The number to be printed.
    * \param[in] term The field terminator.  Use '\\n' for CR LF.
