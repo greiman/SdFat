@@ -124,8 +124,7 @@ size_t ExFatFile::printCreateDateTimeSeconds(print_t* pr) {
   int8_t tz = 8;
 
   if (getCreateDateTimeSeconds(&date, &time, &seconds)) {
-    datetime = date+time;
-    return fsPrintDateTime(pr, datetime, seconds, tz);
+    return (fsPrintDate(pr, date) && fsPrintTime(pr, time, seconds));
   }
   return 0;
 }
