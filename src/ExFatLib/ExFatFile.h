@@ -208,6 +208,15 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
+  /** Get a file's create date and time (with seconds).
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   * \param[out] pseconds Packed seconds for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getCreateDateTimeSeconds(uint16_t* pdate, uint16_t* ptime, uint8_t* pseconds);
   /** \return All error bits. */
   uint8_t getError() const { return isOpen() ? m_error : 0XFF; }
   /** Get a file's modify date and time.
@@ -462,6 +471,13 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   size_t printCreateDateTime(print_t* pr);
+  /** Print a file's creation date and time (with seconds)
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return true for success or false for failure.
+   */
+  size_t printCreateDateTimeSeconds(print_t* pr);
   /** Print a number followed by a field terminator.
    * \param[in] value The number to be printed.
    * \param[in] term The field terminator.  Use '\\n' for CR LF.
