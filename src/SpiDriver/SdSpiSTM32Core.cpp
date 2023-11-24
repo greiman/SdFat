@@ -44,9 +44,13 @@ void SdSpiArduinoDriver::end() { m_spi->end(); }
 uint8_t SdSpiArduinoDriver::receive() { return m_spi->transfer(0XFF); }
 //------------------------------------------------------------------------------
 uint8_t SdSpiArduinoDriver::receive(uint8_t* buf, size_t count) {
+#if defined(STM32_CORE_VERSION) && STM32_CORE_VERSION > 0x02070000
+  m_spi->transfer(NULL, buf, count);
+#else
   // Must send 0XFF - SD looks at send data for command.
   memset(buf, 0XFF, count);
   m_spi->transfer(buf, count);
+#endif
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -57,9 +61,17 @@ void SdSpiArduinoDriver::send(const uint8_t* buf, size_t count) {
   if (count > 512) {
     return;
   }
+#if defined(STM32_CORE_VERSION)
+#if STM32_CORE_VERSION > 0x02070000
+  m_spi->transfer(buf, NULL, count);
+#elif STM32_CORE_VERSION == 0x02070000
+  #error "STM32 core version 2.7.0 is not compatible due to SPI API changes."
+#endif
+#else
   // Not easy to avoid receive so use tmp RX buffer.
   uint8_t rxBuf[512];
   // Discard const - STM32 not const correct.
   m_spi->transfer(const_cast<uint8_t*>(buf), rxBuf, count);
+#endif
 }
 #endif  // defined(SD_USE_CUSTOM_SPI) && defined(STM32_CORE_VERSION)
