@@ -24,51 +24,51 @@
  */
 #ifndef CompileDateTime_h
 #define CompileDateTime_h
+#include <stdint.h>
 // Note - these functions will compile to a few bytes
 //        since they are evaluated at compile time.
 
 /** \return year field of the __DATE__ macro. */
 constexpr uint16_t compileYear() {
-  return  1000*(__DATE__[7] - '0')
-         + 100*(__DATE__[8] - '0')
-          + 10*(__DATE__[9] - '0')
-             + (__DATE__[10] - '0');
+  return 1000 * (__DATE__[7] - '0') + 100 * (__DATE__[8] - '0') +
+         10 * (__DATE__[9] - '0') + (__DATE__[10] - '0');
 }
 /** \return true if str equals the month field of the __DATE__ macro. */
 constexpr bool compileMonthIs(const char* str) {
-  return __DATE__[0] == str[0]
-      && __DATE__[1] == str[1]
-      && __DATE__[2] == str[2];
+  return __DATE__[0] == str[0] && __DATE__[1] == str[1] &&
+         __DATE__[2] == str[2];
 }
 /** \return month field of the __DATE__ macro. */
 constexpr uint8_t compileMonth() {
-  return compileMonthIs("Jan") ? 1 :
-         compileMonthIs("Feb") ? 2 :
-         compileMonthIs("Mar") ? 3 :
-         compileMonthIs("Apr") ? 4 :
-         compileMonthIs("May") ? 5 :
-         compileMonthIs("Jun") ? 6 :
-         compileMonthIs("Jul") ? 7 :
-         compileMonthIs("Aug") ? 8 :
-         compileMonthIs("Sep") ? 9 :
-         compileMonthIs("Oct") ? 10 :
-         compileMonthIs("Nov") ? 11 :
-         compileMonthIs("Dec") ? 12 : 0;
+  return compileMonthIs("Jan")   ? 1
+         : compileMonthIs("Feb") ? 2
+         : compileMonthIs("Mar") ? 3
+         : compileMonthIs("Apr") ? 4
+         : compileMonthIs("May") ? 5
+         : compileMonthIs("Jun") ? 6
+         : compileMonthIs("Jul") ? 7
+         : compileMonthIs("Aug") ? 8
+         : compileMonthIs("Sep") ? 9
+         : compileMonthIs("Oct") ? 10
+         : compileMonthIs("Nov") ? 11
+         : compileMonthIs("Dec") ? 12
+                                 : 0;
 }
 /** \return day field of the __DATE__ macro. */
 constexpr uint8_t compileDay() {
-  return 10*(__DATE__[4] == ' ' ? 0 : __DATE__[4] - '0') + (__DATE__[5] - '0');
+  return 10 * (__DATE__[4] == ' ' ? 0 : __DATE__[4] - '0') +
+         (__DATE__[5] - '0');
 }
 /** \return hour field of the __TIME__ macro. */
 constexpr uint8_t compileHour() {
-  return 10*(__TIME__[0] - '0') + __TIME__[1] - '0';
+  return 10 * (__TIME__[0] - '0') + __TIME__[1] - '0';
 }
 /** \return minute field of the __TIME__ macro. */
 constexpr uint8_t compileMinute() {
-  return 10*(__TIME__[3] - '0') + __TIME__[4] - '0';
+  return 10 * (__TIME__[3] - '0') + __TIME__[4] - '0';
 }
 /** \return second field of the __TIME__ macro. */
 constexpr uint8_t compileSecond() {
-  return 10*(__TIME__[6] - '0') + __TIME__[7] - '0';
+  return 10 * (__TIME__[6] - '0') + __TIME__[7] - '0';
 }
 #endif  // CompileDateTime_h

@@ -88,30 +88,29 @@ class SdSpiSoftDriver {
    *
    * \param[in] maxSck Maximum SCK frequency.
    */
-  void setSckSpeed(uint32_t maxSck) {
-    (void)maxSck;
-  }
+  void setSckSpeed(uint32_t maxSck) { (void)maxSck; }
 };
 //------------------------------------------------------------------------------
 /**
  * \class SoftSpiDriver
  * \brief Class for external soft SPI.
  */
-template<uint8_t MisoPin, uint8_t MosiPin, uint8_t SckPin>
+template <uint8_t MisoPin, uint8_t MosiPin, uint8_t SckPin>
 class SoftSpiDriver : public SdSpiSoftDriver {
  public:
   /** Initialize the SPI bus. */
-  void begin() {m_spi.begin();}
+  void begin() { m_spi.begin(); }
   /** Receive a byte.
    *
    * \return The byte.
    */
-  uint8_t receive() {return m_spi.receive();}
+  uint8_t receive() { return m_spi.receive(); }
   /** Send a byte.
    *
    * \param[in] data Byte to send
    */
-  void send(uint8_t data) {m_spi.send(data);}
+  void send(uint8_t data) { m_spi.send(data); }
+
  private:
   SoftSPI<MisoPin, MosiPin, SckPin, 0> m_spi;
 };

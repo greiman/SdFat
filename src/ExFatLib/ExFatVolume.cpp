@@ -40,6 +40,6 @@ bool ExFatVolume::chdir(const char* path) {
   m_vwd = dir;
   return true;
 
- fail:
+fail:
   return false;
 }

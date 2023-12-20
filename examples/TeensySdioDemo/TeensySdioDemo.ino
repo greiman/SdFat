@@ -7,7 +7,7 @@
 // SDCARD_SS_PIN is defined for the built-in SD on some boards.
 #ifndef SDCARD_SS_PIN
 const uint8_t SD_CS_PIN = SS;
-#else  // SDCARD_SS_PIN
+#else   // SDCARD_SS_PIN
 // Assume built-in SD is used.
 const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #endif  // SDCARD_SS_PIN
@@ -20,7 +20,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 const size_t BUF_DIM = 32768;
 
 // 8 MiB file.
-const uint32_t FILE_SIZE = 256UL*BUF_DIM;
+const uint32_t FILE_SIZE = 256UL * BUF_DIM;
 
 #if SD_FAT_TYPE == 0
 SdFat sd;
@@ -72,13 +72,12 @@ void errorHalt(const char* msg) {
     Serial.print(", ErrorData: 0X");
     Serial.println(sd.sdErrorData(), HEX);
   }
-  while (true) {}
+  while (true) {
+  }
 }
 bool ready = false;
 //------------------------------------------------------------------------------
-bool sdBusy() {
-  return ready ? sd.card()->isBusy() : false;
-}
+bool sdBusy() { return ready ? sd.card()->isBusy() : false; }
 //------------------------------------------------------------------------------
 // Replace "weak" system yield() function.
 void yield() {
@@ -110,7 +109,7 @@ void runTest() {
   Serial.println("\nsize,write,read");
   Serial.println("bytes,KB/sec,KB/sec");
   for (size_t nb = 512; nb <= BUF_DIM; nb *= 2) {
-    uint32_t nRdWr = FILE_SIZE/nb;
+    uint32_t nRdWr = FILE_SIZE / nb;
     if (!file.truncate(0)) {
       errorHalt("truncate failed");
     }
@@ -121,14 +120,14 @@ void runTest() {
     for (uint32_t n = 0; n < nRdWr; n++) {
       // Set start and end of buffer.
       buf32[0] = n;
-      buf32[nb/4 - 1] = n;
+      buf32[nb / 4 - 1] = n;
       if (nb != file.write(buf, nb)) {
         errorHalt("write failed");
       }
     }
     t = micros() - t;
     totalMicros += t;
-    Serial.print(1000.0*FILE_SIZE/t);
+    Serial.print(1000.0 * FILE_SIZE / t);
     Serial.print(',');
     file.rewind();
     t = micros();
@@ -138,13 +137,13 @@ void runTest() {
         errorHalt("read failed");
       }
       // crude check of data.
-      if (buf32[0] != n || buf32[nb/4 - 1] != n) {
+      if (buf32[0] != n || buf32[nb / 4 - 1] != n) {
         errorHalt("data check");
       }
     }
     t = micros() - t;
     totalMicros += t;
-    Serial.println(1000.0*FILE_SIZE/t);
+    Serial.println(1000.0 * FILE_SIZE / t);
   }
   file.close();
   Serial.print("\ntotalMicros  ");
@@ -155,8 +154,8 @@ void runTest() {
   Serial.println(yieldCalls);
   Serial.print("yieldMaxUsec ");
   Serial.println(yieldMaxUsec);
-//  Serial.print("kHzSdClk     ");
-//  Serial.println(kHzSdClk());
+  //  Serial.print("kHzSdClk     ");
+  //  Serial.println(kHzSdClk());
   Serial.println("Done");
 }
 //------------------------------------------------------------------------------
@@ -171,22 +170,22 @@ void loop() {
   if (warn) {
     warn = false;
     Serial.println(
-      "SD cards must be power cycled to leave\n"
-      "SPI mode so do SDIO tests first.\n"
-      "\nCycle power on the card if an error occurs.");
+        "SD cards must be power cycled to leave\n"
+        "SPI mode so do SDIO tests first.\n"
+        "\nCycle power on the card if an error occurs.");
   }
   clearSerialInput();
 
   Serial.println(
-    "\nType '1' for FIFO SDIO"
-    "\n     '2' for DMA SDIO"
-    "\n     '3' for Dedicated SPI"
-    "\n     '4' for Shared SPI");
+      "\nType '1' for FIFO SDIO"
+      "\n     '2' for DMA SDIO"
+      "\n     '3' for Dedicated SPI"
+      "\n     '4' for Shared SPI");
   while (!Serial.available()) {
   }
   char c = Serial.read();
 
-  if (c =='1') {
+  if (c == '1') {
     if (!sd.begin(SdioConfig(FIFO_SDIO))) {
       errorHalt("begin failed");
     }
@@ -202,7 +201,7 @@ void loop() {
       errorHalt("begin failed");
     }
     Serial.println("\nDedicated SPI mode.");
-#else  // ENABLE_DEDICATED_SPI
+#else   // ENABLE_DEDICATED_SPI
     Serial.println("ENABLE_DEDICATED_SPI must be non-zero.");
     return;
 #endif  // ENABLE_DEDICATED_SPI

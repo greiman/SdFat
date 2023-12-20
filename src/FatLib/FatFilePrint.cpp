@@ -67,7 +67,7 @@ bool FatFile::ls(print_t* pr, uint8_t flags, uint8_t indent) {
   }
   return true;
 
- fail:
+fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ size_t FatFile::printModifyDateTime(print_t* pr) {
 //------------------------------------------------------------------------------
 size_t FatFile::printFileSize(print_t* pr) {
   char buf[11];
-  char *ptr = buf + sizeof(buf);
+  char* ptr = buf + sizeof(buf);
   *--ptr = 0;
   ptr = fmtBase10(ptr, fileSize());
   while (ptr > buf) {

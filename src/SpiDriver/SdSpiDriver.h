@@ -52,19 +52,24 @@ const uint8_t DEDICATED_SPI = 1;
  * \param[in] opt option field of SdSpiConfig.
  * \return true for dedicated SPI.
  */
-inline bool spiOptionDedicated(uint8_t opt) {return opt & DEDICATED_SPI;}
-#else  // ENABLE_DEDICATED_SPI
+inline bool spiOptionDedicated(uint8_t opt) { return opt & DEDICATED_SPI; }
+#else   // ENABLE_DEDICATED_SPI
 /**
  * \param[in] opt option field of SdSpiConfig.
  * \return true for dedicated SPI.
  */
-inline bool spiOptionDedicated(uint8_t opt) {(void)opt; return false;}
+inline bool spiOptionDedicated(uint8_t opt) {
+  (void)opt;
+  return false;
+}
 #endif  // ENABLE_DEDICATED_SPI
+/** The user will call begin. Useful for custom SPI configurations.       */
+const uint8_t USER_SPI_BEGIN = 2;
 //------------------------------------------------------------------------------
 /** SPISettings for SCK frequency in Hz. */
 #define SD_SCK_HZ(maxSpeed) (maxSpeed)
 /** SPISettings for SCK frequency in MHz. */
-#define SD_SCK_MHZ(maxMhz) (1000000UL*(maxMhz))
+#define SD_SCK_MHZ(maxMhz) (1000000UL * (maxMhz))
 // SPI divisor constants - obsolete.
 /** Set SCK to max rate. */
 #define SPI_FULL_SPEED SD_SCK_MHZ(50)
@@ -93,8 +98,8 @@ typedef SdSpiSoftDriver SpiPort_t;
 class SdSpiBaseClass;
 /** Port type for extrernal SPI driver. */
 typedef SdSpiBaseClass SpiPort_t;
-#else  // SPI_DRIVER_SELECT
-typedef void*  SpiPort_t;
+#else   // SPI_DRIVER_SELECT
+typedef void* SpiPort_t;
 #endif  // SPI_DRIVER_SELECT
 //------------------------------------------------------------------------------
 /**
@@ -103,15 +108,15 @@ typedef void*  SpiPort_t;
  */
 class SdSpiConfig {
  public:
-   /** SdSpiConfig constructor.
+  /** SdSpiConfig constructor.
    *
    * \param[in] cs Chip select pin.
    * \param[in] opt Options.
    * \param[in] maxSpeed Maximum SCK frequency.
    * \param[in] port The SPI port to use.
    */
-  SdSpiConfig(SdCsPin_t cs, uint8_t opt, uint32_t maxSpeed, SpiPort_t* port) :
-    csPin(cs), options(opt), maxSck(maxSpeed), spiPort(port) {}
+  SdSpiConfig(SdCsPin_t cs, uint8_t opt, uint32_t maxSpeed, SpiPort_t* port)
+      : csPin(cs), options(opt), maxSck(maxSpeed), spiPort(port) {}
 
   /** SdSpiConfig constructor.
    *
@@ -119,8 +124,8 @@ class SdSpiConfig {
    * \param[in] opt Options.
    * \param[in] maxSpeed Maximum SCK frequency.
    */
-  SdSpiConfig(SdCsPin_t cs, uint8_t opt, uint32_t maxSpeed) :
-    csPin(cs), options(opt), maxSck(maxSpeed) {}
+  SdSpiConfig(SdCsPin_t cs, uint8_t opt, uint32_t maxSpeed)
+      : csPin(cs), options(opt), maxSck(maxSpeed) {}
   /** SdSpiConfig constructor.
    *
    * \param[in] cs Chip select pin.

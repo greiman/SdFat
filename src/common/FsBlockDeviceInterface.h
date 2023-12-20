@@ -28,8 +28,8 @@
  */
 #ifndef FsBlockDeviceInterface_h
 #define FsBlockDeviceInterface_h
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 /**
  * \class FsBlockDeviceInterface
  * \brief FsBlockDeviceInterface class.

@@ -46,11 +46,15 @@ __attribute__((unused)) static void dbgHalt(uint16_t line) {
   Serial.print(F(DBG_FILE));
   Serial.write('.');
   Serial.println(line);
-  while (true) {}
+  while (true) {
+  }
 }
 #define DBG_FAIL_MACRO dbgFail(__LINE__)
 #define DBG_HALT_MACRO dbgHalt(__LINE__)
-#define DBG_HALT_IF(b) if (b) {dbgHalt(__LINE__);}
+#define DBG_HALT_IF(b) \
+  if (b) {             \
+    dbgHalt(__LINE__); \
+  }
 
 #else  // USE_DBG_MACROS
 #define DBG_FAIL_MACRO
@@ -66,7 +70,10 @@ __attribute__((unused)) static void dbgWarn(uint16_t line) {
   Serial.println(line);
 }
 #define DBG_WARN_MACRO dbgWarn(__LINE__)
-#define DBG_WARN_IF(b) if (b) {dbgWarn(__LINE__);}
+#define DBG_WARN_IF(b) \
+  if (b) {             \
+    dbgWarn(__LINE__); \
+  }
 #else  // USE_DBG_MACROS > 1
 #define DBG_WARN_MACRO
 #define DBG_WARN_IF(b)

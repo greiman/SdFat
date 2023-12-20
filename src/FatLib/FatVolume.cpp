@@ -27,7 +27,7 @@
 #include "FatLib.h"
 FatVolume* FatVolume::m_cwv = nullptr;
 //------------------------------------------------------------------------------
-bool FatVolume::chdir(const char *path) {
+bool FatVolume::chdir(const char* path) {
   FatFile dir;
   if (!dir.open(vwd(), path, O_RDONLY)) {
     DBG_FAIL_MACRO;
@@ -40,6 +40,6 @@ bool FatVolume::chdir(const char *path) {
   m_vwd = dir;
   return true;
 
- fail:
+fail:
   return false;
 }

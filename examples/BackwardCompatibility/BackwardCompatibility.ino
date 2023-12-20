@@ -28,11 +28,12 @@ File myFile;
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}
+  while (!Serial) {
+  }
 
 #if USE_SD_H
   Serial.println(F("Using SD.h. Set USE_SD_H zero to use SdFat.h."));
-#else  // USE_SD_H
+#else   // USE_SD_H
   Serial.println(F("Using SdFat.h. Set USE_SD_H nonzero to use SD.h."));
 #endif  // USE_SD_H
   Serial.println(F("\nType any character to begin."));

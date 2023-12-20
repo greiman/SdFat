@@ -51,12 +51,12 @@ class SdSpiBaseClass {
    */
   virtual uint8_t receive() = 0;
   /** Receive multiple bytes.
-  *
-  * \param[out] buf Buffer to receive the data.
-  * \param[in] count Number of bytes to receive.
-  *
-  * \return Zero for no error or nonzero error code.
-  */
+   *
+   * \param[out] buf Buffer to receive the data.
+   * \param[in] count Number of bytes to receive.
+   *
+   * \return Zero for no error or nonzero error code.
+   */
   virtual uint8_t receive(uint8_t* buf, size_t count) = 0;
   /** Send a byte.
    *
@@ -73,6 +73,6 @@ class SdSpiBaseClass {
    *
    * \param[in] maxSck Maximum SCK frequency.
    */
-  virtual void setSckSpeed(uint32_t maxSck) {(void)maxSck;}
+  virtual void setSckSpeed(uint32_t maxSck) { (void)maxSck; }
 };
 #endif  // SdSpiBaseClass_h

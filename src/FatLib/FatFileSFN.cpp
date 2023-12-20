@@ -46,7 +46,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
   while (true) {
     dir = dirFile->readDirCache(true);
     if (!dir) {
-      if (dirFile->getError())  {
+      if (dirFile->getError()) {
         DBG_FAIL_MACRO;
         goto fail;
       }
@@ -143,7 +143,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
   // open entry in cache.
   return openCachedEntry(dirFile, index, oflag, 0);
 
- fail:
+fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ bool FatFile::openExistingSFN(const char* path) {
   } while (*path);
   return true;
 
- fail:
+fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -192,9 +192,9 @@ bool FatFile::openSFN(FatSfn_t* fname) {
       goto fail;
     }
     if (isFatFileOrSubdir(&dir) && memcmp(fname->sfn, dir.name, 11) == 0) {
-      uint16_t dirIndex = (m_curPosition - 32) >> 5;
-      uint32_t dirCluster = m_firstCluster;
-      memset(this, 0 , sizeof(FatFile));
+      uint16_t saveDirIndex = (m_curPosition - 32) >> 5;
+      uint32_t saveDirCluster = m_firstCluster;
+      memset(this, 0, sizeof(FatFile));
       m_attributes = dir.attributes & FS_ATTRIB_COPY;
       m_flags = FILE_FLAG_READ;
       if (isFatFile(&dir)) {
@@ -209,9 +209,9 @@ bool FatFile::openSFN(FatSfn_t* fname) {
       m_firstCluster |= getLe16(dir.firstClusterLow);
       m_fileSize = getLe32(dir.fileSize);
       m_vol = vol;
-      m_dirCluster = dirCluster;
+      m_dirCluster = saveDirCluster;
       m_dirSector = m_vol->cacheSectorNumber();
-      m_dirIndex = dirIndex;
+      m_dirIndex = saveDirIndex;
       return true;
     } else if (isFatLongName(&dir)) {
       ldir = reinterpret_cast<DirLfn_t*>(&dir);
@@ -223,7 +223,7 @@ bool FatFile::openSFN(FatSfn_t* fname) {
     }
   }
 
- fail:
+fail:
   return false;
 }
 //------------------------------------------------------------------------------
@@ -269,14 +269,14 @@ bool FatFile::parsePathName(const char* path, FatSfn_t* fname,
     goto fail;
   }
   // Set base-name and extension bits.
-  fname->flags = lc & uc ? 0 : lc;
+  fname->flags = (lc & uc) ? 0 : lc;
   while (isDirSeparator(*path)) {
     path++;
   }
   *ptr = path;
   return true;
 
- fail:
+fail:
   return false;
 }
 #if !USE_LONG_FILE_NAMES
@@ -309,7 +309,7 @@ bool FatFile::remove() {
   // Write entry to device.
   return m_vol->cacheSync();
 
- fail:
+fail:
   return false;
 }
 #endif  // !USE_LONG_FILE_NAMES

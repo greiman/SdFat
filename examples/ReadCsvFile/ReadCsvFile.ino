@@ -15,7 +15,7 @@
 // SDCARD_SS_PIN is defined for the built-in SD on some boards.
 #ifndef SDCARD_SS_PIN
 const uint8_t SD_CS_PIN = SS;
-#else  // SDCARD_SS_PIN
+#else   // SDCARD_SS_PIN
 // Assume built-in SD is used.
 const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #endif  // SDCARD_SS_PIN
@@ -26,7 +26,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if HAS_SDIO_CLASS
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif  ENABLE_DEDICATED_SPI
+#elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_SDIO_CLASS
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
@@ -127,10 +127,10 @@ void setup() {
     error("open failed");
   }
   // Write test data.
-  file.print(F(
-    "abc,123,456,7.89\r\n"
-    "def,-321,654,-9.87\r\n"
-    "ghi,333,0xff,5.55"));
+  file.print(
+      F("abc,123,456,7.89\r\n"
+        "def,-321,654,-9.87\r\n"
+        "ghi,333,0xff,5.55"));
 
   // Rewind file for read.
   file.rewind();
@@ -140,7 +140,7 @@ void setup() {
     if (n <= 0) {
       error("fgets failed");
     }
-    if (line[n-1] != '\n' && n == (sizeof(line) - 1)) {
+    if (line[n - 1] != '\n' && n == (sizeof(line) - 1)) {
       error("line too long");
     }
     if (!parseLine(line)) {
@@ -152,5 +152,4 @@ void setup() {
   Serial.println(F("Done"));
 }
 
-void loop() {
-}
+void loop() {}
