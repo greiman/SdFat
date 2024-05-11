@@ -143,7 +143,7 @@ void loop() {
     }
     cout << F("\nCard successfully initialized.\n");
     if (sd.vol()->fatType() == 0) {
-      cout << F("Can't find a valid FAT16/FAT32 partition.\n");
+      cout << F("Can't find a valid FAT16/FAT32/exFAT partition.\n");
       reformatMsg();
       return;
     }
@@ -163,7 +163,11 @@ void loop() {
   cout << F("Card size: ") << sizeMB;
   cout << F(" MB (MB = 1,000,000 bytes)\n");
   cout << endl;
-  cout << F("Volume is FAT") << int(sd.vol()->fatType());
+  if (sd.fatType() <= 32) {
+    cout << F("\nVolume is FAT") << int(sd.fatType());
+  } else {
+    cout << F("\nVolume is exFAT");
+  }
   cout << F(", Cluster size (bytes): ") << sd.vol()->bytesPerCluster();
   cout << endl << endl;
 

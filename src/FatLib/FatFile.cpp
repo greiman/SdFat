@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -354,7 +354,8 @@ bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
         goto fail;
       }
     }
-    tmpDir = *this;
+    // tmpDir = *this;
+    tmpDir.copy(this);
     parent = &tmpDir;
     close();
   }
@@ -477,7 +478,8 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
       DBG_WARN_MACRO;
       goto fail;
     }
-    tmpDir = *this;
+    // tmpDir = *this;
+    tmpDir.copy(this);
     dirFile = &tmpDir;
     close();
   }
@@ -632,7 +634,8 @@ bool FatFile::openCwd() {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  *this = *FatVolume::cwv()->vwd();
+  // *this = *FatVolume::cwv()->vwd();
+  this->copy(FatVolume::cwv()->vwd());
   rewind();
   return true;
 
@@ -965,7 +968,8 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
   }
   // sync() and cache directory entry
   sync();
-  oldFile = *this;
+  // oldFile = *this;
+  oldFile.copy(this);
   dir = cacheDirEntry(FsCache::CACHE_FOR_READ);
   if (!dir) {
     DBG_FAIL_MACRO;
@@ -1281,8 +1285,9 @@ bool FatFile::timestamp(uint8_t flags, uint16_t year, uint8_t month,
   uint16_t dirTime;
   DirFat_t* dir;
 
-  if (!isFile() || year < 1980 || year > 2107 || month < 1 || month > 12 ||
-      day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) {
+  if (!isFileOrSubDir() || year < 1980 || year > 2107 || month < 1 ||
+      month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 ||
+      second > 59) {
     DBG_FAIL_MACRO;
     goto fail;
   }

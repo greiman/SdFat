@@ -59,7 +59,7 @@
   SD_CARD_ERROR(CMD8, "Send and check interface settings")          \
   SD_CARD_ERROR(CMD9, "Read CSD data")                              \
   SD_CARD_ERROR(CMD10, "Read CID data")                             \
-  SD_CARD_ERROR(CMD12, "Stop multiple block read")                  \
+  SD_CARD_ERROR(CMD12, "Stop multiple block transmission")          \
   SD_CARD_ERROR(CMD13, "Read card status")                          \
   SD_CARD_ERROR(CMD17, "Read single block")                         \
   SD_CARD_ERROR(CMD18, "Read multiple blocks")                      \

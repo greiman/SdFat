@@ -1,13 +1,8 @@
-### Warning: Major Reformat of Source in 2.2.2
+File copy constructors and file assignment operators have been made private by
+default in 2.2.3 to prevent call by value and multiple copies of file instances.
 
-There are a huge number of changes in 2.2.2 since I decided to use clang-format
-to force Google style formatting.
-
-I did this to avoid warnings from the static analysis programs Cppcheck and
-cpplint.
-
-clang-format is aggressive so it may actually cause code to fail.  For example
-clang-format rearranges the order of includes according to the selected style.
+SdFatConfig.h has options to make file constructors and assignment operators
+public.
 
 UTF-8 encoded filenames are supported in v2.1.0 or later.
 

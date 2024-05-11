@@ -1,13 +1,13 @@
 /*
  * This program is a simple binary write/read benchmark.
  */
-#include "FreeStack.h"
 #include "SdFat.h"
+#include "FreeStack.h"
 #include "sdios.h"
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
-#define SD_FAT_TYPE 0
+#define SD_FAT_TYPE 3
 /*
   Change the value of SD_CS_PIN if you are using SPI and
   your hardware does not use the default value, SS.

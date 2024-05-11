@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -156,7 +156,8 @@ bool FatFile::openExistingSFN(const char* path) {
   if (*path == 0) {
     return openRoot(vol);
   }
-  *this = *vol->vwd();
+  // *this = *vol->vwd();
+  this->copy(vol->vwd());
   do {
     if (!parsePathName(path, &fname, &path)) {
       DBG_FAIL_MACRO;
@@ -183,7 +184,7 @@ bool FatFile::openSFN(FatSfn_t* fname) {
     goto fail;
   }
   while (true) {
-    if (read(&dir, 32) != 32) {
+    if (read(&dir, sizeof(dir)) != sizeof(dir)) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -192,7 +193,7 @@ bool FatFile::openSFN(FatSfn_t* fname) {
       goto fail;
     }
     if (isFatFileOrSubdir(&dir) && memcmp(fname->sfn, dir.name, 11) == 0) {
-      uint16_t saveDirIndex = (m_curPosition - 32) >> 5;
+      uint16_t saveDirIndex = (m_curPosition - sizeof(dir)) >> 5;
       uint32_t saveDirCluster = m_firstCluster;
       memset(this, 0, sizeof(FatFile));
       m_attributes = dir.attributes & FS_ATTRIB_COPY;

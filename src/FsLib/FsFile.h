@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -49,9 +49,18 @@ class FsBaseFile {
    */
   FsBaseFile(const char* path, oflag_t oflag) { open(path, oflag); }
 
-  ~FsBaseFile() { close(); }
+  /** Copy from to this.
+   * \param[in] from Source file.
+   */
+  void copy(const FsBaseFile* from);
+
+  /** move from to this.
+   * \param[in] from Source file.
+   */
+  void move(FsBaseFile* from);
+
+#if FILE_COPY_CONSTRUCTOR_SELECT == FILE_COPY_CONSTRUCTOR_PUBLIC
   /** Copy constructor.
-   *
    * \param[in] from Object used to initialize this instance.
    */
   FsBaseFile(const FsBaseFile& from);
@@ -60,6 +69,46 @@ class FsBaseFile {
    * \return assigned object.
    */
   FsBaseFile& operator=(const FsBaseFile& from);
+#elif FILE_COPY_CONSTRUCTOR_SELECT == FILE_COPY_CONSTRUCTOR_PRIVATE
+
+ private:
+  FsBaseFile(const FsBaseFile& from);
+  FsBaseFile& operator=(const FsBaseFile& from);
+
+ public:
+#else   // FILE_COPY_CONSTRUCTOR_SELECT
+  FsBaseFile(const FsBaseFile& from) = delete;
+  FsBaseFile& operator=(const FsBaseFile& from) = delete;
+#endif  // FILE_COPY_CONSTRUCTOR_SELECT
+
+#if FILE_MOVE_CONSTRUCTOR_SELECT
+  /** Move constructor.
+   * \param[in] from File to move.
+   */
+  FsBaseFile(FsBaseFile&& from) { move(&from); }
+  /** Move assignment operator.
+   * \param[in] from File to move.
+   * \return Assigned file.
+   */
+  FsBaseFile& operator=(FsBaseFile&& from) {
+    move(&from);
+    return *this;
+  }
+#else   // FILE_MOVE_CONSTRUCTOR_SELECT
+  FsBaseFile(FsBaseFile&& from) = delete;
+  FsBaseFile& operator=(FsBaseFile&& from) = delete;
+#endif  // FILE_MOVE_CONSTRUCTOR_SELECT
+
+#if DESTRUCTOR_CLOSES_FILE
+  ~FsBaseFile() {
+    if (isOpen()) {
+      close();
+    }
+  }
+#else  // DESTRUCTOR_CLOSES_FILE
+  ~FsBaseFile() = default;
+#endif  // DESTRUCTOR_CLOSES_FILE
+
   /** The parenthesis operator.
    *
    * \return true if a file is open.
@@ -752,7 +801,7 @@ class FsBaseFile {
    * \return true for success or false for failure.
    */
   bool seekSet(uint64_t pos) {
-    return m_fFile   ? pos < (1ULL << 32) && m_fFile->seekSet(pos)
+    return m_fFile   ? pos < (1ULL << 32) && m_fFile->seekSet((uint32_t)pos)
            : m_xFile ? m_xFile->seekSet(pos)
                      : false;
   }

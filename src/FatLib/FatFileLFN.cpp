@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -54,7 +54,9 @@ static void putLfnChar(DirLfn_t* ldir, uint8_t i, uint16_t c) {
 }
 //==============================================================================
 bool FatFile::cmpName(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd) {
-  FatFile dir = *this;
+  // FatFile dir = *this;
+  FatFile dir;
+  dir.copy(this);
   DirLfn_t* ldir;
   fname->reset();
   for (uint8_t order = 1; order <= lfnOrd; order++) {
@@ -92,7 +94,9 @@ fail:
 }
 //------------------------------------------------------------------------------
 bool FatFile::createLFN(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd) {
-  FatFile dir = *this;
+  // FatFile dir = *this;
+  FatFile dir;
+  dir.copy(this);
   DirLfn_t* ldir;
   uint8_t checksum = lfnChecksum(fname->sfn);
   uint8_t fc = 0;
@@ -376,7 +380,6 @@ create:
   if (freeFound == 0) {
     freeIndex = curIndex;
   }
-
   while (freeFound < freeNeed) {
     dir = dirFile->readDirCache();
     if (!dir) {

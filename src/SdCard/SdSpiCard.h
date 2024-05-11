@@ -141,6 +141,8 @@ class SharedSpiCard {
   bool isBusy();
   /** \return false, can't be in dedicated state. */
   bool isDedicatedSpi() { return false; }
+  /** \return true if card is on SPI bus. */
+  bool isSpi() { return true; }
   /**
    * Read a card's CID register. The CID contains card identification
    * information such as Manufacturer ID, Product name, Product serial
@@ -301,7 +303,6 @@ class SharedSpiCard {
   void spiStart();
   void spiStop();
   void spiUnselect() { sdCsWrite(m_csPin, true); }
-  void type(uint8_t value) { m_type = value; }
   bool waitReady(uint16_t ms);
   bool writeData(uint8_t token, const uint8_t* src);
 #if SPI_DRIVER_SELECT < 2

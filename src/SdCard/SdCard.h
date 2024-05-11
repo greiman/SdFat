@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -64,11 +64,10 @@ class SdCardFactory {
   /** Initialize SPI card.
    *
    * \param[in] config SPI configuration.
-   * \return generic card pointer.
+   * \return generic card pointer or nullptr if failure.
    */
   SdCard* newCard(SdSpiConfig config) {
-    m_spiCard.begin(config);
-    return &m_spiCard;
+    return m_spiCard.begin(config) ? &m_spiCard : nullptr;
   }
   /** Initialize SDIO card.
    *
@@ -77,8 +76,7 @@ class SdCardFactory {
    */
   SdCard* newCard(SdioConfig config) {
 #if HAS_SDIO_CLASS
-    m_sdioCard.begin(config);
-    return &m_sdioCard;
+    return m_sdioCard.begin(config) ? &m_sdioCard : nullptr;
 #else   // HAS_SDIO_CLASS
     (void)config;
     return nullptr;

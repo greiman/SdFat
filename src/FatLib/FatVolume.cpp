@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -37,7 +37,8 @@ bool FatVolume::chdir(const char* path) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  m_vwd = dir;
+  // m_vwd = dir;
+  m_vwd.copy(&dir);
   return true;
 
 fail:

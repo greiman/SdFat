@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -34,7 +34,7 @@
 #endif  // __AVR__
 //
 // To try UTF-8 encoded filenames.
-// #define USE_UTF8_LONG_NAMES 1
+//  #define USE_UTF8_LONG_NAMES 1
 //
 // For minimum flash size use these settings:
 // #define USE_FAT_FILE_FLAG_CONTIGUOUS 0
@@ -46,6 +46,48 @@
 // Options can be set in a makefile or an IDE like platformIO
 // if they are in a #ifndef/#endif block below.
 //------------------------------------------------------------------------------
+/*
+ * Options for file class constructors, assignment operators and destructors.
+ *
+ * By default file copy constructors and copy assignment operators are
+ * private to prevent multiple copies of a instance for a file.
+ *
+ * File move constructors and move assignment operators are public to permit
+ * return of a file instance for compilers that aren't able to use copy elision. 
+ *
+ */
+/** File copy constructors and copy assignment operators are deleted */
+#define FILE_COPY_CONSTRUCTOR_DELETED 0
+/** File copy constructors and copy assignment operators are private */
+#define FILE_COPY_CONSTRUCTOR_PRIVATE 1
+/** File copy constructors and copy assignment operators are public */
+#define FILE_COPY_CONSTRUCTOR_PUBLIC 2
+
+#ifndef FILE_COPY_CONSTRUCTOR_SELECT
+/** Specify kind of file copy constructors and copy assignment operators */
+#define FILE_COPY_CONSTRUCTOR_SELECT FILE_COPY_CONSTRUCTOR_PRIVATE
+#endif  // FILE_COPY_CONSTRUCTOR_SELECT
+/** File move constructors and move assignment operators are deleted. */
+#define FILE_MOVE_CONSTRUCTOR_DELETED 0
+/** File move constructors and move assignment operators are public. */
+#define FILE_MOVE_CONSTRUCTOR_PUBLIC 1
+
+#ifndef FILE_MOVE_CONSTRUCTOR_SELECT
+/** Specify kind of file move constructors and move assignment operators */
+#define FILE_MOVE_CONSTRUCTOR_SELECT FILE_MOVE_CONSTRUCTOR_PUBLIC
+#endif  // FILE_MOVE_CONSTRUCTOR_SELECT
+
+#if FILE_MOVE_CONSTRUCTOR_SELECT != FILE_MOVE_CONSTRUCTOR_PUBLIC && \
+    FILE_COPY_CONSTRUCTOR_SELECT != FILE_COPY_CONSTRUCTOR_PUBLIC
+#error "No public move or copy assign operators"
+#endif  // FILE_MOVE_CONSTRUCTOR_SELECT && FILE_MOVE_CONSTRUCTOR_SELECT
+/**
+ * Set DESTRUCTOR_CLOSES_FILE nonzero to close a file in its destructor. */
+#ifndef DESTRUCTOR_CLOSES_FILE
+#define DESTRUCTOR_CLOSES_FILE 0
+#endif  // DESTRUCTOR_CLOSES_FILE
+//------------------------------------------------------------------------------
+
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
 /** For Debug - must be one */
@@ -326,15 +368,6 @@ typedef uint8_t SdCsPin_t;
 #ifndef FAT12_SUPPORT
 #define FAT12_SUPPORT 0
 #endif  // FAT12_SUPPORT
-//------------------------------------------------------------------------------
-/**
- * Set DESTRUCTOR_CLOSES_FILE nonzero to close a file in its destructor.
- *
- * Causes use of lots of heap in ARM.
- */
-#ifndef DESTRUCTOR_CLOSES_FILE
-#define DESTRUCTOR_CLOSES_FILE 0
-#endif  // DESTRUCTOR_CLOSES_FILE
 //------------------------------------------------------------------------------
 /**
  * Call flush for endl if ENDL_CALLS_FLUSH is nonzero

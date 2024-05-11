@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -764,11 +764,23 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   // Determine if High Speed mode is supported and set frequency.
   // Check status[16] for error 0XF or status[16] for new mode 0X1.
   uint8_t status[64];
-  if (m_scr.sdSpec() > 0 && cardCMD6(0X00FFFFFF, status) && (2 & status[13]) &&
-      cardCMD6(0X80FFFFF1, status) && (status[16] & 0XF) == 1) {
-    kHzSdClk = 50000;
-  } else {
-    kHzSdClk = 25000;
+  kHzSdClk = 25000;
+  if (m_scr.sdSpec() > 0) {
+    // card is 1.10 or greater - must support CMD6
+    if (!cardCMD6(0X00FFFFFF, status)) {
+      return false;
+    }
+    if (2 & status[13]) {
+      // Card supports High Speed mode - switch mode.
+      if (!cardCMD6(0X80FFFFF1, status)) {
+        return false;
+      }
+      if ((status[16] & 0XF) == 1) {
+        kHzSdClk = 50000;
+      }  else {
+        return sdError(SD_CARD_ERROR_CMD6);
+      }
+    }
   }
   // Disable GPIO.
   enableGPIO(false);
@@ -1036,8 +1048,10 @@ bool SdioCard::syncDevice() {
 }
 //------------------------------------------------------------------------------
 uint8_t SdioCard::type() const {
-  return m_version2 ? m_highCapacity ? SD_CARD_TYPE_SDHC : SD_CARD_TYPE_SD2
-                    : SD_CARD_TYPE_SD1;
+  return !m_initDone       ? 0
+         : !m_version2     ? SD_CARD_TYPE_SD1
+         : !m_highCapacity ? SD_CARD_TYPE_SD2
+                           : SD_CARD_TYPE_SDHC;
 }
 //------------------------------------------------------------------------------
 bool SdioCard::writeData(const uint8_t* src) {

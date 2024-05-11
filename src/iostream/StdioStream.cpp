@@ -201,7 +201,10 @@ int StdioStream::fseek(int32_t offset, int origin) {
       break;
 
     case SEEK_SET:
-      if (!StreamBaseFile::seekSet(offset)) {
+      if (offset < 0) {
+        goto fail;
+      }
+      if (!StreamBaseFile::seekSet((uint32_t)offset)) {
         goto fail;
       }
       break;
@@ -349,7 +352,7 @@ bool StdioStream::rewind() {
       return false;
     }
   }
-  StreamBaseFile::seekSet(0);
+  StreamBaseFile::seekSet(0UL);
   m_r = 0;
   return true;
 }

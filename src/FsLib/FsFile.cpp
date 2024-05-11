@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -23,32 +23,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "FsLib.h"
+#if FILE_COPY_CONSTRUCTOR_SELECT
 //------------------------------------------------------------------------------
-FsBaseFile::FsBaseFile(const FsBaseFile& from) {
-  m_fFile = nullptr;
-  m_xFile = nullptr;
-  if (from.m_fFile) {
-    m_fFile = new (m_fileMem) FatFile;
-    *m_fFile = *from.m_fFile;
-  } else if (from.m_xFile) {
-    m_xFile = new (m_fileMem) ExFatFile;
-    *m_xFile = *from.m_xFile;
+FsBaseFile::FsBaseFile(const FsBaseFile& from) { copy(&from); }
+//------------------------------------------------------------------------------
+FsBaseFile& FsBaseFile::operator=(const FsBaseFile& from) {
+  copy(&from);
+  return *this;
+}
+#endif  // FILE_COPY_CONSTRUCTOR_SELECT
+//------------------------------------------------------------------------------
+void FsBaseFile::copy(const FsBaseFile* from) {
+  if (from != this) {
+    m_fFile = nullptr;
+    m_xFile = nullptr;
+    if (from->m_fFile) {
+      m_fFile = new (m_fileMem) FatFile;
+      m_fFile->copy(from->m_fFile);
+    } else if (from->m_xFile) {
+      m_xFile = new (m_fileMem) ExFatFile;
+      m_xFile->copy(from->m_xFile);
+    }
   }
 }
 //------------------------------------------------------------------------------
-FsBaseFile& FsBaseFile::operator=(const FsBaseFile& from) {
-  if (this == &from) {
-    return *this;
+void FsBaseFile::move(FsBaseFile* from) {
+  if (from != this) {
+    copy(from);
+    from->m_fFile = nullptr;
+    from->m_xFile = nullptr;
   }
-  close();
-  if (from.m_fFile) {
-    m_fFile = new (m_fileMem) FatFile;
-    *m_fFile = *from.m_fFile;
-  } else if (from.m_xFile) {
-    m_xFile = new (m_fileMem) ExFatFile;
-    *m_xFile = *from.m_xFile;
-  }
-  return *this;
 }
 //------------------------------------------------------------------------------
 bool FsBaseFile::close() {

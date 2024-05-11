@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -123,6 +123,8 @@ static uint16_t CRC_CCITT(const uint8_t* data, size_t n) {
 // SharedSpiCard member functions
 //------------------------------------------------------------------------------
 bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
+  uint8_t cardType;
+  uint32_t arg;
   Timeout timeout;
   // Restore state to creator.
   initSharedSpiCard();
@@ -140,7 +142,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   spiSetSckSpeed(1000UL * SD_MAX_INIT_RATE_KHZ);
   spiBegin(spiConfig);
   m_beginCalled = true;
-  uint32_t arg;
+
   spiStart();
 
   // must supply min of 74 clock cycles with CS high.
@@ -169,7 +171,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   // check SD version
   while (true) {
     if (cardCommand(CMD8, 0x1AA) & R1_ILLEGAL_COMMAND) {
-      type(SD_CARD_TYPE_SD1);
+      cardType = SD_CARD_TYPE_SD1;
       break;
     }
     // Skip first three bytes.
@@ -177,7 +179,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
       m_status = spiReceive();
     }
     if (m_status == 0XAA) {
-      type(SD_CARD_TYPE_SD2);
+      cardType = SD_CARD_TYPE_SD2;
       break;
     }
     if (timeout.timedOut()) {
@@ -186,7 +188,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
     }
   }
   // initialize card and send host supports SDHC if SD2
-  arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
+  arg = cardType == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
   while (cardAcmd(ACMD41, arg) != R1_READY_STATE) {
     // check for timeout
     if (timeout.timedOut()) {
@@ -195,13 +197,13 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
     }
   }
   // if SD2 read OCR register to check for SDHC card
-  if (type() == SD_CARD_TYPE_SD2) {
+  if (cardType == SD_CARD_TYPE_SD2) {
     if (cardCommand(CMD58, 0)) {
       error(SD_CARD_ERROR_CMD58);
       goto fail;
     }
     if ((spiReceive() & 0XC0) == 0XC0) {
-      type(SD_CARD_TYPE_SDHC);
+      cardType = SD_CARD_TYPE_SDHC;
     }
     // Discard rest of ocr - contains allowed voltage range.
     for (uint8_t i = 0; i < 3; i++) {
@@ -210,6 +212,7 @@ bool SharedSpiCard::begin(SdSpiConfig spiConfig) {
   }
   spiStop();
   spiSetSckSpeed(spiConfig.maxSck);
+  m_type = cardType;
   return true;
 
 fail:
@@ -307,7 +310,7 @@ bool SharedSpiCard::erase(uint32_t firstSector, uint32_t lastSector) {
       goto fail;
     }
   }
-  if (m_type != SD_CARD_TYPE_SDHC) {
+  if (type() != SD_CARD_TYPE_SDHC) {
     firstSector <<= 9;
     lastSector <<= 9;
   }
