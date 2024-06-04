@@ -67,7 +67,8 @@ class SdCardFactory {
    * \return generic card pointer or nullptr if failure.
    */
   SdCard* newCard(SdSpiConfig config) {
-    return m_spiCard.begin(config) ? &m_spiCard : nullptr;
+    m_spiCard.begin(config);
+    return &m_spiCard;
   }
   /** Initialize SDIO card.
    *
@@ -76,7 +77,8 @@ class SdCardFactory {
    */
   SdCard* newCard(SdioConfig config) {
 #if HAS_SDIO_CLASS
-    return m_sdioCard.begin(config) ? &m_sdioCard : nullptr;
+    m_sdioCard.begin(config);
+    return &m_sdioCard;
 #else   // HAS_SDIO_CLASS
     (void)config;
     return nullptr;
