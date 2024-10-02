@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -34,7 +34,7 @@
 #endif  // __AVR__
 //
 // To try UTF-8 encoded filenames.
-// #define USE_UTF8_LONG_NAMES 1
+//  #define USE_UTF8_LONG_NAMES 1
 //
 // For minimum flash size use these settings:
 // #define USE_FAT_FILE_FLAG_CONTIGUOUS 0
@@ -46,6 +46,48 @@
 // Options can be set in a makefile or an IDE like platformIO
 // if they are in a #ifndef/#endif block below.
 //------------------------------------------------------------------------------
+/*
+ * Options for file class constructors, assignment operators and destructors.
+ *
+ * By default file copy constructors and copy assignment operators are
+ * private to prevent multiple copies of a instance for a file.
+ *
+ * File move constructors and move assignment operators are public to permit
+ * return of a file instance for compilers that aren't able to use copy elision. 
+ *
+ */
+/** File copy constructors and copy assignment operators are deleted */
+#define FILE_COPY_CONSTRUCTOR_DELETED 0
+/** File copy constructors and copy assignment operators are private */
+#define FILE_COPY_CONSTRUCTOR_PRIVATE 1
+/** File copy constructors and copy assignment operators are public */
+#define FILE_COPY_CONSTRUCTOR_PUBLIC 2
+
+#ifndef FILE_COPY_CONSTRUCTOR_SELECT
+/** Specify kind of file copy constructors and copy assignment operators */
+#define FILE_COPY_CONSTRUCTOR_SELECT FILE_COPY_CONSTRUCTOR_PRIVATE
+#endif  // FILE_COPY_CONSTRUCTOR_SELECT
+/** File move constructors and move assignment operators are deleted. */
+#define FILE_MOVE_CONSTRUCTOR_DELETED 0
+/** File move constructors and move assignment operators are public. */
+#define FILE_MOVE_CONSTRUCTOR_PUBLIC 1
+
+#ifndef FILE_MOVE_CONSTRUCTOR_SELECT
+/** Specify kind of file move constructors and move assignment operators */
+#define FILE_MOVE_CONSTRUCTOR_SELECT FILE_MOVE_CONSTRUCTOR_PUBLIC
+#endif  // FILE_MOVE_CONSTRUCTOR_SELECT
+
+#if FILE_MOVE_CONSTRUCTOR_SELECT != FILE_MOVE_CONSTRUCTOR_PUBLIC && \
+    FILE_COPY_CONSTRUCTOR_SELECT != FILE_COPY_CONSTRUCTOR_PUBLIC
+#error "No public move or copy assign operators"
+#endif  // FILE_MOVE_CONSTRUCTOR_SELECT && FILE_MOVE_CONSTRUCTOR_SELECT
+/**
+ * Set DESTRUCTOR_CLOSES_FILE nonzero to close a file in its destructor. */
+#ifndef DESTRUCTOR_CLOSES_FILE
+#define DESTRUCTOR_CLOSES_FILE 0
+#endif  // DESTRUCTOR_CLOSES_FILE
+//------------------------------------------------------------------------------
+
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
 /** For Debug - must be one */
@@ -122,14 +164,28 @@
 #define SPI_DRIVER_SELECT 0
 #endif  // SPI_DRIVER_SELECT
 /**
- * If USE_SPI_ARRAY_TRANSFER is non-zero and the standard SPI library is
- * use, the array transfer function, transfer(buf, size), will be used.
- * This option will allocate up to a 512 byte temporary buffer for send.
+ * If USE_SPI_ARRAY_TRANSFER is one and the standard SPI library is
+ * use, the array transfer function, transfer(buf, count), will be used.
+ * This option will allocate a 512 byte temporary buffer for send.
  * This may be faster for some boards.  Do not use this with AVR boards.
+ *
+ * Warning: the next options are often fastest but only available for some
+ * non-Arduino board packages.
+ *
+ * If USE_SPI_ARRAY_TRANSFER is two use transfer(nullptr, buf, count) for
+ * receive and transfer(buf, nullptr, count) for send.
+ *
+ * If USE_SPI_ARRAY_TRANSFER is three use transfer(nullptr, buf, count) for
+ * receive and transfer(buf, rxTmp, count) for send. Try this with Adafruit
+ * SAMD51.
+ *
+ * If USE_SPI_ARRAY_TRANSFER is four use transfer(txTmp, buf, count) for
+ * receive and transfer(buf, rxTmp, count) for send. Try this with STM32.
  */
 #ifndef USE_SPI_ARRAY_TRANSFER
 #define USE_SPI_ARRAY_TRANSFER 0
 #endif  // USE_SPI_ARRAY_TRANSFER
+//------------------------------------------------------------------------------
 /**
  * SD maximum initialization clock rate.
  */
@@ -161,7 +217,8 @@
 #ifndef USE_BLOCK_DEVICE_INTERFACE
 #define USE_BLOCK_DEVICE_INTERFACE 0
 #endif  // USE_BLOCK_DEVICE_INTERFACE
- /**
+//------------------------------------------------------------------------------
+/**
  * SD_CHIP_SELECT_MODE defines how the functions
  * void sdCsInit(SdCsPin_t pin) {pinMode(pin, OUTPUT);}
  * and
@@ -313,15 +370,6 @@ typedef uint8_t SdCsPin_t;
 #endif  // FAT12_SUPPORT
 //------------------------------------------------------------------------------
 /**
- * Set DESTRUCTOR_CLOSES_FILE nonzero to close a file in its destructor.
- *
- * Causes use of lots of heap in ARM.
- */
-#ifndef DESTRUCTOR_CLOSES_FILE
-#define DESTRUCTOR_CLOSES_FILE 0
-#endif  // DESTRUCTOR_CLOSES_FILE
-//------------------------------------------------------------------------------
-/**
  * Call flush for endl if ENDL_CALLS_FLUSH is nonzero
  *
  * The standard for iostreams is to call flush.  This is very costly for
@@ -346,8 +394,8 @@ typedef uint8_t SdCsPin_t;
  * Set USE_SIMPLE_LITTLE_ENDIAN nonzero for little endian processors
  * with no memory alignment restrictions.
  */
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__\
-  && (defined(__AVR__) || defined(__ARM_FEATURE_UNALIGNED))
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ && \
+    (defined(__AVR__) || defined(__ARM_FEATURE_UNALIGNED))
 #define USE_SIMPLE_LITTLE_ENDIAN 1
 #else  // __BYTE_ORDER_
 #define USE_SIMPLE_LITTLE_ENDIAN 0
@@ -394,11 +442,11 @@ typedef uint8_t SdCsPin_t;
 #endif  // BUILTIN_SDCARD
 // SPI for built-in card.
 #ifndef SDCARD_SPI
-#define SDCARD_SPI      SPI1
+#define SDCARD_SPI SPI1
 #define SDCARD_MISO_PIN 59
 #define SDCARD_MOSI_PIN 61
-#define SDCARD_SCK_PIN  60
-#define SDCARD_SS_PIN   62
+#define SDCARD_SCK_PIN 60
+#define SDCARD_SS_PIN 62
 #endif  // SDCARD_SPI
 #define HAS_SDIO_CLASS 1
 #endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
@@ -409,15 +457,13 @@ typedef uint8_t SdCsPin_t;
 /**
  * Determine the default SPI configuration.
  */
-#if defined(ARDUINO_ARCH_APOLLO3)\
-  || (defined(__AVR__) && defined(SPDR) && defined(SPSR) && defined(SPIF))\
-  || (defined(__AVR__) && defined(SPI0) && defined(SPI_RXCIF_bm))\
-  || defined(ESP8266) || defined(ESP32)\
-  || defined(PLATFORM_ID)\
-  || defined(ARDUINO_SAM_DUE)\
-  || defined(STM32_CORE_VERSION)\
-  || defined(__STM32F1__) || defined(__STM32F4__)\
-  || (defined(CORE_TEENSY) && defined(__arm__))
+#if defined(ARDUINO_ARCH_APOLLO3) ||                                         \
+    (defined(__AVR__) && defined(SPDR) && defined(SPSR) && defined(SPIF)) || \
+    (defined(__AVR__) && defined(SPI0) && defined(SPI_RXCIF_bm)) ||          \
+    defined(ESP8266) || defined(ESP32) || defined(PLATFORM_ID) ||            \
+    defined(ARDUINO_SAM_DUE) || defined(STM32_CORE_VERSION) ||               \
+    defined(__STM32F1__) || defined(__STM32F4__) ||                          \
+    (defined(CORE_TEENSY) && defined(__arm__))
 #define SD_HAS_CUSTOM_SPI 1
 #else  // SD_HAS_CUSTOM_SPI
 // Use standard SPI library.

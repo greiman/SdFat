@@ -34,7 +34,7 @@
 /** Indicate FillStack() and UnusedStack() are available. */
 #define HAS_UNUSED_STACK 1
 /** boundary between stack and heap. */
-extern char *__brkval;
+extern char* __brkval;
 /** End of bss section.*/
 extern char __bss_end;
 /** Amount of free stack space.
@@ -48,9 +48,7 @@ inline int FreeStack() {
 #define HAS_UNUSED_STACK 0
 #elif defined(PLATFORM_ID)  // Particle board
 #include "Arduino.h"
-inline int FreeStack() {
-  return System.freeMemory();
-}
+inline int FreeStack() { return System.freeMemory(); }
 #elif defined(__IMXRT1062__)
 #define HAS_UNUSED_STACK 1
 extern uint8_t _ebss;
@@ -69,9 +67,7 @@ inline int FreeStack() {
 #ifndef FREE_STACK_CPP
 #warning FreeStack is not defined for this system.
 #endif  // FREE_STACK_CPP
-inline int FreeStack() {
-  return 0;
-}
+inline int FreeStack() { return 0; }
 #endif  // defined(__AVR__) || defined(DOXYGEN)
 #if defined(HAS_UNUSED_STACK) || defined(DOXYGEN)
 /** Fill stack with 0x55 pattern */
@@ -89,6 +85,6 @@ int UnusedStack();
 #else  // HAS_UNUSED_STACK
 #define HAS_UNUSED_STACK 0
 inline void FillStack() {}
-inline int UnusedStack() {return 0;}
+inline int UnusedStack() { return 0; }
 #endif  // defined(HAS_UNUSED_STACK)
 #endif  // FreeStack_h

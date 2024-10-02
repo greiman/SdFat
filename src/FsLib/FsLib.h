@@ -28,7 +28,7 @@
  * \file
  * \brief FsLib include file.
  */
-#include "FsVolume.h"
 #include "FsFile.h"
 #include "FsFormatter.h"
+#include "FsVolume.h"
 #endif  // FsLib_h

@@ -24,13 +24,11 @@
  */
 #define DBG_FILE "ExFatName.cpp"
 #include "../common/DebugMacros.h"
-#include "../common/upcase.h"
 #include "../common/FsUtf.h"
+#include "../common/upcase.h"
 #include "ExFatLib.h"
 //------------------------------------------------------------------------------
-static char toUpper(char c) {
-  return 'a' <= c && c <= 'z' ? c - 'a' + 'A' : c;
-}
+static char toUpper(char c) { return 'a' <= c && c <= 'z' ? c - 'a' + 'A' : c; }
 //------------------------------------------------------------------------------
 inline uint16_t exFatHash(char c, uint16_t hash) {
   uint8_t u = toUpper(c);
@@ -48,16 +46,16 @@ inline uint16_t exFatHash(uint16_t u, uint16_t hash) {
 //------------------------------------------------------------------------------
 bool ExFatFile::cmpName(const DirName_t* dirName, ExName_t* fname) {
   for (uint8_t i = 0; i < 15; i++) {
-    uint16_t u = getLe16(dirName->unicode + 2*i);
+    uint16_t u = getLe16(dirName->unicode + 2 * i);
     if (fname->atEnd()) {
       return u == 0;
     }
 #if USE_UTF8_LONG_NAMES
     uint16_t cp = fname->get16();
     if (toUpcase(cp) != toUpcase(u)) {
-       return false;
+      return false;
     }
-#else  // USE_UTF8_LONG_NAMES
+#else   // USE_UTF8_LONG_NAMES
     char c = fname->getch();
     if (u >= 0x7F || toUpper(c) != toUpper(u)) {
       return false;
@@ -71,18 +69,17 @@ size_t ExFatFile::getName7(char* name, size_t count) {
   DirName_t* dn;
   size_t n = 0;
   if (!isOpen()) {
-      DBG_FAIL_MACRO;
-      goto fail;
+    DBG_FAIL_MACRO;
+    goto fail;
   }
   for (uint8_t is = 2; is <= m_setCount; is++) {
-    dn = reinterpret_cast<DirName_t*>
-         (dirCache(is, FsCache::CACHE_FOR_READ));
+    dn = reinterpret_cast<DirName_t*>(dirCache(is, FsCache::CACHE_FOR_READ));
     if (!dn || dn->type != EXFAT_TYPE_NAME) {
       DBG_FAIL_MACRO;
       goto fail;
     }
     for (uint8_t in = 0; in < 15; in++) {
-      uint16_t c = getLe16(dn->unicode + 2*in);
+      uint16_t c = getLe16(dn->unicode + 2 * in);
       if (c == 0) {
         goto done;
       }
@@ -93,11 +90,11 @@ size_t ExFatFile::getName7(char* name, size_t count) {
       name[n++] = c < 0X7F ? c : '?';
     }
   }
- done:
+done:
   name[n] = 0;
   return n;
 
- fail:
+fail:
   *name = 0;
   return 0;
 }
@@ -110,18 +107,17 @@ size_t ExFatFile::getName8(char* name, size_t count) {
   uint16_t hs = 0;
   uint32_t cp;
   if (!isOpen()) {
-      DBG_FAIL_MACRO;
-      goto fail;
+    DBG_FAIL_MACRO;
+    goto fail;
   }
   for (uint8_t is = 2; is <= m_setCount; is++) {
-    dn = reinterpret_cast<DirName_t*>
-         (dirCache(is, FsCache::CACHE_FOR_READ));
+    dn = reinterpret_cast<DirName_t*>(dirCache(is, FsCache::CACHE_FOR_READ));
     if (!dn || dn->type != EXFAT_TYPE_NAME) {
       DBG_FAIL_MACRO;
       goto fail;
     }
     for (uint8_t in = 0; in < 15; in++) {
-      uint16_t c = getLe16(dn->unicode + 2*in);
+      uint16_t c = getLe16(dn->unicode + 2 * in);
       if (hs) {
         if (!FsUtf::isLowSurrogate(c)) {
           DBG_FAIL_MACRO;
@@ -150,11 +146,11 @@ size_t ExFatFile::getName8(char* name, size_t count) {
       str = ptr;
     }
   }
- done:
+done:
   *str = '\0';
   return str - name;
 
- fail:
+fail:
   *name = 0;
   return 0;
 }
@@ -167,13 +163,13 @@ bool ExFatFile::hashName(ExName_t* fname) {
   while (!fname->atEnd()) {
     uint16_t u = fname->get16();
     if (u == 0XFFFF) {
-    DBG_FAIL_MACRO;
+      DBG_FAIL_MACRO;
       goto fail;
     }
     hash = exFatHash(u, hash);
     fname->nameLength++;
   }
-#else  // USE_UTF8_LONG_NAMES
+#else   // USE_UTF8_LONG_NAMES
   while (!fname->atEnd()) {
     // Convert to byte for smaller exFatHash.
     char c = fname->getch();
@@ -188,7 +184,6 @@ bool ExFatFile::hashName(ExName_t* fname) {
   }
   return true;
 
- fail:
+fail:
   return false;
 }
-

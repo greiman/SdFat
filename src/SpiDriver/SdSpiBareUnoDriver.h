@@ -30,8 +30,9 @@
  */
 
 #include <avr/interrupt.h>
+
 #include "../common/SysCall.h"
-#define nop asm volatile ("nop\n\t")
+#define nop asm volatile("nop\n\t")
 #ifndef HIGH
 #define HIGH 1
 #endif  // HIGH
@@ -79,10 +80,10 @@ inline void unoPinMode(uint8_t pin, uint8_t mode) {
   sei();
 }
 
-#define UNO_SS   10
+#define UNO_SS 10
 #define UNO_MOSI 11
 #define UNO_MISO 12
-#define UNO_SCK  13
+#define UNO_SCK 13
 //------------------------------------------------------------------------------
 /**
  * \class SdSpiDriverBareUno
@@ -116,16 +117,14 @@ class SdSpiDriverBareUno {
    *
    * \return The byte.
    */
-  uint8_t receive() {
-    return transfer(0XFF);
-  }
+  uint8_t receive() { return transfer(0XFF); }
   /** Receive multiple bytes.
-  *
-  * \param[out] buf Buffer to receive the data.
-  * \param[in] count Number of bytes to receive.
-  *
-  * \return Zero for no error or nonzero error code.
-  */
+   *
+   * \param[out] buf Buffer to receive the data.
+   * \param[in] count Number of bytes to receive.
+   *
+   * \return Zero for no error or nonzero error code.
+   */
   uint8_t receive(uint8_t* buf, size_t count) {
     if (count == 0) {
       return 0;
@@ -133,7 +132,8 @@ class SdSpiDriverBareUno {
     uint8_t* pr = buf;
     SPDR = 0XFF;
     while (--count > 0) {
-      while (!(SPSR & _BV(SPIF))) {}
+      while (!(SPSR & _BV(SPIF))) {
+      }
       uint8_t in = SPDR;
       SPDR = 0XFF;
       *pr++ = in;
@@ -141,7 +141,8 @@ class SdSpiDriverBareUno {
       nop;
       nop;
     }
-    while (!(SPSR & _BV(SPIF))) {}
+    while (!(SPSR & _BV(SPIF))) {
+    }
     *pr = SPDR;
     return 0;
   }
@@ -149,9 +150,7 @@ class SdSpiDriverBareUno {
    *
    * \param[in] data Byte to send
    */
-  void send(uint8_t data) {
-    transfer(data);
-  }
+  void send(uint8_t data) { transfer(data); }
   /** Send multiple bytes.
    *
    * \param[in] buf Buffer for data to be sent.
@@ -164,18 +163,18 @@ class SdSpiDriverBareUno {
     SPDR = *buf++;
     while (--count > 0) {
       uint8_t b = *buf++;
-      while (!(SPSR & (1 << SPIF))) {}
+      while (!(SPSR & (1 << SPIF))) {
+      }
       SPDR = b;
       // nops to optimize loop for 16MHz CPU 8 MHz SPI
       nop;
       nop;
     }
-    while (!(SPSR & (1 << SPIF))) {}
+    while (!(SPSR & (1 << SPIF))) {
+    }
   }
   /** Set CS low. */
-  void select() {
-     unoDigitalWrite(m_csPin, LOW);
-  }
+  void select() { unoDigitalWrite(m_csPin, LOW); }
   /** Save high speed SPISettings after SD initialization.
    *
    * \param[in] spiConfig SPI options.
@@ -186,13 +185,12 @@ class SdSpiDriverBareUno {
   }
   static uint8_t transfer(uint8_t data) {
     SPDR = data;
-    while (!(SPSR & _BV(SPIF))) {}  // wait
+    while (!(SPSR & _BV(SPIF))) {
+    }  // wait
     return SPDR;
   }
   /** Set CS high. */
-  void unselect() {
-    unoDigitalWrite(m_csPin, HIGH);
-  }
+  void unselect() { unoDigitalWrite(m_csPin, HIGH); }
 
  private:
   SdCsPin_t m_csPin;

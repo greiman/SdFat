@@ -22,9 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "ExFatVolume.h"
 #include "../common/upcase.h"
 #include "ExFatLib.h"
+#include "ExFatVolume.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
 static void printHex(print_t* pr, uint8_t h);
@@ -59,15 +59,15 @@ static uint16_t hashDir(DirName_t* dir, uint16_t hash) {
     if (!u) {
       break;
     }
-  uint16_t c = toUpcase(u);
-  hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
-  hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
+    uint16_t c = toUpcase(u);
+    hash = ((hash << 15) | (hash >> 1)) + (c & 0XFF);
+    hash = ((hash << 15) | (hash >> 1)) + (c >> 8);
   }
   return hash;
 }
 //------------------------------------------------------------------------------
-static void printDateTime(print_t* pr,
-                          uint32_t timeDate, uint8_t ms, int8_t tz) {
+static void printDateTime(print_t* pr, uint32_t timeDate, uint8_t ms,
+                          int8_t tz) {
   fsPrintDateTime(pr, timeDate, ms, tz);
   pr->println();
 }
@@ -93,11 +93,11 @@ static void printDirFile(print_t* pr, DirFile_t* dir) {
   pr->print(F("attributes: 0x"));
   pr->println(getLe16(dir->attributes), HEX);
   pr->print(F("createTime: "));
-  printDateTime(pr, getLe32(dir->createTime),
-                dir->createTimeMs, dir->createTimezone);
+  printDateTime(pr, getLe32(dir->createTime), dir->createTimeMs,
+                dir->createTimezone);
   pr->print(F("modifyTime: "));
-  printDateTime(pr, getLe32(dir->modifyTime),
-                dir->modifyTimeMs, dir->modifyTimezone);
+  printDateTime(pr, getLe32(dir->modifyTime), dir->modifyTimeMs,
+                dir->modifyTimezone);
   pr->print(F("accessTime: "));
   printDateTime(pr, getLe32(dir->accessTime), 0, dir->accessTimezone);
 }
@@ -109,7 +109,7 @@ static void printDirLabel(print_t* pr, DirLabel_t* dir) {
   pr->println(dir->labelLength);
   pr->print(F("unicode: "));
   for (size_t i = 0; i < dir->labelLength; i++) {
-    pr->write(dir->unicode[2*i]);
+    pr->write(dir->unicode[2 * i]);
   }
   pr->println();
 }
@@ -152,7 +152,7 @@ static void printDirStream(print_t* pr, DirStream_t* dir) {
 static void printDirUpcase(print_t* pr, DirUpcase_t* dir) {
   pr->print(F("dirUpcase: 0x"));
   pr->println(dir->type, HEX);
-    pr->print(F("checksum: 0x"));
+  pr->print(F("checksum: 0x"));
   pr->println(getLe32(dir->checksum), HEX);
   pr->print(F("firstCluster: "));
   pr->println(getLe32(dir->firstCluster));
@@ -192,7 +192,7 @@ static void printExFatBoot(print_t* pr, pbs_t* pbs) {
   pr->print(F("FileSystemRevision: 0x"));
   pr->println(getLe32(ebs->fileSystemRevision), HEX);
   pr->print(F("VolumeFlags: 0x"));
-  pr->println(getLe16(ebs->volumeFlags) , HEX);
+  pr->println(getLe16(ebs->volumeFlags), HEX);
   pr->print(F("BytesPerSectorShift: "));
   pr->println(ebs->bytesPerSectorShift);
   pr->print(F("SectorsPerClusterShift: "));
@@ -215,7 +215,7 @@ static void printHex(print_t* pr, uint8_t h) {
 static void printHex(print_t* pr, uint16_t val) {
   bool space = true;
   for (uint8_t i = 0; i < 4; i++) {
-    uint8_t h = (val >> (12 - 4*i)) & 15;
+    uint8_t h = (val >> (12 - 4 * i)) & 15;
     if (h || i == 3) {
       space = false;
     }
@@ -230,7 +230,7 @@ static void printHex(print_t* pr, uint16_t val) {
 static void printHex(print_t* pr, uint32_t val) {
   bool space = true;
   for (uint8_t i = 0; i < 8; i++) {
-    uint8_t h = (val >> (28 - 4*i)) & 15;
+    uint8_t h = (val >> (28 - 4 * i)) & 15;
     if (h || i == 7) {
       space = false;
     }
@@ -244,7 +244,7 @@ static void printHex(print_t* pr, uint32_t val) {
 //------------------------------------------------------------------------------
 static void printHex64(print_t* pr, uint64_t n) {
   char buf[17];
-  char *str = &buf[sizeof(buf) - 1];
+  char* str = &buf[sizeof(buf) - 1];
   *str = '\0';
   do {
     uint8_t h = n & 15;
@@ -256,12 +256,12 @@ static void printHex64(print_t* pr, uint64_t n) {
 //------------------------------------------------------------------------------
 static void println64(print_t* pr, uint64_t n) {
   char buf[21];
-  char *str = &buf[sizeof(buf) - 1];
+  char* str = &buf[sizeof(buf) - 1];
   *str = '\0';
   do {
     uint64_t m = n;
     n /= 10;
-    *--str = m - 10*n + '0';
+    *--str = m - 10 * n + '0';
   } while (n);
   pr->println(str);
 }
@@ -313,15 +313,15 @@ void ExFatPartition::checkUpcase(print_t* pr) {
     pr->println(F("upcase not found"));
     return;
   }
-  for (size_t i = 0; i < size/2; i++) {
-    if ((i%256) == 0) {
+  for (size_t i = 0; i < size / 2; i++) {
+    if ((i % 256) == 0) {
       upcase = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!upcase) {
         pr->println(F("read upcase failed"));
         return;
       }
     }
-    uint16_t v = getLe16(&upcase[2*(i & 0XFF)]);
+    uint16_t v = getLe16(&upcase[2 * (i & 0XFF)]);
     if (skip) {
       pr->print("skip ");
       pr->print(u);
@@ -334,7 +334,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
       for (uint16_t k = 0; k < v; k++) {
         uint16_t x = toUpcase(u + k);
         if (x != (u + k)) {
-          printHex(pr, (uint16_t)(u+k));
+          printHex(pr, (uint16_t)(u + k));
           pr->write(',');
           printHex(pr, x);
           pr->println("<<<<<<<<<<<<<<<<<<<<");
@@ -363,8 +363,8 @@ void ExFatPartition::dmpBitmap(print_t* pr) {
   dmpSector(pr, m_clusterHeapStartSector);
 }
 //------------------------------------------------------------------------------
-void ExFatPartition::dmpCluster(print_t* pr, uint32_t cluster,
-                                uint32_t offset, uint32_t count) {
+void ExFatPartition::dmpCluster(print_t* pr, uint32_t cluster, uint32_t offset,
+                                uint32_t count) {
   uint32_t sector = clusterStartSector(cluster) + offset;
   for (uint32_t i = 0; i < count; i++) {
     pr->print(F("\nSector: "));
@@ -375,7 +375,7 @@ void ExFatPartition::dmpCluster(print_t* pr, uint32_t cluster,
 //------------------------------------------------------------------------------
 void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   uint32_t sector = m_fatStartSector + start;
-  uint32_t cluster = 128*start;
+  uint32_t cluster = 128 * start;
   pr->println(F("FAT:"));
   for (uint32_t i = 0; i < count; i++) {
     uint8_t* cache = dataCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
@@ -385,7 +385,7 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
     }
     uint32_t* fat = reinterpret_cast<uint32_t*>(cache);
     for (size_t k = 0; k < 128; k++) {
-      if (0 == cluster%8) {
+      if (0 == cluster % 8) {
         if (k) {
           pr->println();
         }
@@ -406,7 +406,7 @@ void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
     return;
   }
   for (uint16_t i = 0; i < m_bytesPerSector; i++) {
-    if (i%32 == 0) {
+    if (i % 32 == 0) {
       if (i) {
         pr->println();
       }
@@ -427,9 +427,9 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
   uint16_t nameHash = 0;
   uint16_t setChecksum = 0;
   uint16_t calcChecksum = 0;
-  uint8_t  nameLength = 0;
-  uint8_t  setCount = 0;
-  uint8_t  nUnicode;
+  uint8_t nameLength = 0;
+  uint8_t setCount = 0;
+  uint8_t nUnicode;
 
 #define RAW_ROOT
 #ifndef RAW_ROOT
@@ -439,12 +439,12 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
       break;
     }
     dir = reinterpret_cast<DirGeneric_t*>(buf);
-#else  // RAW_ROOT
+#else   // RAW_ROOT
   (void)file;
   uint32_t nDir = 1UL << (m_sectorsPerClusterShift + 4);
   uint32_t sector = clusterStartSector(m_rootDirectoryCluster);
   for (uint32_t iDir = 0; iDir < nDir; iDir++) {
-    size_t i = iDir%16;
+    size_t i = iDir % 16;
     if (i == 0) {
       uint8_t* cache = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!cache) {
@@ -491,7 +491,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
         calcHash = 0;
         break;
 
-       case EXFAT_TYPE_NAME:
+      case EXFAT_TYPE_NAME:
         dirName = reinterpret_cast<DirName_t*>(dir);
         printDirName(pr, dirName);
         calcChecksum = exFatDirChecksum(dir, calcChecksum);
@@ -499,7 +499,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
         calcHash = hashDir(dirName, calcHash);
         nameLength -= nUnicode;
         setCount--;
-        if (nameLength == 0  || setCount == 0) {
+        if (nameLength == 0 || setCount == 0) {
           pr->print(F("setChecksum: 0x"));
           pr->print(setChecksum, HEX);
           if (setChecksum != calcChecksum) {
@@ -536,10 +536,9 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
 //------------------------------------------------------------------------------
 void ExFatPartition::printFat(print_t* pr) {
   uint32_t next;
-  int8_t status;
   pr->println(F("FAT:"));
   for (uint32_t cluster = 0; cluster < 16; cluster++) {
-    status = fatGet(cluster, &next);
+    int8_t status = fatGet(cluster, &next);
     pr->print(cluster, HEX);
     pr->write(' ');
     if (status == 0) {
@@ -573,20 +572,20 @@ void ExFatPartition::printUpcase(print_t* pr) {
     pr->println(F("upcase not found"));
     return;
   }
-  for (uint16_t i = 0; i < size/2; i++) {
-    if ((i%256) == 0) {
+  for (uint16_t i = 0; i < size / 2; i++) {
+    if ((i % 256) == 0) {
       upcase = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
       if (!upcase) {
         pr->println(F("read upcase failed"));
         return;
       }
     }
-    if (i%16 == 0) {
+    if (i % 16 == 0) {
       pr->println();
       printHex(pr, i);
     }
     pr->write(' ');
-    uint16_t uc = getLe16(&upcase[2*(i & 0XFF)]);
+    uint16_t uc = getLe16(&upcase[2 * (i & 0XFF)]);
     printHex(pr, uc);
     checksum = upcaseChecksum(uc, checksum);
   }

@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "PrintBasic.h"
+#if ENABLE_ARDUINO_FEATURES == 0
 #include <math.h>
 
 size_t PrintBasic::print(long n, uint8_t base) {
@@ -32,14 +33,14 @@ size_t PrintBasic::print(long n, uint8_t base) {
   return printNum(n, base);
 }
 size_t PrintBasic::printNum(unsigned long n, uint8_t base) {
-  const uint8_t DIM = 8*sizeof(long);
+  const uint8_t DIM = 8 * sizeof(long);
   char buf[DIM];
   char *str = &buf[DIM];
 
   if (base < 2) return 0;
 
   do {
-    char c = n%base;
+    char c = n % base;
     n /= base;
     *--str = c + (c < 10 ? '0' : 'A' - 10);
   } while (n);
@@ -66,7 +67,7 @@ size_t PrintBasic::printDouble(double n, uint8_t prec) {
   }
 
   double round = 0.5;
-  for (uint8_t i  = 0; i < prec; ++i) {
+  for (uint8_t i = 0; i < prec; ++i) {
     round *= 0.1;
   }
 
@@ -87,3 +88,4 @@ size_t PrintBasic::printDouble(double n, uint8_t prec) {
   }
   return rtn;
 }
+#endif  //  ENABLE_ARDUINO_FEATURES == 0

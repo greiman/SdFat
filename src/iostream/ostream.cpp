@@ -22,8 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <string.h>
 #include "ostream.h"
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#endif  // __AVR__
+#include <string.h>
 #ifndef PSTR
 #define PSTR(x) x
 #endif  // PSTR
@@ -135,14 +138,20 @@ void ostream::putNum(int64_t n) {
   putNum((uint64_t)(neg ? -n : n), neg);
 }
 //------------------------------------------------------------------------------
-void ostream::putPgm(const char* str) {
+void ostream::putPgm(const char *str) {
+#ifndef __AVR__
+  putStr(str);
+#else   // __AVR__
+  uint8_t c;
   int n;
-  for (n = 0; pgm_read_byte(&str[n]); n++) {}
+  for (n = 0; pgm_read_byte(&str[n]); n++) {
+  }
   fill_not_left(n);
-  for (uint8_t c; (c = pgm_read_byte(str)); str++) {
+  for (n = 0; (c = pgm_read_byte(&str[n])); n++) {
     putch(c);
   }
   do_fill(n);
+#endif  // __AVR__
 }
 //------------------------------------------------------------------------------
 void ostream::putStr(const char *str) {

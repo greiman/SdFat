@@ -29,6 +29,6 @@
  * \brief C++ IO Streams features.
  */
 #include "iostream/ArduinoStream.h"
-#include "iostream/fstream.h"
 #include "iostream/StdioStream.h"
+#include "iostream/fstream.h"
 #endif  // sdios_h
