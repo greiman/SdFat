@@ -24,6 +24,6 @@
  */
 #ifndef ExFatLib_h
 #define ExFatLib_h
-#include "ExFatVolume.h"
 #include "ExFatFormatter.h"
+#include "ExFatVolume.h"
 #endif  // ExFatLib_h

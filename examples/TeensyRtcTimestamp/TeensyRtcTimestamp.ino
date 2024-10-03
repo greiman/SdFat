@@ -1,8 +1,9 @@
 // Test of time-stamp callback with Teensy 3/4.
 // The upload time will be used to set the RTC.
 // You must arrange for syncing the RTC.
-#include "SdFat.h"
 #include <TimeLib.h>
+
+#include "SdFat.h"
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -19,7 +20,7 @@
 // SDCARD_SS_PIN is defined for the built-in SD on some boards.
 #ifndef SDCARD_SS_PIN
 const uint8_t SD_CS_PIN = SS;
-#else  // SDCARD_SS_PIN
+#else   // SDCARD_SS_PIN
 // Assume built-in SD is used.
 const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #endif  // SDCARD_SS_PIN
@@ -30,7 +31,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if HAS_SDIO_CLASS
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif  ENABLE_DEDICATED_SPI
+#elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_SDIO_CLASS
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
@@ -55,7 +56,6 @@ FsFile file;
 //------------------------------------------------------------------------------
 // Call back for file timestamps.  Only called for file create and sync().
 void dateTime(uint16_t* date, uint16_t* time, uint8_t* ms10) {
-
   // Return date using FS_DATE macro to format fields.
   *date = FS_DATE(year(), month(), day());
 
@@ -66,10 +66,7 @@ void dateTime(uint16_t* date, uint16_t* time, uint8_t* ms10) {
   *ms10 = second() & 1 ? 100 : 0;
 }
 //------------------------------------------------------------------------------
-time_t getTeensy3Time()
-{
-  return Teensy3Clock.get();
-}
+time_t getTeensy3Time() { return Teensy3Clock.get(); }
 //------------------------------------------------------------------------------
 void printField(Print* pr, char sep, uint8_t v) {
   if (sep) {
@@ -102,7 +99,7 @@ void setup() {
   while (!Serial.available()) {
     yield();
   }
-  if (timeStatus()!= timeSet) {
+  if (timeStatus() != timeSet) {
     Serial.println("Unable to sync with the RTC");
     return;
   }
@@ -135,5 +132,4 @@ void setup() {
   Serial.println(F("Done"));
 }
 //------------------------------------------------------------------------------
-void loop() {
-}
+void loop() {}

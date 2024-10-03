@@ -25,23 +25,22 @@
 #include "FsLib.h"
 FsVolume* FsVolume::m_cwv = nullptr;
 //------------------------------------------------------------------------------
-bool FsVolume::begin(FsBlockDevice* blockDev, bool setCwv,
-                     uint8_t part, uint32_t volStart) {
-  m_blockDev = blockDev;
+bool FsVolume::begin(FsBlockDevice* blockDev, bool setCwv, uint8_t part,
+                     uint32_t volStart) {
   m_fVol = nullptr;
   m_xVol = new (m_volMem) ExFatVolume;
-  if (m_xVol && m_xVol->begin(m_blockDev, false, part, volStart)) {
+  if (m_xVol && m_xVol->begin(blockDev, false, part, volStart)) {
     goto done;
   }
   m_xVol = nullptr;
   m_fVol = new (m_volMem) FatVolume;
-  if (m_fVol && m_fVol->begin(m_blockDev, false, part, volStart)) {
+  if (m_fVol && m_fVol->begin(blockDev, false, part, volStart)) {
     goto done;
   }
   m_fVol = nullptr;
   return false;
 
- done:
+done:
   if (setCwv || !m_cwv) {
     m_cwv = this;
   }
@@ -53,14 +52,14 @@ bool FsVolume::ls(print_t* pr, const char* path, uint8_t flags) {
   return dir.open(this, path, O_RDONLY) && dir.ls(pr, flags);
 }
 //------------------------------------------------------------------------------
-FsFile FsVolume::open(const char *path, oflag_t oflag) {
+FsFile FsVolume::open(const char* path, oflag_t oflag) {
   FsFile tmpFile;
   tmpFile.open(this, path, oflag);
   return tmpFile;
 }
 #if ENABLE_ARDUINO_STRING
 //------------------------------------------------------------------------------
-FsFile FsVolume::open(const String &path, oflag_t oflag) {
-  return open(path.c_str(), oflag );
+FsFile FsVolume::open(const String& path, oflag_t oflag) {
+  return open(path.c_str(), oflag);
 }
 #endif  // ENABLE_ARDUINO_STRING

@@ -24,14 +24,16 @@
  */
 #ifndef FsFormatter_h
 #define FsFormatter_h
-#include "FatLib/FatLib.h"
 #include "ExFatLib/ExFatLib.h"
+#include "FatLib/FatLib.h"
 /**
  * \class FsFormatter
  * \brief Format a exFAT/FAT volume.
  */
 class FsFormatter {
  public:
+  /** Constructor. */
+  FsFormatter() = default;
   /**
    * Format a FAT volume.
    *
@@ -46,10 +48,10 @@ class FsFormatter {
     if (sectorCount == 0) {
       return false;
     }
-    return sectorCount <= 67108864 ?
-      m_fFmt.format(dev, secBuffer, pr) :
-      m_xFmt.format(dev, secBuffer, pr);
+    return sectorCount <= 67108864 ? m_fFmt.format(dev, secBuffer, pr)
+                                   : m_xFmt.format(dev, secBuffer, pr);
   }
+
  private:
   FatFormatter m_fFmt;
   ExFatFormatter m_xFmt;

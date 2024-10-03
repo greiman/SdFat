@@ -1,8 +1,8 @@
-### Warning: This is SdFat Version 2.
+File copy constructors and file assignment operators have been made private by
+default in 2.2.3 to prevent call by value and multiple copies of file instances.
 
-Earlier releases of Version 1 are here:
-
-https://github.com/greiman/SdFat/releases
+SdFatConfig.h has options to make file constructors and assignment operators
+public.
 
 UTF-8 encoded filenames are supported in v2.1.0 or later.
 

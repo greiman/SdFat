@@ -6,20 +6,20 @@
 // Teensy 4.1. About 5 usec is required to write a sector when the
 // controller is in write mode.
 
-#include "SdFat.h"
 #include "RingBuf.h"
+#include "SdFat.h"
 
 // Use Teensy SDIO
-#define SD_CONFIG  SdioConfig(FIFO_SDIO)
+#define SD_CONFIG SdioConfig(FIFO_SDIO)
 
 // Interval between points for 25 ksps.
 #define LOG_INTERVAL_USEC 40
 
 // Size to log 10 byte lines at 25 kHz for more than ten minutes.
-#define LOG_FILE_SIZE 10*25000*600  // 150,000,000 bytes.
+#define LOG_FILE_SIZE 10 * 25000 * 600  // 150,000,000 bytes.
 
 // Space to hold more than 800 ms of data for 10 byte lines at 25 ksps.
-#define RING_BUF_CAPACITY 400*512
+#define RING_BUF_CAPACITY 400 * 512
 #define LOG_FILENAME "SdioLogger.csv"
 
 SdFs sd;
@@ -41,9 +41,9 @@ void logData() {
   // File must be pre-allocated to avoid huge
   // delays searching for free clusters.
   if (!file.preAllocate(LOG_FILE_SIZE)) {
-     Serial.println("preAllocate failed\n");
-     file.close();
-     return;
+    Serial.println("preAllocate failed\n");
+    file.close();
+    return;
   }
   // initialize the RingBuf.
   rb.begin(&file);
@@ -88,7 +88,8 @@ void logData() {
       break;
     }
     // Wait until time to log data.
-    while (micros() < logTime) {}
+    while (micros() < logTime) {
+    }
 
     // Read ADC0 - about 17 usec on Teensy 4, Teensy 3.6 is faster.
     uint16_t adc = analogRead(0);
@@ -134,7 +135,8 @@ void clearSerialInput() {
 }
 void setup() {
   Serial.begin(9600);
-  while (!Serial) {}
+  while (!Serial) {
+  }
   // Go faster or log more channels.  ADC quality will suffer.
   // analogReadAveraging(1);
 }
@@ -142,7 +144,8 @@ void setup() {
 void loop() {
   clearSerialInput();
   Serial.println("Type any character to start");
-  while (!Serial.available()) {};
+  while (!Serial.available()) {
+  }
   clearSerialInput();
   logData();
 }

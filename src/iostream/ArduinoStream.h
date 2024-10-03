@@ -42,7 +42,7 @@ class ArduinoInStream : public ibufstream {
    * \param[in] buf buffer for input line
    * \param[in] size size of input buffer
    */
-  ArduinoInStream(Stream &hws, char* buf, size_t size) {
+  ArduinoInStream(Stream& hws, char* buf, size_t size) {
     m_hw = &hws;
     m_line = buf;
     m_size = size;
@@ -70,7 +70,7 @@ class ArduinoInStream : public ibufstream {
       m_line[i++] = m_hw->read();
       m_line[i] = '\0';
     }
-done:
+  done:
     init(m_line);
   }
 
@@ -95,7 +95,7 @@ done:
   }
 
  private:
-  char *m_line;
+  char* m_line;
   size_t m_size;
   Stream* m_hw;
 };
@@ -124,9 +124,7 @@ class ArduinoOutStream : public ostream {
     }
     m_pr->write(c);
   }
-  void putstr(const char* str) {
-    m_pr->write(str);
-  }
+  void putstr(const char* str) { m_pr->write(str); }
   bool seekoff(off_type off, seekdir way) {
     (void)off;
     (void)way;
@@ -136,12 +134,8 @@ class ArduinoOutStream : public ostream {
     (void)pos;
     return false;
   }
-  bool sync() {
-    return true;
-  }
-  pos_type tellpos() {
-    return 0;
-  }
+  bool sync() { return true; }
+  pos_type tellpos() { return 0; }
   /// @endcond
  private:
   ArduinoOutStream() {}

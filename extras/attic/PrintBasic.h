@@ -28,18 +28,21 @@
  * \file
  * \brief Stream/Print like replacement for non-Arduino systems.
  */
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
-#ifdef F
-#warning F() macro defined for non Arduino System
-#elif defined(__AVR__)
+#include "../SdFatConfig.h"
+
+#ifndef F
+#if defined(__AVR__)
 #include <avr/pgmspace.h>
 class __FlashStringHelper;
-#define F(str) (reinterpret_cast<const __FlashStringHelper *>(PSTR(str)))
-#else  // F
+#define F(string_literal) \
+  (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
+#else  // defined(__AVR__)
 #define F(str) (str)
+#endif  // defined(__AVR__)
 #endif  // F
 
 #ifdef BIN
@@ -54,63 +57,44 @@ class PrintBasic {
  public:
   PrintBasic() : m_error(0) {}
 
-  void clearWriteError() {
-    setWriteError(0);
-  }
-  int getWriteError() {
-    return m_error;
-  }
-  size_t print(char c) {
-    return write(c);
-  }
-  size_t print(const char* str) {
-    return write(str);
-  }
+  void clearWriteError() { setWriteError(0); }
+  int getWriteError() { return m_error; }
+  size_t print(char c) { return write(c); }
+  size_t print(const char *str) { return write(str); }
   size_t print(const __FlashStringHelper *str) {
 #ifdef __AVR__
-  PGM_P p = reinterpret_cast<PGM_P>(str);
-  size_t n = 0;
-  for (uint8_t c; (c = pgm_read_byte(p + n)) && write(c); n++) {}
-  return n;
-#else  // __AVR__
-  return print(reinterpret_cast<const char *>(str));
+    PGM_P p = reinterpret_cast<PGM_P>(str);
+    size_t n = 0;
+    for (uint8_t c; (c = pgm_read_byte(p + n)) && write(c); n++) {
+    }
+    return n;
+#else   // __AVR__
+    return print(reinterpret_cast<const char *>(str));
 #endif  // __AVR__
   }
   size_t println(const __FlashStringHelper *str) {
 #ifdef __AVR__
     return print(str) + println();
-#else  // __AVR__
+#else   // __AVR__
     return println(reinterpret_cast<const char *>(str));
 #endif  // __AVR__
   }
-  size_t print(double n, uint8_t prec = 2) {
-    return printDouble(n, prec);
-  }
+  size_t print(double n, uint8_t prec = 2) { return printDouble(n, prec); }
   size_t print(signed char n, uint8_t base = 10) {
     return print((long)n, base);
   }
   size_t print(unsigned char n, uint8_t base = 10) {
     return print((unsigned long)n, base);
   }
-  size_t print(int n, uint8_t base = 10) {
-    return print((long)n, base);
-  }
+  size_t print(int n, uint8_t base = 10) { return print((long)n, base); }
   size_t print(unsigned int n, uint8_t base = 10) {
     return print((unsigned long)n, base);
   }
   size_t print(long n, uint8_t base = 10);
-  size_t print(unsigned long n, uint8_t base = 10) {
-    return printNum(n, base);
-  }
-  size_t println() {
-    return write("\r\n");
-  }
-  size_t println(char c) {
-    return write(c) + println();
-  }
-  size_t println(const char* str) {
-    return print(str) + println();
-  }
+  size_t print(unsigned long n, uint8_t base = 10) { return printNum(n, base); }
+  size_t println() { return write("\r\n"); }
+  size_t println(char c) { return write(c) + println(); }
+  size_t println(const char *str) { return print(str) + println(); }
   size_t println(double n, uint8_t prec = 2) {
     return print(n, prec) + println();
   }
@@ -132,12 +116,10 @@ class PrintBasic {
   size_t println(unsigned long n, uint8_t base = 10) {
     return print(n, base) + println();
   }
-  size_t write(const char *str) {
-    return write(str, strlen(str));
-  }
+  size_t write(const char *str) { return write(str, strlen(str)); }
   virtual size_t write(uint8_t b) = 0;
 
-  virtual size_t write(const uint8_t* buffer, size_t size) {
+  virtual size_t write(const uint8_t *buffer, size_t size) {
     size_t i;
     for (i = 0; i < size; i++) {
       if (!write(buffer[i])) break;
@@ -145,13 +127,11 @@ class PrintBasic {
     return i;
   }
   size_t write(const char *buffer, size_t size) {
-    return write((const uint8_t*)buffer, size);
+    return write(reinterpret_cast<const uint8_t *>(buffer), size);
   }
 
  protected:
-  void setWriteError(int err = 1) {
-    m_error = err;
-  }
+  void setWriteError(int err = 1) { m_error = err; }
 
  private:
   size_t printDouble(double n, uint8_t prec);

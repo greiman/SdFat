@@ -31,7 +31,7 @@
 const uint32_t BOOT_BACKUP_OFFSET = 12;
 const uint16_t BYTES_PER_SECTOR = 512;
 const uint16_t SECTOR_MASK = BYTES_PER_SECTOR - 1;
-const uint8_t  BYTES_PER_SECTOR_SHIFT = 9;
+const uint8_t BYTES_PER_SECTOR_SHIFT = 9;
 const uint16_t MINIMUM_UPCASE_SKIP = 512;
 const uint32_t BITMAP_CLUSTER = 2;
 const uint32_t UPCASE_CLUSTER = 3;
@@ -41,14 +41,16 @@ const uint32_t ROOT_CLUSTER = 4;
 #if !PRINT_FORMAT_PROGRESS
 #define writeMsg(pr, str)
 #elif defined(__AVR__)
-#define writeMsg(pr, str) if (pr) pr->print(F(str))
+#define writeMsg(pr, str) \
+  if (pr) pr->print(F(str))
 #else  // PRINT_FORMAT_PROGRESS
-#define writeMsg(pr, str) if (pr) pr->write(str)
+#define writeMsg(pr, str) \
+  if (pr) pr->write(str)
 #endif  // PRINT_FORMAT_PROGRESS
 //------------------------------------------------------------------------------
 bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
 #if !PRINT_FORMAT_PROGRESS
-(void)pr;
+  (void)pr;
 #endif  //  !PRINT_FORMAT_PROGRESS
   MbrSector_t* mbr;
   ExFatPbs_t* pbs;
@@ -81,14 +83,15 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     goto fail;
   }
   // Determine partition layout.
-  for (m = 1, vs = 0; m && sectorCount > m; m <<= 1, vs++) {}
-  sectorsPerClusterShift = vs < 29 ? 8 : (vs - 11)/2;
+  for (m = 1, vs = 0; m && sectorCount > m; m <<= 1, vs++) {
+  }
+  sectorsPerClusterShift = vs < 29 ? 8 : (vs - 11) / 2;
   sectorsPerCluster = 1UL << sectorsPerClusterShift;
-  fatLength = 1UL << (vs < 27 ? 13 : (vs + 1)/2);
+  fatLength = 1UL << (vs < 27 ? 13 : (vs + 1) / 2);
   fatOffset = fatLength;
-  partitionOffset = 2*fatLength;
-  clusterHeapOffset = 2*fatLength;
-  clusterCount = (sectorCount - 4*fatLength) >> sectorsPerClusterShift;
+  partitionOffset = 2 * fatLength;
+  clusterHeapOffset = 2 * fatLength;
+  clusterCount = (sectorCount - 4 * fatLength) >> sectorsPerClusterShift;
   volumeLength = clusterHeapOffset + (clusterCount << sectorsPerClusterShift);
 
   // make Master Boot Record.  Use fake CHS.
@@ -152,8 +155,8 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     checksum = exFatChecksum(checksum, secBuf[i]);
   }
   sector = partitionOffset;
-  if (!dev->writeSector(sector, secBuf)  ||
-      !dev->writeSector(sector + BOOT_BACKUP_OFFSET , secBuf)) {
+  if (!dev->writeSector(sector, secBuf) ||
+      !dev->writeSector(sector + BOOT_BACKUP_OFFSET, secBuf)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
@@ -165,8 +168,8 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     for (size_t i = 0; i < BYTES_PER_SECTOR; i++) {
       checksum = exFatChecksum(checksum, secBuf[i]);
     }
-    if (!dev->writeSector(sector, secBuf)  ||
-        !dev->writeSector(sector + BOOT_BACKUP_OFFSET , secBuf)) {
+    if (!dev->writeSector(sector, secBuf) ||
+        !dev->writeSector(sector + BOOT_BACKUP_OFFSET, secBuf)) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -178,8 +181,8 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     for (size_t i = 0; i < BYTES_PER_SECTOR; i++) {
       checksum = exFatChecksum(checksum, secBuf[i]);
     }
-    if (!dev->writeSector(sector, secBuf)  ||
-        !dev->writeSector(sector + BOOT_BACKUP_OFFSET , secBuf)) {
+    if (!dev->writeSector(sector, secBuf) ||
+        !dev->writeSector(sector + BOOT_BACKUP_OFFSET, secBuf)) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -189,15 +192,15 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   for (size_t i = 0; i < BYTES_PER_SECTOR; i += 4) {
     setLe32(secBuf + i, checksum);
   }
-  if (!dev->writeSector(sector, secBuf)  ||
-      !dev->writeSector(sector + BOOT_BACKUP_OFFSET , secBuf)) {
+  if (!dev->writeSector(sector, secBuf) ||
+      !dev->writeSector(sector + BOOT_BACKUP_OFFSET, secBuf)) {
     DBG_FAIL_MACRO;
     goto fail;
   }
   // Initialize FAT.
   writeMsg(pr, "Writing FAT ");
   sector = partitionOffset + fatOffset;
-  ns = ((clusterCount + 2)*4 + BYTES_PER_SECTOR - 1)/BYTES_PER_SECTOR;
+  ns = ((clusterCount + 2) * 4 + BYTES_PER_SECTOR - 1) / BYTES_PER_SECTOR;
 
   memset(secBuf, 0, BYTES_PER_SECTOR);
   // Allocate two reserved clusters, bitmap, upcase, and root clusters.
@@ -206,7 +209,7 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     secBuf[i] = 0XFF;
   }
   for (uint32_t i = 0; i < ns; i++) {
-    if (i%(ns/32) == 0) {
+    if (i % (ns / 32) == 0) {
       writeMsg(pr, ".");
     }
     if (!dev->writeSector(sector + i, secBuf)) {
@@ -220,8 +223,8 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   writeMsg(pr, "\r\n");
   // Write cluster two, bitmap.
   sector = partitionOffset + clusterHeapOffset;
-  bitmapSize = (clusterCount + 7)/8;
-  ns = (bitmapSize + BYTES_PER_SECTOR - 1)/BYTES_PER_SECTOR;
+  bitmapSize = (clusterCount + 7) / 8;
+  ns = (bitmapSize + BYTES_PER_SECTOR - 1) / BYTES_PER_SECTOR;
   if (ns > sectorsPerCluster) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -244,14 +247,14 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  if (m_upcaseSize > BYTES_PER_SECTOR*sectorsPerCluster) {
+  if (m_upcaseSize > BYTES_PER_SECTOR * sectorsPerCluster) {
     DBG_FAIL_MACRO;
     goto fail;
   }
   // Initialize first sector of root.
   writeMsg(pr, "Writing root\r\n");
   ns = sectorsPerCluster;
-  sector = partitionOffset + clusterHeapOffset + 2*sectorsPerCluster;
+  sector = partitionOffset + clusterHeapOffset + 2 * sectorsPerCluster;
   memset(secBuf, 0, BYTES_PER_SECTOR);
 
   // Unused Label entry.
@@ -284,7 +287,7 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   writeMsg(pr, "Format done\r\n");
   return true;
 
- fail:
+fail:
   writeMsg(pr, "Format failed\r\n");
   return false;
 }
@@ -334,7 +337,8 @@ bool ExFatFormatter::writeUpcase(uint32_t sector) {
       }
       ch++;
     } else {
-      for (n = ch + 1; n < 0X10000 && n == toUpcase(n); n++) {}
+      for (n = ch + 1; n < 0X10000 && n == toUpcase(n); n++) {
+      }
       ns = n - ch;
       if (ns >= MINIMUM_UPCASE_SKIP) {
         if (!writeUpcaseUnicode(0XFFFF) || !writeUpcaseUnicode(ns)) {
@@ -358,6 +362,6 @@ bool ExFatFormatter::writeUpcase(uint32_t sector) {
   }
   return true;
 
- fail:
+fail:
   return false;
 }

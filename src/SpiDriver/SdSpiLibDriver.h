@@ -43,48 +43,72 @@ inline void SdSpiArduinoDriver::begin(SdSpiConfig spiConfig) {
   } else {
     m_spi = &SPI;
   }
-  m_spi->begin();
+  if (!(spiConfig.options & USER_SPI_BEGIN)) {
+    m_spi->begin();
+  }
 }
 //------------------------------------------------------------------------------
-inline void SdSpiArduinoDriver::end() {
-  m_spi->end();
-}
+inline void SdSpiArduinoDriver::end() { m_spi->end(); }
 //------------------------------------------------------------------------------
-inline void SdSpiArduinoDriver::deactivate() {
-  m_spi->endTransaction();
-}
+inline void SdSpiArduinoDriver::deactivate() { m_spi->endTransaction(); }
 //------------------------------------------------------------------------------
-inline uint8_t SdSpiArduinoDriver::receive() {
-  return m_spi->transfer( 0XFF);
-}
+inline uint8_t SdSpiArduinoDriver::receive() { return m_spi->transfer(0XFF); }
 //------------------------------------------------------------------------------
 inline uint8_t SdSpiArduinoDriver::receive(uint8_t* buf, size_t count) {
-#if USE_SPI_ARRAY_TRANSFER
-  memset(buf, 0XFF, count);
-  m_spi->transfer(buf, count);
-#else  // USE_SPI_ARRAY_TRANSFER
+#if USE_SPI_ARRAY_TRANSFER == 0
   for (size_t i = 0; i < count; i++) {
     buf[i] = m_spi->transfer(0XFF);
   }
-#endif  // USE_SPI_ARRAY_TRANSFER
+#elif USE_SPI_ARRAY_TRANSFER == 1
+  memset(buf, 0XFF, count);
+  m_spi->transfer(buf, count);
+#elif USE_SPI_ARRAY_TRANSFER < 4
+  m_spi->transfer(nullptr, buf, count);
+#elif USE_SPI_ARRAY_TRANSFER == 4
+  uint8_t txTmp[512];
+  memset(txTmp, 0XFF, sizeof(txTmp));
+  while (count) {
+    size_t n = count <= sizeof(txTmp) ? count : sizeof(txTmp);
+    m_spi->transfer(txTmp, buf, n);
+    buf += n;
+    count -= n;
+  }
+#else  // USE_SPI_ARRAY_TRANSFER == 0
+#error invalid USE_SPI_ARRAY_TRANSFER
+#endif  // USE_SPI_ARRAY_TRANSFER == 0
   return 0;
 }
 //------------------------------------------------------------------------------
-inline void SdSpiArduinoDriver::send(uint8_t data) {
-  m_spi->transfer(data);
-}
+inline void SdSpiArduinoDriver::send(uint8_t data) { m_spi->transfer(data); }
 //------------------------------------------------------------------------------
 inline void SdSpiArduinoDriver::send(const uint8_t* buf, size_t count) {
-#if USE_SPI_ARRAY_TRANSFER
-  if (count <= 512) {
-    uint8_t tmp[512];
-    memcpy(tmp, buf, count);
-    m_spi->transfer(tmp, count);
-  }
-#else  // USE_SPI_ARRAY_TRANSFER
+#if USE_SPI_ARRAY_TRANSFER == 0
   for (size_t i = 0; i < count; i++) {
     m_spi->transfer(buf[i]);
   }
-#endif  // USE_SPI_ARRAY_TRANSFER
+#elif USE_SPI_ARRAY_TRANSFER == 1
+  uint8_t tmp[512];
+  while (count > 0) {
+    size_t n = count <= sizeof(tmp) ? count : sizeof(tmp);
+    memcpy(tmp, buf, n);
+    m_spi->transfer(tmp, n);
+    count -= n;
+    buf += n;
+  }
+#elif USE_SPI_ARRAY_TRANSFER == 2
+  // Some systems do not allow const uint8_t*.
+  m_spi->transfer(const_cast<uint8_t*>(buf), nullptr, count);
+#elif USE_SPI_ARRAY_TRANSFER < 5
+  uint8_t rxTmp[512];
+  while (count > 0) {
+    size_t n = count <= sizeof(rxTmp) ? count : sizeof(rxTmp);
+    // Some systems do not allow const uint8_t*.
+    m_spi->transfer(const_cast<uint8_t*>(buf), rxTmp, n);
+    buf += n;
+    count -= n;
+  }
+#else  // if USE_SPI_ARRAY_TRANSFER == 0
+#error invalid USE_SPI_ARRAY_TRANSFER
+#endif  // USE_SPI_ARRAY_TRANSFER == 0
 }
 #endif  // SdSpiLibDriver_h

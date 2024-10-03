@@ -36,7 +36,7 @@ typedef uint32_t newalign_t;
 
 /** Dimension of aligned area. */
 #define NEW_ALIGN_DIM(n) \
-  (((size_t)(n) + sizeof(newalign_t) - 1U)/sizeof(newalign_t))
+  (((size_t)(n) + sizeof(newalign_t) - 1U) / sizeof(newalign_t))
 
 /** Dimension of aligned area for etype or ftype class. */
 #define FS_ALIGN_DIM(etype, ftype) NEW_ALIGN_DIM(FS_SIZE(etype, ftype))
