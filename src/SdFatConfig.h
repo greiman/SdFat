@@ -87,13 +87,20 @@
 #define DESTRUCTOR_CLOSES_FILE 0
 #endif  // DESTRUCTOR_CLOSES_FILE
 //------------------------------------------------------------------------------
-
+#ifdef SDFAT_NOARDUINO
+#define ENABLE_ARDUINO_FEATURES 0
+#define ENABLE_ARDUINO_SERIAL 0
+#define ENABLE_ARDUINO_STRING 0
+#define SS 0
+extern "C" unsigned long millis();
+#else
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_SERIAL 1
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_STRING 1
+#endif  // SDFAT_NOARDUINO
 //------------------------------------------------------------------------------
 #if ENABLE_ARDUINO_FEATURES
 #include "Arduino.h"
