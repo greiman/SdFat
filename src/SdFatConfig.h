@@ -87,13 +87,18 @@
 #define DESTRUCTOR_CLOSES_FILE 0
 #endif  // DESTRUCTOR_CLOSES_FILE
 //------------------------------------------------------------------------------
-
+#ifndef ENABLE_ARDUINO_FEATURES
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
+#endif
+#ifndef ENABLE_ARDUINO_SERIAL
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_SERIAL 1
+#endif
+#ifndef ENABLE_ARDUINO_STRING
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_STRING 1
+#endif
 //------------------------------------------------------------------------------
 #if ENABLE_ARDUINO_FEATURES
 #include "Arduino.h"
