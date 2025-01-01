@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,7 +33,7 @@ static void printHex(print_t* pr, uint32_t val);
 static void printHex64(print_t* pr, uint64_t n);
 static void println64(print_t* pr, uint64_t n);
 //------------------------------------------------------------------------------
-static void dmpDirData(print_t* pr, DirGeneric_t* dir) {
+static void dmpDirData(print_t* pr, const DirGeneric_t* dir) {
   for (uint8_t k = 0; k < 31; k++) {
     if (k) {
       pr->write(' ');
@@ -53,7 +53,7 @@ static uint16_t exFatDirChecksum(const void* dir, uint16_t checksum) {
 }
 
 //------------------------------------------------------------------------------
-static uint16_t hashDir(DirName_t* dir, uint16_t hash) {
+static uint16_t hashDir(const DirName_t* dir, uint16_t hash) {
   for (uint8_t i = 0; i < 30; i += 2) {
     uint16_t u = getLe16(dir->unicode + i);
     if (!u) {
@@ -266,7 +266,7 @@ static void println64(print_t* pr, uint64_t n) {
   pr->println(str);
 }
 //------------------------------------------------------------------------------
-static void printMbr(print_t* pr, MbrSector_t* mbr) {
+static void printMbr(print_t* pr, const MbrSector_t* mbr) {
   pr->print(F("mbrSig: 0x"));
   pr->println(getLe16(mbr->signature), HEX);
   for (int i = 0; i < 4; i++) {
@@ -299,7 +299,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
     pr->println(F("read root failed"));
     return;
   }
-  DirUpcase_t* dir = reinterpret_cast<DirUpcase_t*>(cache);
+  const DirUpcase_t* dir = reinterpret_cast<DirUpcase_t*>(cache);
 
   pr->println(F("\nChecking upcase table"));
   for (size_t i = 0; i < 16; i++) {
@@ -383,7 +383,7 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
       pr->println(F("cache read failed"));
       return;
     }
-    uint32_t* fat = reinterpret_cast<uint32_t*>(cache);
+    const uint32_t* fat = reinterpret_cast<uint32_t*>(cache);
     for (size_t k = 0; k < 128; k++) {
       if (0 == cluster % 8) {
         if (k) {
@@ -400,7 +400,7 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
 }
 //------------------------------------------------------------------------------
 void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
-  uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
+  const uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("dmpSector failed"));
     return;
@@ -553,7 +553,7 @@ void ExFatPartition::printUpcase(print_t* pr) {
   uint32_t sector;
   uint32_t size = 0;
   uint32_t checksum = 0;
-  DirUpcase_t* dir;
+  const DirUpcase_t* dir;
   sector = clusterStartSector(m_rootDirectoryCluster);
   upcase = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   dir = reinterpret_cast<DirUpcase_t*>(upcase);
@@ -601,7 +601,7 @@ bool ExFatPartition::printVolInfo(print_t* pr) {
     pr->println(F("read mbr failed"));
     return false;
   }
-  MbrSector_t* mbr = reinterpret_cast<MbrSector_t*>(cache);
+  const MbrSector_t* mbr = reinterpret_cast<MbrSector_t*>(cache);
   printMbr(pr, mbr);
   uint32_t volStart = getLe32(mbr->part->relativeSectors);
   uint32_t volSize = getLe32(mbr->part->totalSectors);

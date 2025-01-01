@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -26,8 +26,7 @@
  * \file
  * \brief iostreams for files.
  */
-#ifndef fstream_h
-#define fstream_h
+#pragma once
 #include "iostream.h"
 //------------------------------------------------------------------------------
 /**
@@ -36,12 +35,15 @@
  */
 class StreamBaseClass : protected StreamBaseFile, virtual public ios {
  protected:
-  void clearWriteError() { StreamBaseFile::clearWriteError(); }
+  using StreamBaseFile::clearWriteError;
+  using StreamBaseFile::getWriteError;
+  using StreamBaseFile::write;
+
   /* Internal do not use
    * \return mode
    */
   int16_t getch();
-  bool getWriteError() { return StreamBaseFile::getWriteError(); }
+
   void open(const char* path, ios::openmode mode);
   /** Internal do not use
    * \return mode
@@ -58,8 +60,6 @@ class StreamBaseClass : protected StreamBaseFile, virtual public ios {
    * \param[in] mode
    */
   void setmode(ios::openmode mode) { m_mode = mode; }
-  int write(const void* buf, size_t n);
-  void write(char c);
 
  private:
   ios::openmode m_mode;
@@ -72,6 +72,7 @@ class StreamBaseClass : protected StreamBaseFile, virtual public ios {
 class fstream : public iostream, StreamBaseClass {
  public:
   using iostream::peek;
+  using StreamBaseClass::close;
   fstream() {}
   /** Constructor with open
    * \param[in] path file to open
@@ -86,14 +87,10 @@ class fstream : public iostream, StreamBaseClass {
   /** Clear state and writeError
    * \param[in] state new state for stream
    */
-  void clear(iostate state = goodbit) {
+  void clear(iostate state = goodbit) override {
     ios::clear(state);
     StreamBaseClass::clearWriteError();
   }
-  /**  Close a file and force cached data and directory information
-   *  to be written to the storage device.
-   */
-  void close() { StreamBaseClass::close(); }
   /** Open a fstream
    * \param[in] path path to open
    * \param[in] mode open mode
@@ -127,29 +124,29 @@ class fstream : public iostream, StreamBaseClass {
   /** Internal - do not use
    * \return
    */
-  int16_t getch() { return StreamBaseClass::getch(); }
+  int16_t getch() override { return StreamBaseClass::getch(); }
   /** Internal - do not use
    * \param[out] pos
    */
-  void getpos(pos_t* pos) { StreamBaseFile::fgetpos(pos); }
+  void getpos(pos_t* pos) override { StreamBaseFile::fgetpos(pos); }
   /** Internal - do not use
    * \param[in] c
    */
-  void putch(char c) { StreamBaseClass::putch(c); }
+  void putch(char c) override { StreamBaseClass::putch(c); }
   /** Internal - do not use
    * \param[in] str
    */
-  void putstr(const char* str) { StreamBaseClass::putstr(str); }
+  void putstr(const char* str) override { StreamBaseClass::putstr(str); }
   /** Internal - do not use
    * \param[in] pos
    */
-  bool seekoff(off_type off, seekdir way) {
+  bool seekoff(off_type off, seekdir way) override {
     return StreamBaseClass::seekoff(off, way);
   }
-  bool seekpos(pos_type pos) { return StreamBaseClass::seekpos(pos); }
-  void setpos(pos_t* pos) { StreamBaseFile::fsetpos(pos); }
-  bool sync() { return StreamBaseClass::sync(); }
-  pos_type tellpos() { return StreamBaseFile::curPosition(); }
+  bool seekpos(pos_type pos) override { return StreamBaseClass::seekpos(pos); }
+  void setpos(const pos_t* pos) { StreamBaseFile::fsetpos(pos); }
+  bool sync() override { return StreamBaseClass::sync(); }
+  pos_type tellpos() override { return StreamBaseFile::curPosition(); }
   /// @endcond
 };
 //==============================================================================
@@ -160,6 +157,7 @@ class fstream : public iostream, StreamBaseClass {
 class ifstream : public istream, StreamBaseClass {
  public:
   using istream::peek;
+  using StreamBaseClass::close;
   ifstream() {}
   /** Constructor with open
    * \param[in] path file to open
@@ -169,10 +167,6 @@ class ifstream : public istream, StreamBaseClass {
 #if DESTRUCTOR_CLOSES_FILE
   ~ifstream() {}
 #endif  // DESTRUCTOR_CLOSES_FILE
-  /**  Close a file and force cached data and directory information
-   *  to be written to the storage device.
-   */
-  void close() { StreamBaseClass::close(); }
   /** \return True if stream is open else false. */
   bool is_open() { return StreamBaseFile::isOpen(); }
   /** Open an ifstream
@@ -213,6 +207,7 @@ class ifstream : public istream, StreamBaseClass {
  */
 class ofstream : public ostream, StreamBaseClass {
  public:
+  using StreamBaseClass::close;
   ofstream() {}
   /** Constructor with open
    * \param[in] path file to open
@@ -225,14 +220,10 @@ class ofstream : public ostream, StreamBaseClass {
   /** Clear state and writeError
    * \param[in] state new state for stream
    */
-  void clear(iostate state = goodbit) {
+  void clear(iostate state = goodbit) override {
     ios::clear(state);
     StreamBaseClass::clearWriteError();
   }
-  /**  Close a file and force cached data and directory information
-   *  to be written to the storage device.
-   */
-  void close() { StreamBaseClass::close(); }
   /** Open an ofstream
    * \param[in] path file to open
    * \param[in] mode open mode
@@ -265,4 +256,3 @@ class ofstream : public ostream, StreamBaseClass {
   pos_type tellpos() override { return StreamBaseFile::curPosition(); }
   /// @endcond
 };
-#endif  // fstream_h

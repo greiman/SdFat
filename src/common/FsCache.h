@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsCache_h
-#define FsCache_h
+#pragma once
 /**
  * \file
  * \brief Common cache code for exFAT and FAT.
@@ -54,7 +53,7 @@ class FsCache {
       CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
   //----------------------------------------------------------------------------
   /** Cobstructor. */
-  FsCache() { init(nullptr); }
+  FsCache() { init(nullptr); }  // cppcheck-suppress uninitMemberVar
   /** \return Cache buffer address. */
   uint8_t* cacheBuffer() { return m_buffer; }
   /**
@@ -173,4 +172,3 @@ class FsCache {
   uint32_t m_mirrorOffset;
   uint8_t m_buffer[512];
 };
-#endif  // FsCache_h

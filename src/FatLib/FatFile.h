@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FatFile_h
-#define FatFile_h
+#pragma once
 /**
  * \file
  * \brief FatFile class
@@ -330,7 +329,7 @@ class FatFile {
    * If no data is read, fgets() returns zero for EOF or -1 if an error
    * occurred.
    */
-  int fgets(char* str, int num, char* delim = nullptr);
+  int fgets(char* str, int num, const char* delim = nullptr);
   /** \return The total number of bytes in a file. */
   uint32_t fileSize() const { return m_fileSize; }
   /** \return first sector of file or zero for empty file. */
@@ -1030,7 +1029,7 @@ class FatFile {
   DirFat_t* cacheDirEntry(uint8_t action);
   bool cmpName(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd);
   bool createLFN(uint16_t index, FatLfn_t* fname, uint8_t lfnOrd);
-  uint16_t getLfnChar(DirLfn_t* ldir, uint8_t i);
+  uint16_t getLfnChar(const DirLfn_t* ldir, uint8_t i);
   uint8_t lfnChecksum(const uint8_t* name) {
     uint8_t sum = 0;
     for (uint8_t i = 0; i < 11; i++) {
@@ -1045,8 +1044,8 @@ class FatFile {
   bool parsePathName(const char* str, FatSfn_t* fname, const char** ptr);
   bool mkdir(FatFile* parent, FatName_t* fname);
   bool open(FatFile* dirFile, FatLfn_t* fname, oflag_t oflag);
-  bool open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag);
-  bool openSFN(FatSfn_t* fname);
+  bool open(FatFile* dirFile, const FatSfn_t* fname, oflag_t oflag);
+  bool openSFN(const FatSfn_t* fname);
   bool openCachedEntry(FatFile* dirFile, uint16_t cacheIndex, oflag_t oflag,
                        uint8_t lfnOrd);
   DirFat_t* readDirCache(bool skipReadOk = false);
@@ -1098,4 +1097,3 @@ class File32 : public StreamFile<FatFile, uint32_t> {
     return tmpFile;
   }
 };
-#endif  // FatFile_h

@@ -98,7 +98,7 @@ void ExFatFile::fgetpos(fspos_t* pos) const {
   pos->cluster = m_curCluster;
 }
 //------------------------------------------------------------------------------
-int ExFatFile::fgets(char* str, int num, char* delim) {
+int ExFatFile::fgets(char* str, int num, const char* delim) {
   char ch;
   int n = 0;
   int r = -1;
@@ -136,7 +136,7 @@ void ExFatFile::fsetpos(const fspos_t* pos) {
 }
 //------------------------------------------------------------------------------
 bool ExFatFile::getAccessDateTime(uint16_t* pdate, uint16_t* ptime) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>(
+  const DirFile_t* df = reinterpret_cast<DirFile_t*>(
       m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
   if (!df) {
     DBG_FAIL_MACRO;
@@ -151,7 +151,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 bool ExFatFile::getCreateDateTime(uint16_t* pdate, uint16_t* ptime) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>(
+  const DirFile_t* df = reinterpret_cast<DirFile_t*>(
       m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
   if (!df) {
     DBG_FAIL_MACRO;
@@ -166,7 +166,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 bool ExFatFile::getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
-  DirFile_t* df = reinterpret_cast<DirFile_t*>(
+  const DirFile_t* df = reinterpret_cast<DirFile_t*>(
       m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
   if (!df) {
     DBG_FAIL_MACRO;
@@ -223,7 +223,6 @@ bool ExFatFile::open(ExFatFile* dirFile, const char* path, oflag_t oflag) {
       DBG_WARN_MACRO;
       goto fail;
     }
-    // tmpDir = *this;
     tmpDir.copy(this);
     dirFile = &tmpDir;
     close();
@@ -255,7 +254,6 @@ bool ExFatFile::openCwd() {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  // *this = *ExFatVolume::cwv()->vwd();
   this->copy(ExFatVolume::cwv()->vwd());
   rewind();
   return true;
@@ -633,7 +631,7 @@ int ExFatFile::read(void* buf, size_t count) {
         DBG_FAIL_MACRO;
         goto fail;
       }
-      uint8_t* src = cache + sectorOffset;
+      const uint8_t* src = cache + sectorOffset;
       memcpy(dst, src, n);
 #if USE_MULTI_SECTOR_IO
     } else if (toRead >= 2 * m_vol->bytesPerSector()) {

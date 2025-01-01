@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsVolume_h
-#define FsVolume_h
+#pragma once
 /**
  * \file
  * \brief FsVolume include file.
@@ -39,7 +38,7 @@ class FsFile;
  */
 class FsVolume {
  public:
-  FsVolume() = default;
+  FsVolume() = default;  // cppcheck-suppress uninitMemberVar
 
   ~FsVolume() { end(); }
   /** Get file's user settable attributes.
@@ -399,4 +398,3 @@ class FsVolume {
   FatVolume* m_fVol = nullptr;
   ExFatVolume* m_xVol = nullptr;
 };
-#endif  // FsVolume_h

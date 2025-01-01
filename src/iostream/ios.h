@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ios_h
-#define ios_h
+#pragma once
 #include "../FsLib/FsLib.h"
 /**
  * \file
@@ -412,7 +411,7 @@ class ios : public ios_base {
    *
    * \param[in] state The flags you want to set after clearing all flags.
    **/
-  void clear(iostate state = goodbit) { m_iostate = state; }
+  virtual void clear(iostate state = goodbit) { m_iostate = state; }
   /** Set iostate bits.
    *
    * \param[in] state Bitts to set.
@@ -422,4 +421,3 @@ class ios : public ios_base {
  private:
   iostate m_iostate = 0;
 };
-#endif  // ios_h

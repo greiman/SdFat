@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FatPartition_h
-#define FatPartition_h
+#pragma once
 /**
  * \file
  * \brief FatPartition class
@@ -53,7 +52,7 @@ class FatPartition {
  public:
   /** Create an instance of FatPartition
    */
-  FatPartition() = default;
+  FatPartition() = default;  // cppcheck-suppress uninitMemberVar
 
   /** \return The shift count required to multiply by bytesPerCluster. */
   uint8_t bytesPerClusterShift() const {
@@ -235,4 +234,3 @@ class FatPartition {
   bool freeChain(uint32_t cluster);
   bool isEOC(uint32_t cluster) const { return cluster > m_lastCluster; }
 };
-#endif  // FatPartition

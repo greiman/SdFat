@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -157,7 +157,7 @@ fail:
 int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
   uint32_t sector;
   uint32_t next;
-  uint8_t* pc;
+  const uint8_t* pc;
 
   // error if reserved cluster of beyond FAT
   if (cluster < 2 || cluster > m_lastCluster) {
@@ -362,14 +362,14 @@ int32_t FatPartition::freeClusterCount() {
         n = todo;
       }
       if (fatType() == 16) {
-        uint16_t* p16 = reinterpret_cast<uint16_t*>(pc);
+        const uint16_t* p16 = reinterpret_cast<uint16_t*>(pc);
         for (uint16_t i = 0; i < n; i++) {
           if (p16[i] == 0) {
             free++;
           }
         }
       } else {
-        uint32_t* p32 = reinterpret_cast<uint32_t*>(pc);
+        const uint32_t* p32 = reinterpret_cast<uint32_t*>(pc);
         for (uint16_t i = 0; i < n; i++) {
           if (p32[i] == 0) {
             free++;
@@ -395,8 +395,8 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   uint32_t totalSectors;
   m_blockDev = dev;
   pbs_t* pbs;
-  BpbFat32_t* bpb;
-  MbrSector_t* mbr;
+  const BpbFat32_t* bpb;
+  const MbrSector_t* mbr;
   uint8_t tmp;
   m_fatType = 0;
   m_allocSearchStart = 1;
@@ -417,7 +417,7 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    MbrPart_t* mp = mbr->part + part - 1;
+    const MbrPart_t* mp = mbr->part + part - 1;
     if (mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
       DBG_FAIL_MACRO;
       goto fail;

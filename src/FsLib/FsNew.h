@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsNew_h
-#define FsNew_h
+#pragma once
 #include <stddef.h>
 #include <stdint.h>
 
@@ -36,11 +35,10 @@ typedef uint32_t newalign_t;
 
 /** Dimension of aligned area. */
 #define NEW_ALIGN_DIM(n) \
-  (((size_t)(n) + sizeof(newalign_t) - 1U) / sizeof(newalign_t))
+  ((static_cast<size_t>(n) + sizeof(newalign_t) - 1U) / sizeof(newalign_t))
 
 /** Dimension of aligned area for etype or ftype class. */
 #define FS_ALIGN_DIM(etype, ftype) NEW_ALIGN_DIM(FS_SIZE(etype, ftype))
 
 /** Custom new placement operator */
 void* operator new(size_t size, newalign_t* ptr);
-#endif  // FsNew_h

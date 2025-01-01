@@ -1,13 +1,22 @@
 /*
  * This program is a simple binary write/read benchmark.
  */
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
 #include "SdFat.h"
 #include "FreeStack.h"
 #include "sdios.h"
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
-#define SD_FAT_TYPE 3
+#if defined __has_include
+#if __has_include(<FS.h>)
+#define SD_FAT_TYPE 3  // Can't use SdFat/File
+#endif  // __has_include(<FS.h>)
+#endif  // defined __has_include
+
+#ifndef SD_FAT_TYPE
+#define SD_FAT_TYPE 0  // Use SdFat/File
+#endif  // SD_FAT_TYPE
 /*
   Change the value of SD_CS_PIN if you are using SPI and
   your hardware does not use the default value, SS.
@@ -27,14 +36,24 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
 #define SPI_CLOCK SD_SCK_MHZ(50)
 
+// Example SDIO definition for RP2040/RP2350. See the Rp2040SdioSetup example.
+#if defined(ARDUINO_ADAFRUIT_METRO_RP2040) && !defined(RP_CLK_GPIO)
+#define RP_CLK_GPIO 18
+#define RP_CMD_GPIO 19
+#define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
+#endif  // defined(ARDUINO_ADAFRUIT_METRO_RP2040)
+
 // Try to select the best SD card configuration.
-#if HAS_SDIO_CLASS
+#if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
+// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
+#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
-#else  // HAS_SDIO_CLASS
+#else  // HAS_TEENSY_SDIO
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
-#endif  // HAS_SDIO_CLASS
+#endif  // HAS_TEENSY_SDIO
 
 // Set PRE_ALLOCATE true to pre-allocate file clusters.
 const bool PRE_ALLOCATE = true;
@@ -127,6 +146,11 @@ void setup() {
     cout << F(
         "\nSet ENABLE_DEDICATED_SPI nonzero in\n"
         "SdFatConfig.h for best SPI performance.\n");
+  }
+  if (!SD_HAS_CUSTOM_SPI && !USE_SPI_ARRAY_TRANSFER && isSpi(SD_CONFIG)) {
+    cout << F(
+          "\nSetting USE_SPI_ARRAY_TRANSFER nonzero in\n"
+          "SdFatConfig.h may improve SPI performance.\n");
   }
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ExFatFormatter_h
-#define ExFatFormatter_h
+#pragma once
 #include "../common/FsBlockDevice.h"
 /**
  * \class ExFatFormatter
@@ -32,7 +31,7 @@
 class ExFatFormatter {
  public:
   /** Constructor. */
-  ExFatFormatter() = default;
+  ExFatFormatter() = default;  // cppcheck-suppress uninitMemberVar
   /**
    * Format an exFAT volume.
    *
@@ -55,4 +54,3 @@ class ExFatFormatter {
   FsBlockDevice* m_dev;
   uint8_t* m_secBuf;
 };
-#endif  // ExFatFormatter_h

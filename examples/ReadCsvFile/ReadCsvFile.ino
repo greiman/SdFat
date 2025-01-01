@@ -1,3 +1,4 @@
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
 #include "SdFat.h"
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
@@ -24,13 +25,16 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #define SPI_CLOCK SD_SCK_MHZ(50)
 
 // Try to select the best SD card configuration.
-#if HAS_SDIO_CLASS
+#if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
+// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
+#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
-#else  // HAS_SDIO_CLASS
+#else  // HAS_TEENSY_SDIO
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
-#endif  // HAS_SDIO_CLASS
+#endif  // HAS_TEENSY_SDIO
 
 #if SD_FAT_TYPE == 0
 SdFat sd;
@@ -126,7 +130,7 @@ void setup() {
   if (!file.open("ReadCsvDemo.csv", FILE_WRITE)) {
     error("open failed");
   }
-  // Write test data.
+  // Write test data. Test missing CRLF on last line.
   file.print(
       F("abc,123,456,7.89\r\n"
         "def,-321,654,-9.87\r\n"
@@ -142,6 +146,10 @@ void setup() {
     }
     if (line[n - 1] != '\n' && n == (sizeof(line) - 1)) {
       error("line too long");
+    }
+    if (line[n - 1] == '\n') {
+      // Remove new line.
+      line[n -1] = 0;
     }
     if (!parseLine(line)) {
       error("parseLine failed");

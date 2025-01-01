@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SdFat_h
-#define SdFat_h
+#pragma once
 /**
  * \file
  * \brief main SdFs include file.
@@ -38,9 +37,9 @@
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version for cpp use. */
-#define SD_FAT_VERSION 20203
+#define SD_FAT_VERSION 20300
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.2.3"
+#define SD_FAT_VERSION_STR "2.3.0"
 //==============================================================================
 /**
  * \class SdBase
@@ -463,7 +462,7 @@ typedef FsFile File;
 #endif  // HAS_INCLUDE_FS_H
 /**
  * \class SdFile
- * \brief FAT16/FAT32 file with Print.
+ * \brief File with Print.
  */
 class SdFile : public PrintFile<SdBaseFile> {
  public:
@@ -506,4 +505,3 @@ class SdFile : public PrintFile<SdBaseFile> {
   /**  Cancel the date/time callback function. */
   static void dateTimeCallbackCancel() { FsDateTime::clearCallback(); }
 };
-#endif  // SdFat_h

@@ -5,9 +5,8 @@
 // puts the controller in write mode and takes about 11 usec on a
 // Teensy 4.1. About 5 usec is required to write a sector when the
 // controller is in write mode.
-
-#include "RingBuf.h"
 #include "SdFat.h"
+#include "RingBuf.h"
 
 // Use Teensy SDIO
 #define SD_CONFIG SdioConfig(FIFO_SDIO)

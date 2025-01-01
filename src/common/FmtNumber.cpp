@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -174,7 +174,8 @@ char* fmtBase10(char* str, uint16_t n) {
     // n = n + (n >> 16);  // no code for 16-bit n
     n = n >> 3;
     uint8_t r = t - (((n << 2) + n) << 1);
-    if (r > 9) {
+    // cppcheck wrong.
+    if (r > 9) {  // cppcheck-suppress knownConditionTrueFalse
       n++;
       r -= 10;
     }

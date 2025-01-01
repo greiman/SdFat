@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -36,7 +36,7 @@ uint32_t ExFatPartition::bitmapFind(uint32_t cluster, uint32_t count) {
   uint32_t bgnAlloc = start;
   uint16_t sectorSize = 1 << m_bytesPerSectorShift;
   size_t i = (start >> 3) & (sectorSize - 1);
-  uint8_t* cache;
+  const uint8_t* cache;
   uint8_t mask = 1 << (start & 7);
   while (true) {
     uint32_t sector =
@@ -136,7 +136,7 @@ uint32_t ExFatPartition::chainSize(uint32_t cluster) {
   return n;
 }
 //------------------------------------------------------------------------------
-uint8_t* ExFatPartition::dirCache(DirPos_t* pos, uint8_t options) {
+uint8_t* ExFatPartition::dirCache(const DirPos_t* pos, uint8_t options) {
   uint32_t sector = clusterStartSector(pos->cluster);
   sector += (m_clusterMask & pos->position) >> m_bytesPerSectorShift;
   uint8_t* cache = dataCachePrepare(sector, options);
@@ -164,7 +164,7 @@ int8_t ExFatPartition::dirSeek(DirPos_t* pos, uint32_t offset) {
 //------------------------------------------------------------------------------
 // return -1 error, 0 EOC, 1 OK
 int8_t ExFatPartition::fatGet(uint32_t cluster, uint32_t* value) {
-  uint8_t* cache;
+  const uint8_t* cache;
   uint32_t next;
   uint32_t sector;
 
@@ -240,7 +240,7 @@ int32_t ExFatPartition::freeClusterCount() {
   uint32_t nc = 0;
   uint32_t sector = m_clusterHeapStartSector;
   uint32_t usedCount = 0;
-  uint8_t* cache;
+  const uint8_t* cache;
 
   while (true) {
     cache = dataCachePrepare(sector++, FsCache::CACHE_FOR_READ);
@@ -267,8 +267,8 @@ int32_t ExFatPartition::freeClusterCount() {
 //------------------------------------------------------------------------------
 bool ExFatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   pbs_t* pbs;
-  BpbExFat_t* bpb;
-  MbrSector_t* mbr;
+  const BpbExFat_t* bpb;
+  const MbrSector_t* mbr;
   m_fatType = 0;
   m_blockDev = dev;
   cacheInit(m_blockDev);
@@ -285,7 +285,7 @@ bool ExFatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    MbrPart_t* mp = mbr->part + part - 1;
+    const MbrPart_t* mp = mbr->part + part - 1;
     if (mp->type == 0 || (mp->boot != 0 && mp->boot != 0X80)) {
       DBG_FAIL_MACRO;
       goto fail;

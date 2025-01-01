@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsUtf_h
-#define FsUtf_h
+#pragma once
 /**
  * \file
  * \brief Unicode Transformation Format functions.
@@ -98,4 +97,3 @@ const char* mbToCp(const char* str, const char* end, uint32_t* rtn);
 const char* mbToU16(const char* str, const char* end, uint16_t* hs,
                     uint16_t* ls);
 }  // namespace FsUtf
-#endif  // FsUtf_h

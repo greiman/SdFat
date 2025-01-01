@@ -1,4 +1,4 @@
-2022-07-01
+2025-01-01
 
 Run the SdErrorCode example to produce an updated list.
 
@@ -12,7 +12,7 @@ Code,Symbol - failed operation
 0X06,SD_CARD_ERROR_CMD8 - Send and check interface settings
 0X07,SD_CARD_ERROR_CMD9 - Read CSD data
 0X08,SD_CARD_ERROR_CMD10 - Read CID data
-0X09,SD_CARD_ERROR_CMD12 - Stop multiple block read
+0X09,SD_CARD_ERROR_CMD12 - Stop multiple block transmission
 0X0A,SD_CARD_ERROR_CMD13 - Read card status
 0X0B,SD_CARD_ERROR_CMD17 - Read single block
 0X0C,SD_CARD_ERROR_CMD18 - Read multiple blocks

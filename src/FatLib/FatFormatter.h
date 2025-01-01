@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FatFormatter_h
-#define FatFormatter_h
+#pragma once
 #include "../common/FsBlockDevice.h"
 #include "../common/SysCall.h"
 /**
@@ -33,7 +32,7 @@
 class FatFormatter {
  public:
   /** Constructor. */
-  FatFormatter() = default;
+  FatFormatter() = default;  // cppcheck-suppress uninitMemberVar
   /**
    * Format a FAT volume.
    *
@@ -65,4 +64,3 @@ class FatFormatter {
   uint8_t m_partType;
   uint8_t m_sectorsPerCluster;
 };
-#endif  // FatFormatter_h

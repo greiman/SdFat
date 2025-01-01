@@ -1,2 +1,2 @@
-sh cpplint.sh
+bash cpplint.sh
 pause

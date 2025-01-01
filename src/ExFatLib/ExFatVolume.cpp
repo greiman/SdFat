@@ -37,7 +37,6 @@ bool ExFatVolume::chdir(const char* path) {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  // m_vwd = dir;
   m_vwd.copy(&dir);
   return true;
 

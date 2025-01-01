@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FreeStack_h
-#define FreeStack_h
+#pragma once
 /**
  * \file
  * \brief FreeStack() function.
@@ -41,7 +40,7 @@ extern char __bss_end;
  * \return The number of free bytes.
  */
 inline int FreeStack() {
-  char* sp = reinterpret_cast<char*>(SP);
+  const char* sp = reinterpret_cast<char*>(SP);
   return __brkval ? sp - __brkval : sp - &__bss_end;
 }
 #elif defined(ARDUINO_ARCH_APOLLO3)
@@ -87,4 +86,3 @@ int UnusedStack();
 inline void FillStack() {}
 inline int UnusedStack() { return 0; }
 #endif  // defined(HAS_UNUSED_STACK)
-#endif  // FreeStack_h

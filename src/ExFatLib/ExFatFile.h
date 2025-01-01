@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ExFatFile_h
-#define ExFatFile_h
+#pragma once
 /**
  * \file
  * \brief ExFatFile class
@@ -247,7 +246,7 @@ class ExFatFile {
    * If no data is read, fgets() returns zero for EOF or -1 if an error
    * occurred.
    */
-  int fgets(char* str, int num, char* delim = nullptr);
+  int fgets(char* str, int num, const char* delim = nullptr);
   /** \return The total number of bytes in a file. */
   uint64_t fileSize() const { return m_validLength; }
   /** \return Address of first sector or zero for empty file. */
@@ -898,4 +897,3 @@ class ExFile : public StreamFile<ExFatFile, uint64_t> {
     return tmpFile;
   }
 };
-#endif  // ExFatFile_h

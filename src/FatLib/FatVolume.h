@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FatVolume_h
-#define FatVolume_h
+#pragma once
 #include "FatFile.h"
 /**
  * \file
@@ -344,4 +343,3 @@ class FatVolume : public FatPartition {
   static FatVolume* m_cwv;
   FatFile m_vwd;
 };
-#endif  // FatVolume_h

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -243,6 +243,8 @@ size_t StdioStream::fwrite(const void* ptr, size_t size, size_t count) {
   return write(ptr, count * size) < 0 ? EOF : count;
 }
 //------------------------------------------------------------------------------
+// allow shadow of rewind() in StreamBaseFile,
+// cppcheck-suppress duplInheritedMember
 int StdioStream::write(const void* buf, size_t count) {
   const uint8_t* src = static_cast<const uint8_t*>(buf);
   size_t todo = count;
@@ -282,7 +284,7 @@ size_t StdioStream::print(const __FlashStringHelper* str) {
 //------------------------------------------------------------------------------
 int StdioStream::printDec(float value, uint8_t prec) {
   char buf[24];
-  char* ptr = fmtDouble(buf + sizeof(buf), value, prec, false);
+  const char* ptr = fmtDouble(buf + sizeof(buf), value, prec, false);
   return write(ptr, buf + sizeof(buf) - ptr);
 }
 //------------------------------------------------------------------------------
@@ -314,7 +316,7 @@ int StdioStream::printDec(int16_t n) {
 //------------------------------------------------------------------------------
 int StdioStream::printDec(uint16_t n) {
   char buf[5];
-  char* ptr = fmtBase10(buf + sizeof(buf), n);
+  const char* ptr = fmtBase10(buf + sizeof(buf), n);
   uint8_t len = buf + sizeof(buf) - ptr;
   return write(ptr, len);
 }
@@ -334,18 +336,20 @@ int StdioStream::printDec(int32_t n) {
 //------------------------------------------------------------------------------
 int StdioStream::printDec(uint32_t n) {
   char buf[10];
-  char* ptr = fmtBase10(buf + sizeof(buf), n);
+  const char* ptr = fmtBase10(buf + sizeof(buf), n);
   uint8_t len = buf + sizeof(buf) - ptr;
   return write(ptr, len);
 }
 //------------------------------------------------------------------------------
 int StdioStream::printHex(uint32_t n) {
   char buf[8];
-  char* ptr = fmtHex(buf + sizeof(buf), n);
+  const char* ptr = fmtHex(buf + sizeof(buf), n);
   uint8_t len = buf + sizeof(buf) - ptr;
   return write(ptr, len);
 }
 //------------------------------------------------------------------------------
+// allow shadow of rewind() in StreamBaseFile,
+// cppcheck-suppress duplInheritedMember
 bool StdioStream::rewind() {
   if (m_status & S_SWR) {
     if (!flushBuf()) {

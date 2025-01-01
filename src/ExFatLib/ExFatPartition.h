@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ExFatPartition_h
-#define ExFatPartition_h
+#pragma once
 /**
  * \file
  * \brief ExFatPartition include file.
@@ -60,7 +59,7 @@ struct DirPos_t {
  */
 class ExFatPartition {
  public:
-  ExFatPartition() = default;
+  ExFatPartition() = default;  // cppcheck-suppress uninitMemberVar
   /** \return the number of bytes in a cluster. */
   uint32_t bytesPerCluster() const { return m_bytesPerCluster; }
   /** \return the power of two for bytesPerCluster. */
@@ -177,7 +176,7 @@ class ExFatPartition {
     return m_clusterHeapStartSector +
            ((cluster - 2) << m_sectorsPerClusterShift);
   }
-  uint8_t* dirCache(DirPos_t* pos, uint8_t options);
+  uint8_t* dirCache(const DirPos_t* pos, uint8_t options);
   int8_t dirSeek(DirPos_t* pos, uint32_t offset);
   int8_t fatGet(uint32_t cluster, uint32_t* value);
   bool fatPut(uint32_t cluster, uint32_t value);
@@ -224,4 +223,3 @@ class ExFatPartition {
   uint8_t m_fatType = 0;
   uint8_t m_sectorsPerClusterShift;
 };
-#endif  // ExFatPartition_h

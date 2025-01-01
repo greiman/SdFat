@@ -2,16 +2,14 @@
  * \file
  * \brief Definitions for Teensy HDHC.
  */
-
-#ifndef SdioTeensy_h
-#define SdioTeensy_h
+#pragma once
 
 // From Paul's SD.h driver.
 
 #if defined(__IMXRT1062__)
 #define MAKE_REG_MASK(m, s) (((uint32_t)(((uint32_t)(m) << s))))
 #define MAKE_REG_GET(x, m, s) (((uint32_t)(((uint32_t)(x) >> s) & m)))
-#define MAKE_REG_SET(x, m, s) (((uint32_t)(((uint32_t)(x)&m) << s)))
+#define MAKE_REG_SET(x, m, s) (((uint32_t)(((uint32_t)(x) & m) << s)))
 
 #define SDHC_BLKATTR_BLKSIZE_MASK \
   MAKE_REG_MASK(                  \
@@ -467,7 +465,8 @@
 // Version
 
 #define CCM_ANALOG_PFD_528_PFD0_FRAC_MASK 0x3f
-#define CCM_ANALOG_PFD_528_PFD0_FRAC(n) ((n)&CCM_ANALOG_PFD_528_PFD0_FRAC_MASK)
+#define CCM_ANALOG_PFD_528_PFD0_FRAC(n) \
+  ((n) & CCM_ANALOG_PFD_528_PFD0_FRAC_MASK)
 #define CCM_ANALOG_PFD_528_PFD1_FRAC_MASK (0x3f << 8)
 #define CCM_ANALOG_PFD_528_PFD1_FRAC(n) \
   (((n) << 8) & CCM_ANALOG_PFD_528_PFD1_FRAC_MASK)
@@ -515,16 +514,15 @@
 #define SDHC_PREV_CLKFS(x, y) ((x) >>= (y))
 
 #define CCM_CSCDR1_USDHC1_CLK_PODF_MASK (0x7 << 11)
-#define CCM_CSCDR1_USDHC1_CLK_PODF(n) (((n)&0x7) << 11)
+#define CCM_CSCDR1_USDHC1_CLK_PODF(n) (((n) & 0x7) << 11)
 
 #define IOMUXC_SW_PAD_CTL_PAD_SRE ((0x1 <) < 0)
 #define IOMUXC_SW_PAD_CTL_PAD_PKE ((0x1) << 12)
 #define IOMUXC_SW_PAD_CTL_PAD_PUE ((0x1) << 13)
 #define IOMUXC_SW_PAD_CTL_PAD_HYS ((0x1) << 16)
-#define IOMUXC_SW_PAD_CTL_PAD_SPEED(n) (((n)&0x3) << 6)
-#define IOMUXC_SW_PAD_CTL_PAD_PUS(n) (((n)&0x3) << 14)
+#define IOMUXC_SW_PAD_CTL_PAD_SPEED(n) (((n) & 0x3) << 6)
+#define IOMUXC_SW_PAD_CTL_PAD_PUS(n) (((n) & 0x3) << 14)
 #define IOMUXC_SW_PAD_CTL_PAD_PUS_MASK ((0x3) << 14)
-#define IOMUXC_SW_PAD_CTL_PAD_DSE(n) (((n)&0x7) << 3)
+#define IOMUXC_SW_PAD_CTL_PAD_DSE(n) (((n) & 0x7) << 3)
 #define IOMUXC_SW_PAD_CTL_PAD_DSE_MASK ((0x7) << 3)
 #endif  // defined(__IMXRT1062__)
-#endif  // SdioTeensy_h

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -53,7 +53,7 @@ inline char* stackPointer() {
 const char FILL = 0x55;
 void FillStack() {
   char* p = stackBegin();
-  char* top = stackPointer();
+  const char* top = stackPointer();
   while (p < top) {
     *p++ = FILL;
   }
@@ -62,7 +62,7 @@ void FillStack() {
 // May fail if malloc or new is used.
 int UnusedStack() {
   char* h = stackBegin();
-  char* top = stackPointer();
+  const char* top = stackPointer();
   int n;
 
   for (n = 0; (h + n) < top; n++) {

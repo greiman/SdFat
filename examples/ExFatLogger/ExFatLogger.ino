@@ -3,9 +3,10 @@
 //
 // The maximum data rate will depend on the quality of your SD,
 // the size of the FIFO, and using dedicated SPI.
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#include "SdFat.h"
 #include "ExFatLogger.h"
 #include "FreeStack.h"
-#include "SdFat.h"
 //------------------------------------------------------------------------------
 // This example was designed for exFAT but will support FAT16/FAT32.
 // Note: Uno will not support SD_FAT_TYPE = 3.
@@ -69,13 +70,16 @@ const uint32_t PREALLOCATE_SIZE_MiB = 1024UL;
 #define SPI_CLOCK SD_SCK_MHZ(50)
 
 // Try to select the best SD card configuration.
-#if HAS_SDIO_CLASS
+#if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
+#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
+// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
+#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
-#else  // HAS_SDIO_CLASS
+#else  // HAS_TEENSY_SDIO
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
-#endif  // HAS_SDIO_CLASS
+#endif  // HAS_TEENSY_SDIO
 
 // Save SRAM if 328.
 #ifdef __AVR_ATmega328P__
@@ -92,7 +96,7 @@ void logRecord(data_t* data, uint16_t overrun) {
     data->adc[0] = 0X8000 | overrun;
   } else {
     for (size_t i = 0; i < ADC_COUNT; i++) {
-      data->adc[i] = analogRead(i);
+      data->adc[i] = analogRead(A0 + i);
     }
   }
 }

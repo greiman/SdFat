@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef StdioStream_h
-#define StdioStream_h
+#pragma once
 /**
  * \file
  * \brief StdioStream class
@@ -112,6 +111,7 @@ const uint8_t UNGETC_BUF_SIZE = 2;
  */
 class StdioStream : private StreamBaseFile {
  public:
+  using StreamBaseFile::printField;
   /** Constructor
    *
    */
@@ -545,38 +545,6 @@ class StdioStream : private StreamBaseFile {
    */
   int printDec(float value, uint8_t prec);
   //----------------------------------------------------------------------------
-  /** Print a number followed by a field terminator.
-   * \param[in] value The number to be printed.
-   * \param[in] term The field terminator.
-   * \param[in] prec Number of digits after decimal point.
-   * \return The number of bytes written or -1 if an error occurs.
-   */
-  int printField(double value, char term, uint8_t prec = 2) {
-    return printField(static_cast<float>(value), term, prec) > 0;
-  }
-  //----------------------------------------------------------------------------
-  /** Print a number followed by a field terminator.
-   * \param[in] value The number to be printed.
-   * \param[in] term The field terminator.
-   * \param[in] prec Number of digits after decimal point.
-   * \return The number of bytes written or -1 if an error occurs.
-   */
-  int printField(float value, char term, uint8_t prec = 2) {
-    int rtn = printDec(value, prec);
-    return rtn < 0 || putc(term) < 0 ? -1 : rtn + 1;
-  }
-  //----------------------------------------------------------------------------
-  /** Print a number followed by a field terminator.
-   * \param[in] value The number to be printed.
-   * \param[in] term The field terminator.
-   * \return The number of bytes written or -1 if an error occurs.
-   */
-  template <typename T>
-  int printField(T value, char term) {
-    int rtn = printDec(value);
-    return rtn < 0 || putc(term) < 0 ? -1 : rtn + 1;
-  }
-  //----------------------------------------------------------------------------
   /** Print HEX
    * \param[in] n number to be printed as HEX.
    *
@@ -640,5 +608,3 @@ class StdioStream : private StreamBaseFile {
   uint8_t m_r = 0;
   uint8_t m_w = 0;
 };
-//------------------------------------------------------------------------------
-#endif  // StdioStream_h

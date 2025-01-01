@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -25,7 +25,7 @@
 #include "FatLib.h"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
-static uint16_t getLfnChar(DirLfn_t* ldir, uint8_t i) {
+static uint16_t getLfnChar(const DirLfn_t* ldir, uint8_t i) {
   if (i < 5) {
     return getLe16(ldir->unicode1 + 2 * i);
   } else if (i < 11) {
@@ -245,7 +245,7 @@ void FatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   uint32_t sector = m_fatStartSector + start;
   uint32_t cluster = nf * start;
   for (uint32_t i = 0; i < count; i++) {
-    uint8_t* pc = fatCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
+    const uint8_t* pc = fatCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
     if (!pc) {
       pr->println(F("cache read failed"));
       return;

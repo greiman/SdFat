@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsDateTime_h
-#define FsDateTime_h
+#pragma once
 #include <stdint.h>
 
 #include "CompileDateTime.h"
@@ -188,4 +187,3 @@ size_t fsPrintDateTime(print_t* pr, uint32_t dateTime, uint8_t s100, int8_t tz);
 size_t fsPrintTime(print_t* pr, uint16_t time);
 size_t fsPrintTime(print_t* pr, uint16_t time, uint8_t sec100);
 size_t fsPrintTimeZone(print_t* pr, int8_t tz);
-#endif  // FsDateTime_h

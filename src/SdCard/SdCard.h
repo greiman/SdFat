@@ -26,8 +26,7 @@
  * \file
  * \brief Top level include for SPI and SDIO cards.
  */
-#ifndef SdCard_h
-#define SdCard_h
+#pragma once
 #include "SdSpiCard.h"
 #include "SdioCard.h"
 #if HAS_SDIO_CLASS
@@ -91,4 +90,3 @@ class SdCardFactory {
 #endif  // HAS_SDIO_CLASS
   SdSpiCard m_spiCard;
 };
-#endif  // SdCard_h

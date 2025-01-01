@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -27,7 +27,7 @@
 #include "../common/FsUtf.h"
 #include "FatLib.h"
 //------------------------------------------------------------------------------
-uint16_t FatFile::getLfnChar(DirLfn_t* ldir, uint8_t i) {
+uint16_t FatFile::getLfnChar(const DirLfn_t* ldir, uint8_t i) {
   if (i < 5) {
     return getLe16(ldir->unicode1 + 2 * i);
   } else if (i < 11) {
@@ -51,7 +51,7 @@ size_t FatFile::getName(char* name, size_t size) {
 //------------------------------------------------------------------------------
 size_t FatFile::getName7(char* name, size_t size) {
   FatFile dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   size_t n = 0;
   if (!isOpen()) {
     DBG_FAIL_MACRO;
@@ -97,11 +97,11 @@ fail:
 }
 //------------------------------------------------------------------------------
 size_t FatFile::getName8(char* name, size_t size) {
-  char* end = name + size;
+  const char* end = name + size;
   char* str = name;
   char* ptr;
   FatFile dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   uint16_t hs = 0;
   uint32_t cp;
   if (!isOpen()) {
@@ -169,8 +169,8 @@ size_t FatFile::getSFN(char* name, size_t size) {
   char c;
   uint8_t j = 0;
   uint8_t lcBit = FAT_CASE_LC_BASE;
-  uint8_t* ptr;
-  DirFat_t* dir;
+  const uint8_t* ptr;
+  const DirFat_t* dir;
   if (!isOpen()) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -234,7 +234,7 @@ size_t FatFile::printName(print_t* pr) {
 //------------------------------------------------------------------------------
 size_t FatFile::printName7(print_t* pr) {
   FatFile dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   size_t n = 0;
   uint8_t buf[13];
   uint8_t i;
@@ -280,12 +280,12 @@ fail:
 //------------------------------------------------------------------------------
 size_t FatFile::printName8(print_t* pr) {
   FatFile dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   uint16_t hs = 0;
   uint32_t cp;
   size_t n = 0;
   char buf[5];
-  char* end = buf + sizeof(buf);
+  const char* end = buf + sizeof(buf);
   if (!isOpen()) {
     DBG_FAIL_MACRO;
     goto fail;
@@ -329,7 +329,7 @@ size_t FatFile::printName8(print_t* pr) {
         DBG_FAIL_MACRO;
         goto fail;
       }
-      char* str = FsUtf::cpToMb(cp, buf, end);
+      const char* str = FsUtf::cpToMb(cp, buf, end);
       if (!str) {
         DBG_FAIL_MACRO;
         goto fail;

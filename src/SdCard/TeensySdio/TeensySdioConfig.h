@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,12 +22,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ExFatConfig_h
-#define ExFatConfig_h
-#include "SdFatConfig.h"
+#pragma once
+/** Use programmed I/O with FIFO. */
+#define FIFO_SDIO 0
+/** Use programmed I/O with DMA. */
+#define DMA_SDIO 1
+/**
+ * \class SdioConfig
+ * \brief SDIO card configuration.
+ */
+class SdioConfig {
+ public:
+  SdioConfig() {}
+  /**
+   * SdioConfig constructor.
+   * \param[in] opt SDIO options.
+   */
+  explicit SdioConfig(uint8_t opt) : m_options(opt) {}
+  /** \return SDIO card options. */
+  uint8_t options() { return m_options; }
+  /** \return true if DMA_SDIO. */
+  bool useDma() { return m_options & DMA_SDIO; }
 
-#ifndef EXFAT_READ_ONLY
-#define EXFAT_READ_ONLY 0
-#endif  // EXFAT_READ_ONLY
-
-#endif  // ExFatConfig_h
+ private:
+  uint8_t m_options = FIFO_SDIO;
+};

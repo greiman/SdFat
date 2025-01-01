@@ -6,9 +6,9 @@
 //
 #include "ADC.h"
 #include "DMAChannel.h"
+#include "SdFat.h"
 #include "FreeStack.h"
 #include "RingBuf.h"
-#include "SdFat.h"
 
 // Pin must be on first ADC.
 #define ADC_PIN A0

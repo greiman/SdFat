@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef DebugMacros_h
-#define DebugMacros_h
+#pragma once
 #include "SysCall.h"
 
 // 0 - disable, 1 - fail, halt 2 - fail, halt, warn
@@ -78,4 +77,3 @@ __attribute__((unused)) static void dbgWarn(uint16_t line) {
 #define DBG_WARN_MACRO
 #define DBG_WARN_IF(b)
 #endif  // USE_DBG_MACROS > 1
-#endif  // DebugMacros_h

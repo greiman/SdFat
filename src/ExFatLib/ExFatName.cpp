@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -66,7 +66,7 @@ bool ExFatFile::cmpName(const DirName_t* dirName, ExName_t* fname) {
 }
 //------------------------------------------------------------------------------
 size_t ExFatFile::getName7(char* name, size_t count) {
-  DirName_t* dn;
+  const DirName_t* dn;
   size_t n = 0;
   if (!isOpen()) {
     DBG_FAIL_MACRO;
@@ -100,10 +100,10 @@ fail:
 }
 //------------------------------------------------------------------------------
 size_t ExFatFile::getName8(char* name, size_t count) {
-  char* end = name + count;
+  const char* end = name + count;
   char* str = name;
   char* ptr;
-  DirName_t* dn;
+  const DirName_t* dn;
   uint16_t hs = 0;
   uint32_t cp;
   if (!isOpen()) {

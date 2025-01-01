@@ -197,7 +197,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 bool FatFile::dirEntry(DirFat_t* dst) {
-  DirFat_t* dir;
+  const DirFat_t* dir;
   // Make sure fields on device are correct.
   if (!sync()) {
     DBG_FAIL_MACRO;
@@ -237,7 +237,7 @@ uint32_t FatFile::dirSize() {
   return 512UL * n;
 }
 //------------------------------------------------------------------------------
-int FatFile::fgets(char* str, int num, char* delim) {
+int FatFile::fgets(char* str, int num, const char* delim) {
   char ch;
   int n = 0;
   int r = -1;
@@ -354,7 +354,6 @@ bool FatFile::mkdir(FatFile* parent, const char* path, bool pFlag) {
         goto fail;
       }
     }
-    // tmpDir = *this;
     tmpDir.copy(this);
     parent = &tmpDir;
     close();
@@ -478,7 +477,6 @@ bool FatFile::open(FatFile* dirFile, const char* path, oflag_t oflag) {
       DBG_WARN_MACRO;
       goto fail;
     }
-    // tmpDir = *this;
     tmpDir.copy(this);
     dirFile = &tmpDir;
     close();
@@ -497,7 +495,7 @@ bool FatFile::open(uint16_t index, oflag_t oflag) {
 bool FatFile::open(FatFile* dirFile, uint16_t index, oflag_t oflag) {
   if (index) {
     // Find start of LFN.
-    DirLfn_t* ldir;
+    const DirLfn_t* ldir;
     uint8_t n = index < 20 ? index : 20;
     for (uint8_t i = 1; i <= n; i++) {
       ldir = reinterpret_cast<DirLfn_t*>(dirFile->cacheDir(index - i));
@@ -634,7 +632,6 @@ bool FatFile::openCwd() {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  // *this = *FatVolume::cwv()->vwd();
   this->copy(FatVolume::cwv()->vwd());
   rewind();
   return true;
@@ -645,7 +642,7 @@ fail:
 //------------------------------------------------------------------------------
 bool FatFile::openNext(FatFile* dirFile, oflag_t oflag) {
   uint8_t checksum = 0;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   uint8_t lfnOrd = 0;
   uint16_t index;
 
@@ -840,7 +837,7 @@ int FatFile::read(void* buf, size_t nbyte) {
         DBG_FAIL_MACRO;
         goto fail;
       }
-      uint8_t* src = pc + offset;
+      const uint8_t* src = pc + offset;
       memcpy(dst, src, n);
 #if USE_MULTI_SECTOR_IO
     } else if (toRead >= 2 * m_vol->bytesPerSector()) {
@@ -968,7 +965,6 @@ bool FatFile::rename(FatFile* dirFile, const char* newPath) {
   }
   // sync() and cache directory entry
   sync();
-  // oldFile = *this;
   oldFile.copy(this);
   dir = cacheDirEntry(FsCache::CACHE_FOR_READ);
   if (!dir) {
@@ -1064,7 +1060,7 @@ bool FatFile::rmdir() {
 
   // make sure directory is empty
   while (1) {
-    DirFat_t* dir = readDirCache(true);
+    const DirFat_t* dir = readDirCache(true);
     if (!dir) {
       // EOF if no error.
       if (!getError()) {
@@ -1108,7 +1104,7 @@ bool FatFile::rmRfStar() {
     // remember position
     index = m_curPosition / FS_DIR_SIZE;
 
-    DirFat_t* dir = readDirCache();
+    const DirFat_t* dir = readDirCache();
     if (!dir) {
       // At EOF if no error.
       if (!getError()) {

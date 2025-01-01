@@ -20,11 +20,10 @@
  */
 #ifdef __AVR__
 #include <SPI.h>
-
+#include "SdFat.h"
 #include "AvrAdcLogger.h"
 #include "BufferedPrint.h"
 #include "FreeStack.h"
-#include "SdFat.h"
 
 // Save SRAM if 328.
 #ifdef __AVR_ATmega328P__

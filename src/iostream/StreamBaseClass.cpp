@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -150,9 +150,3 @@ bool StreamBaseClass::seekoff(off_type off, seekdir way) {
   }
   return seekpos(pos);
 }
-//------------------------------------------------------------------------------
-int StreamBaseClass::write(const void* buf, size_t n) {
-  return StreamBaseFile::write(buf, n);
-}
-//------------------------------------------------------------------------------
-void StreamBaseClass::write(char c) { StreamBaseFile::write(&c, 1); }

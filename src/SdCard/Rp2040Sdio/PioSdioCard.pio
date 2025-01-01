@@ -1,0 +1,175 @@
+; Copyright (c) 2011-2024 Bill Greiman
+; This file is part of the SdFat library for SD memory cards.
+;
+; MIT License
+;
+; Permission is hereby granted, free of charge, to any person obtaining a
+; copy of this software and associated documentation files (the "Software"),
+; to deal in the Software without restriction, including without limitation
+; the rights to use, copy, modify, merge, publish, distribute, sublicense,
+; and/or sell copies of the Software, and to permit persons to whom the
+; Software is furnished to do so, subject to the following conditions:
+;
+; The above copyright notice and this permission notice shall be included
+; in all copies or substantial portions of the Software.
+;
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+; OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+; DEALINGS IN THE SOFTWARE.
+;
+; Online assembler used to produce PioSdioCard.pio.h
+; https://wokwi.com/tools/pioasm
+
+.define public SDIO_IRQ 7
+
+.program cmd_rsp
+.side_set 1 opt
+.wrap_target
+cmd_begin:
+send_cmd:
+    out pins, 1         side 0 [1]
+    jmp X-- send_cmd    side 1 [1]
+
+    jmp !Y cmd_begin    side 0 [1]
+    set pindirs, 0      side 1 [3]
+wait_resp:
+    nop                 side 0 [3]
+    nop                 side 1 [2]
+    jmp PIN wait_resp 
+    
+read_resp:
+    in pins, 1          
+    push iffull block   side 0 [2]
+    jmp Y-- read_resp   side 1 [1]
+.wrap
+
+% c-sdk {
+static inline pio_sm_config pio_cmd_rsp_program_config(uint offset, uint cmd_pin, uint clk_pin, float clk_div) {
+    pio_sm_config c = cmd_rsp_program_get_default_config(offset);
+    sm_config_set_sideset_pins(&c, clk_pin);
+    sm_config_set_out_pins(&c, cmd_pin, 1);
+    sm_config_set_in_pins(&c, cmd_pin);
+    sm_config_set_set_pins(&c, cmd_pin, 1);
+    sm_config_set_jmp_pin(&c, cmd_pin);
+    sm_config_set_in_shift(&c, false, false, 8);
+    sm_config_set_out_shift(&c, false, true, 8);
+    sm_config_set_clkdiv(&c, clk_div);
+    return c;
+}
+%}
+.program rd_clk
+.side_set 1 opt
+wait_d0:
+    nop                side 0 [3]
+    jmp PIN wait_d0    side 1 [3]   
+    
+     irq SDIO_IRQ
+.wrap_target
+    out null, 1        side 0 [1]  ; Clock stops when txFifo is empty
+    nop                side 1 [1]
+.wrap
+
+% c-sdk {
+static inline pio_sm_config pio_rd_clk_program_config(uint offset, uint d0_pin, uint clk_pin, float clk_div) {
+    pio_sm_config c = rd_clk_program_get_default_config(offset);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+    sm_config_set_sideset_pins(&c, clk_pin);
+    sm_config_set_in_pins(&c, d0_pin);
+    sm_config_set_jmp_pin(&c, d0_pin);
+    sm_config_set_out_shift(&c, false, true, 8);
+    sm_config_set_clkdiv(&c, clk_div);
+    return c;
+}
+%}
+
+.program rd_data
+    wait 1 irq  SDIO_IRQ
+.wrap_target
+public wait0:
+    wait 0 gpio 0     ; See rd_data_patch_program for CLK pin
+public wait1:
+    wait 1 gpio 0     ; See rd_data_patch_program for CLK pin
+    in pins, 4
+.wrap
+
+% c-sdk {
+
+static inline void rd_data_patch_program(pio_program *prog, uint16_t* inst, uint clk_pin) {
+  *prog = rd_data_program;
+  prog->instructions = inst;
+  memcpy(inst, rd_data_program_instructions, sizeof(rd_data_program_instructions));
+  inst[rd_data_offset_wait0] = pio_encode_wait_gpio(0, clk_pin);
+  inst[rd_data_offset_wait1] = pio_encode_wait_gpio(1, clk_pin);
+}
+
+static inline pio_sm_config pio_rd_data_program_config(uint offset, uint data_pin, float clk_div) {
+  pio_sm_config c = rd_data_program_get_default_config(offset);
+  sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+  sm_config_set_in_pins(&c, data_pin);
+  sm_config_set_in_shift(&c, false, true, 32);
+  sm_config_set_clkdiv(&c, clk_div);
+  return c;
+}
+%}
+
+
+; Data transmission program
+;
+; Before running this program, pindirs should be set as output
+; and register X should be initialized with the number of nibbles
+; to send minus 1 (typically 8 + 1024 + 16 + 1 - 1 = 1048)
+;
+; Words written to TX FIFO must be:
+; - Word 0: start token 0xFFFFFFF0
+; - Word 1-128: transmitted data (512 bytes)
+; - Word 129-130: CRC checksum
+; - Word 131: end token 0xFFFFFFFF
+.program wr_data
+.side_set 1 opt
+;   out X, 32
+;   set pindirs, 0XF
+tx_loop:
+    out pins, 4        side 0  [1]
+    jmp X-- tx_loop    side 1  [1]
+    irq SDIO_IRQ
+.wrap_target
+    nop
+.wrap
+% c-sdk {
+
+
+static inline pio_sm_config pio_wr_data_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div) {
+    pio_sm_config c = wr_data_program_get_default_config(offset);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+    sm_config_set_sideset_pins(&c, clk_pin);
+    sm_config_set_out_pins(&c, data_pin, 4);
+    sm_config_set_set_pins(&c, data_pin, 4);
+    sm_config_set_out_shift(&c, false, true, 32);
+    sm_config_set_clkdiv(&c, clk_div);
+    return c;
+}
+%}
+.program wr_resp
+.side_set 1 opt
+    wait 1 irq SDIO_IRQ
+    set pindirs, 0              [1]
+.wrap_target
+    in pins, 1          side 1  [4]
+    push iffull noblock side 0  [4]
+.wrap
+
+% c-sdk {
+static inline pio_sm_config pio_wr_resp_program_config(uint offset, uint data_pin, uint clk_pin, float clk_div) {
+    pio_sm_config c = wr_resp_program_get_default_config(offset);
+    sm_config_set_sideset_pins(&c, clk_pin);
+    sm_config_set_in_pins(&c, data_pin);
+    sm_config_set_set_pins(&c, data_pin, 4);
+    sm_config_set_in_shift(&c, false, false, 8);
+    sm_config_set_clkdiv(&c, clk_div);
+    return c;
+}
+%}

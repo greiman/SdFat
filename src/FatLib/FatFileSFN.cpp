@@ -28,7 +28,7 @@
 //------------------------------------------------------------------------------
 // open with filename in fname
 #define SFN_OPEN_USES_CHKSUM 0
-bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
+bool FatFile::open(FatFile* dirFile, const FatSfn_t* fname, oflag_t oflag) {
   uint16_t date;
   uint16_t time;
   uint8_t ms10;
@@ -40,7 +40,7 @@ bool FatFile::open(FatFile* dirFile, FatSfn_t* fname, oflag_t oflag) {
   uint16_t emptyIndex = 0;
   uint16_t index = 0;
   DirFat_t* dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
 
   dirFile->rewind();
   while (true) {
@@ -156,7 +156,6 @@ bool FatFile::openExistingSFN(const char* path) {
   if (*path == 0) {
     return openRoot(vol);
   }
-  // *this = *vol->vwd();
   this->copy(vol->vwd());
   do {
     if (!parsePathName(path, &fname, &path)) {
@@ -174,9 +173,9 @@ fail:
   return false;
 }
 //------------------------------------------------------------------------------
-bool FatFile::openSFN(FatSfn_t* fname) {
+bool FatFile::openSFN(const FatSfn_t* fname) {
   DirFat_t dir;
-  DirLfn_t* ldir;
+  const DirLfn_t* ldir;
   auto vol = m_vol;
   uint8_t lfnOrd = 0;
   if (!isDir()) {

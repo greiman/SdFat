@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2024 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ArduinoFiles_h
-#define ArduinoFiles_h
+#pragma once
 #include "SysCall.h"
 //------------------------------------------------------------------------------
 /** Arduino SD.h style flag for open for read. */
@@ -44,13 +43,29 @@ class PrintFile : public print_t, public BaseFile {
  public:
   using BaseFile::clearWriteError;
   using BaseFile::getWriteError;
-  using BaseFile::read;
   using BaseFile::write;
+
+  /** Ensure that any bytes written to the file are saved to the SD card. */
+#if defined(ARDUINO_SAM_DUE) && !defined(ARDUINO_API_VERSION)
+  void flush() { BaseFile::sync(); }
+#else
+  void flush() override { BaseFile::sync(); }
+#endif
+
   /** Write a single byte.
    * \param[in] b byte to write.
    * \return one for success.
    */
-  size_t write(uint8_t b) { return BaseFile::write(&b, 1); }
+  size_t write(uint8_t b) override { return BaseFile::write(&b, 1); }
+
+  /** Write data to an open file.
+   * \param[in] buffer pointer
+   * \param[in] size of the buffer
+   * \return number of bytes actually written
+   */
+  size_t write(const uint8_t* buffer, size_t size) override {
+    return BaseFile::write(buffer, size);
+  }
 };
 //------------------------------------------------------------------------------
 /**
@@ -64,35 +79,39 @@ class StreamFile : public stream_t, public BaseFile {
   using BaseFile::getWriteError;
   using BaseFile::read;
   using BaseFile::write;
-
   StreamFile() {}
 
   /** \return number of bytes available from the current position to EOF
    *   or INT_MAX if more than INT_MAX bytes are available.
    */
-  int available() { return BaseFile::available(); }
+  int available() override { return BaseFile::available(); }
   /** Ensure that any bytes written to the file are saved to the SD card. */
-  void flush() { BaseFile::sync(); }
+  void flush() override { BaseFile::sync(); }
+
   /** This function reports if the current file is a directory or not.
    * \return true if the file is a directory.
    */
   bool isDirectory() { return BaseFile::isDir(); }
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   char* __attribute__((error("use getName(name, size)"))) name();
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
+
   /** Return the next available byte without consuming it.
    *
    * \return The byte if no error and not at eof else -1;
    */
-  int peek() { return BaseFile::peek(); }
+  int peek() override { return BaseFile::peek(); }
   /** \return the current file position. */
   PosType position() { return BaseFile::curPosition(); }
+
   /** Read the next byte from a file.
    *
    * \return For success return the next byte in the file as an int.
    * If an error occurs or end of file is reached return -1.
    */
-  int read() { return BaseFile::read(); }
+  int read() override { return BaseFile::read(); }
+
   /** Rewind a file if it is a directory */
   void rewindDirectory() {
     if (BaseFile::isDir()) {
@@ -114,7 +133,7 @@ class StreamFile : public stream_t, public BaseFile {
    * Use getWriteError to check for errors.
    * \return 1 for success and 0 for failure.
    */
-  size_t write(uint8_t b) { return BaseFile::write(b); }
+  size_t write(uint8_t b) override { return BaseFile::write(b); }
   /** Write data to an open file.
    *
    * \note Data is moved to the cache but may not be written to the
@@ -127,8 +146,7 @@ class StreamFile : public stream_t, public BaseFile {
    * \return For success write() returns the number of bytes written, always
    * \a size.
    */
-  size_t write(const uint8_t* buffer, size_t size) {
+  size_t write(const uint8_t* buffer, size_t size) override {
     return BaseFile::write(buffer, size);
   }
 };
-#endif  // ArduinoFiles_h

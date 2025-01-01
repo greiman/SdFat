@@ -1,3 +1,65 @@
+### Warning: This version has major internal changes.
+
+SdFat version 2.3.0 has major changes to implement RP2040/RP2350 SDIO.
+
+In addition there are number of bug fixes.
+
+Begin by running the Rp2040SdioSetup example  to try RP2040/RP2350 SDIO.
+
+This example requires a SDIO Card socket with the following six lines.
+
+CLK - A clock signal sent to the card by the MCU.
+CMD - A bidirectional line for for commands and responses.
+DAT[0:3] - Four bidirectional lines for data transfer.
+
+CLK and CMD can be connected to any GPIO pins. DAT[0:3] can be connected
+to any four consecutive GPIO pins in the order DAT0, DAT1, DAT2, DAT3.
+
+Here is an example of SDIO for Pico using an Adafruit socket, PiCowbell
+Proto and PiCowbell Proto Doubler.
+
+![Alt text](images/SdioSpi.jpg)
+
+This Socket supports SDIO with:
+```
+#define RP_CLK_GPIO 10
+#define RP_CMD_GPIO 11
+#define RP_DAT0_GPIO 12  // DAT1: GPIO13 DAT2: GPIO14, DAT3: GPIO15.
+```
+It also can be used on SPI1 with:
+```
+const uint8_t SD_CS_PIN = 15;
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK, &SPI1)
+
+  // In setup
+  SPI1.setSCK(10);
+  SPI1.setTX(11);
+  SPI1.setRX(12);
+```
+
+This setup gets the following result in the bench example using SDIO.
+
+<pre>
+FILE_SIZE_MB = 5
+BUF_SIZE = 512 bytes
+Starting write test, please wait.
+
+write speed and latency
+speed,max,min,avg
+KB/Sec,usec,usec,usec
+15014.05,1165,32,32
+15289.54,1249,32,32
+
+Starting read test, please wait.
+
+read speed and latency
+speed,max,min,avg
+KB/Sec,usec,usec,usec
+15624.00,58,32,32
+15624.00,51,32,32
+</pre>
+
+
 File copy constructors and file assignment operators have been made private by
 default in 2.2.3 to prevent call by value and multiple copies of file instances.
 
