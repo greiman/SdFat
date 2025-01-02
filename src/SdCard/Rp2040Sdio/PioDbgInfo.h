@@ -26,6 +26,9 @@
 #include <Arduino.h>
 
 #include "DbgLog.h"
+
+#include "hardware/pio.h"
+
 //------------------------------------------------------------------------------
 static inline void gpioStatus(uint gpio) {
   logmsgln("gpio", gpio, " drive: ", gpio_get_drive_strength(gpio));
