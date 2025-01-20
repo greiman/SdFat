@@ -253,7 +253,7 @@ class FsBaseFile {
                      : 0;
   }
   /** Ensure that any bytes written to the file are saved to the SD card. */
-  void flush() { sync(); }
+  virtual void flush() { sync(); }
   /** set position for streams
    * \param[in] pos struct with value for new position
    */
