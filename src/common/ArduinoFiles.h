@@ -46,7 +46,7 @@ class PrintFile : public print_t, public BaseFile {
   using BaseFile::write;
 
   /** Ensure that any bytes written to the file are saved to the SD card. */
-#if (defined(ARDUINO_SAM_DUE) || defined(BOARD_RTL8720DF) || defined(BOARD_RTL8720DN_BW16)) && !defined(ARDUINO_API_VERSION)
+#if (defined(ARDUINO_SAM_DUE) || defined(BOARD_RTL8720DF) || defined(BOARD_RTL8720DN_BW16) || defined(BOARD_DATALOGGER_AMB26) || defined(BOARD_AITHINKER_BW16)) && !defined(ARDUINO_API_VERSION)
   void flush() { BaseFile::sync(); }
 #else
   void flush() override { BaseFile::sync(); }
