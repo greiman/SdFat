@@ -8,10 +8,9 @@ Begin by running the Rp2040SdioSetup example  to try RP2040/RP2350 SDIO.
 
 This example requires a SDIO Card socket with the following six lines.
 
-CLK - A clock signal sent to the card by the MCU.
-CMD - A bidirectional line for for commands and responses.
-DAT[0:3] - Four bidirectional lines for data transfer.
-
+* CLK - A clock signal sent to the card by the MCU.
+* CMD - A bidirectional line for for commands and responses.
+* DAT[0:3] - Four bidirectional lines for data transfer.
 CLK and CMD can be connected to any GPIO pins. DAT[0:3] can be connected
 to any four consecutive GPIO pins in the order DAT0, DAT1, DAT2, DAT3.
 
