@@ -88,6 +88,20 @@ size_t FatFile::printCreateDateTime(print_t* pr) {
   return 0;
 }
 //------------------------------------------------------------------------------
+size_t FatFile::printCreateDateTimeSeconds(print_t* pr) {
+  uint32_t datetime;
+  uint16_t date;
+  uint16_t time;
+  uint8_t seconds;
+  int8_t tz = 8;
+
+  if (getCreateDateTimeSeconds(&date, &time, &seconds)) {
+    datetime = date+time;
+    return fsPrintDateTime(pr, datetime, seconds, tz);
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
 size_t FatFile::printModifyDateTime(print_t* pr) {
   uint16_t date;
   uint16_t time;

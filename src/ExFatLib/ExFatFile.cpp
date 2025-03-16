@@ -165,6 +165,22 @@ fail:
   return false;
 }
 //------------------------------------------------------------------------------
+bool ExFatFile::getCreateDateTimeSeconds(uint16_t* pdate, uint16_t* ptime, uint8_t* pseconds) {
+  DirFile_t* df = reinterpret_cast<DirFile_t*>(
+      m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
+  if (!df) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *pdate = getLe16(df->createDate);
+  *ptime = getLe16(df->createTime);
+  *pseconds = df->createTimeMs;
+  return true;
+
+fail:
+  return false;
+}
+//------------------------------------------------------------------------------
 bool ExFatFile::getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
   const DirFile_t* df = reinterpret_cast<DirFile_t*>(
       m_vol->dirCache(&m_dirPos, FsCache::CACHE_FOR_READ));
