@@ -208,7 +208,7 @@ class ExFatFile {
   /** \return Directory entry index. */
   uint32_t dirIndex() const { return m_dirPos.position / FS_DIR_SIZE; }
   /** \return The first cluster number for a file or directory. */
-  Cluster_t firstCluster() const { return m_firstCluster; }
+  uint32_t firstCluster() const { return m_firstCluster; }
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.
@@ -253,7 +253,7 @@ class ExFatFile {
   /** \return The total number of bytes in a file. */
   uint64_t fileSize() const { return m_dataLength; }
   /** \return Address of first sector or zero for empty file. */
-  Sector_t firstSector() const;
+  uint32_t firstSector() const;
   /** Set position for streams
    * \param[in] pos struct with value for new position
    */

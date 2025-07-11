@@ -237,7 +237,7 @@ uint32_t FatFile::dirSize() {
   return 512UL * n;
 }
 //------------------------------------------------------------------------------
-int FatFile::fgets(char* str, int num, char* delim) {
+int FatFile::fgets(char* str, int num, const char* delim) {
   char ch;
   int n = 0;
   int r = -1;

@@ -98,7 +98,7 @@ void ExFatFile::fgetpos(fspos_t* pos) const {
   pos->cluster = m_curCluster;
 }
 //------------------------------------------------------------------------------
-int ExFatFile::fgets(char* str, int num, char* delim) {
+int ExFatFile::fgets(char* str, int num, const char* delim) {
   char ch;
   int n = 0;
   int r = -1;

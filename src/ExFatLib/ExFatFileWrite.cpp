@@ -603,7 +603,7 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
   uint8_t* cache;
   uint8_t cacheOption;
   uint16_t sectorOffset;
-  Sector_t sector;
+  uint32_t sector;
   uint32_t clusterOffset;
   uint64_t toFill = 0;
   size_t toWrite = nbyte;

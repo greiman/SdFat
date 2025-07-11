@@ -247,13 +247,13 @@ class FsBaseFile {
     return m_fFile ? m_fFile->fileSize() : m_xFile ? m_xFile->fileSize() : 0;
   }
   /** \return The first cluster number for a file or directory. */
-  Cluster_t firstCluster() const {
+  uint32_t firstCluster() const {
     return m_fFile   ? m_fFile->firstCluster()
            : m_xFile ? m_xFile->firstCluster()
                      : 0;
   }
   /** \return Address of first sector or zero for empty file. */
-  Sector_t firstSector() const {
+  uint32_t firstSector() const {
     return m_fFile   ? m_fFile->firstSector()
            : m_xFile ? m_xFile->firstSector()
                      : 0;
