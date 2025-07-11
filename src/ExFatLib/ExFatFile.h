@@ -207,6 +207,8 @@ class ExFatFile {
   uint64_t dataLength() const { return m_dataLength; }
   /** \return Directory entry index. */
   uint32_t dirIndex() const { return m_dirPos.position / FS_DIR_SIZE; }
+  /** \return The first cluster number for a file or directory. */
+  Cluster_t firstCluster() const { return m_firstCluster; }
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.
@@ -247,11 +249,11 @@ class ExFatFile {
    * If no data is read, fgets() returns zero for EOF or -1 if an error
    * occurred.
    */
-  int fgets(char* str, int num, char* delim = nullptr);
+  int fgets(char* str, int num, const char* delim = nullptr);
   /** \return The total number of bytes in a file. */
-  uint64_t fileSize() const { return m_validLength; }
+  uint64_t fileSize() const { return m_dataLength; }
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector() const;
+  Sector_t firstSector() const;
   /** Set position for streams
    * \param[in] pos struct with value for new position
    */
@@ -713,7 +715,7 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool seekEnd(int64_t offset = 0) {
-    return isFile() ? seekSet(m_validLength + offset) : false;
+    return isFile() ? seekSet(m_dataLength + offset) : false;
   }
   /** Sets a file's position.
    *

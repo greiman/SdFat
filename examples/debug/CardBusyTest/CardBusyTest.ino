@@ -98,6 +98,8 @@ void loop() {
       maxWrite = m;
     }
   }
+  // Remove any extra space in the file.
+  file.truncate();
   file.close();
   ms = millis() - ms;
   Serial.println(F("\nTimes in micros"));

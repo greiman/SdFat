@@ -117,7 +117,7 @@ size_t ExFatFile::printCreateDateTime(print_t* pr) {
 }
 //------------------------------------------------------------------------------
 size_t ExFatFile::printFileSize(print_t* pr) {
-  uint64_t n = m_validLength;
+  uint64_t n = fileSize();
   char buf[21];
   char* str = &buf[sizeof(buf) - 1];
   char* bgn = str - 12;

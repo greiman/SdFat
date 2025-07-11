@@ -246,8 +246,14 @@ class FsBaseFile {
   uint64_t fileSize() const {
     return m_fFile ? m_fFile->fileSize() : m_xFile ? m_xFile->fileSize() : 0;
   }
+  /** \return The first cluster number for a file or directory. */
+  Cluster_t firstCluster() const {
+    return m_fFile   ? m_fFile->firstCluster()
+           : m_xFile ? m_xFile->firstCluster()
+                     : 0;
+  }
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector() const {
+  Sector_t firstSector() const {
     return m_fFile   ? m_fFile->firstSector()
            : m_xFile ? m_xFile->firstSector()
                      : 0;
@@ -875,6 +881,10 @@ class FsBaseFile {
     return m_fFile   ? length < (1ULL << 32) && m_fFile->truncate(length)
            : m_xFile ? m_xFile->truncate(length)
                      : false;
+  }
+  /** \return The valid number of bytes in a file. */
+  uint64_t validLength() const {
+    return m_fFile ? m_fFile->fileSize() : m_xFile ? m_xFile->validLength() : 0;
   }
   /** Write a string to a file. Used by the Arduino Print class.
    * \param[in] str Pointer to the string.

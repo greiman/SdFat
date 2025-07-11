@@ -588,8 +588,8 @@ bool ExFatFile::truncate() {
       }
     }
   }
+  m_validLength = m_curPosition > m_validLength ? m_validLength : m_curPosition;
   m_dataLength = m_curPosition;
-  m_validLength = m_curPosition;
   m_flags |= FILE_FLAG_DIR_DIRTY;
   return sync();
 
@@ -603,12 +603,12 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
   uint8_t* cache;
   uint8_t cacheOption;
   uint16_t sectorOffset;
-  uint32_t sector;
+  Sector_t sector;
   uint32_t clusterOffset;
-
-  // number of bytes left to write  -  must be before goto statements
+  uint64_t toFill = 0;
   size_t toWrite = nbyte;
   size_t n;
+
   // error if not an open file or is read-only
   if (!isWritable()) {
     DBG_FAIL_MACRO;
@@ -616,7 +616,14 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
   }
   // seek to end of file if append flag
   if ((m_flags & FILE_FLAG_APPEND)) {
-    if (!seekSet(m_validLength)) {
+    if (!seekSet(m_dataLength)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+  }
+  if (m_curPosition > m_validLength) {
+    toFill = m_curPosition - m_validLength;
+     if (!seekSet(m_validLength)) {
       DBG_FAIL_MACRO;
       goto fail;
     }
@@ -669,14 +676,10 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
     sector = m_vol->clusterStartSector(m_curCluster) +
              (clusterOffset >> m_vol->bytesPerSectorShift());
 
-    if (sectorOffset != 0 || toWrite < m_vol->bytesPerSector()) {
+    if (sectorOffset != 0 || toWrite < m_vol->bytesPerSector() || toFill) {
       // partial sector - must use cache
       // max space in sector
       n = m_vol->bytesPerSector() - sectorOffset;
-      // lesser of space and amount to write
-      if (n > toWrite) {
-        n = toWrite;
-      }
 
       if (sectorOffset == 0 && m_curPosition >= m_validLength) {
         // start of new sector don't need to read into cache
@@ -691,7 +694,18 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
         goto fail;
       }
       uint8_t* dst = cache + sectorOffset;
-      memcpy(dst, src, n);
+
+      if (toFill) {
+        if (n > toFill) {
+          n = toFill;
+        }
+        memset(dst, 0, n);
+      } else {
+        if (n > toWrite) {
+          n = toWrite;
+        }
+        memcpy(dst, src, n);
+      }
       if (m_vol->bytesPerSector() == (n + sectorOffset)) {
         // Force write if sector is full - improves large writes.
         if (!m_vol->dataCacheSync()) {
@@ -723,8 +737,12 @@ size_t ExFatFile::write(const void* buf, size_t nbyte) {
       }
     }
     m_curPosition += n;
-    src += n;
-    toWrite -= n;
+    if (toFill) {
+      toFill -= n;
+    } else {
+      src += n;
+      toWrite -= n;
+    }
     if (m_curPosition > m_validLength) {
       m_flags |= FILE_FLAG_DIR_DIRTY;
       m_validLength = m_curPosition;

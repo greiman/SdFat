@@ -399,14 +399,14 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   }
 }
 //------------------------------------------------------------------------------
-void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
-  uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
+void ExFatPartition::dmpSector(print_t* pr, Sector_t sector, uint8_t w) {
+  const uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("dmpSector failed"));
     return;
   }
   for (uint16_t i = 0; i < m_bytesPerSector; i++) {
-    if (i % 32 == 0) {
+    if (i % w == 0) {
       if (i) {
         pr->println();
       }
