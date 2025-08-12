@@ -1,7 +1,9 @@
 /*
  * This program is a simple binary write/read benchmark.
  */
+#ifndef DISABLE_FS_H_WARNING
 #define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#endif                        // DISABLE_FS_H_WARNING
 #include "SdFat.h"
 #include "FreeStack.h"
 #include "sdios.h"
@@ -11,12 +13,12 @@
 #if defined __has_include
 #if __has_include(<FS.h>)
 #define SD_FAT_TYPE 3  // Can't use SdFat/File
-#endif  // __has_include(<FS.h>)
-#endif  // defined __has_include
+#endif                 // __has_include(<FS.h>)
+#endif                 // defined __has_include
 
 #ifndef SD_FAT_TYPE
 #define SD_FAT_TYPE 0  // Use SdFat/File
-#endif  // SD_FAT_TYPE
+#endif                 // SD_FAT_TYPE
 /*
   Change the value of SD_CS_PIN if you are using SPI and
   your hardware does not use the default value, SS.
@@ -36,19 +38,17 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
 #define SPI_CLOCK SD_SCK_MHZ(50)
 
-// Example SDIO definition for RP2040/RP2350. See the Rp2040SdioSetup example.
-#if defined(ARDUINO_ADAFRUIT_METRO_RP2040) && !defined(RP_CLK_GPIO)
-#define RP_CLK_GPIO 18
-#define RP_CMD_GPIO 19
-#define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
-#endif  // defined(ARDUINO_ADAFRUIT_METRO_RP2040)
 
 // Try to select the best SD card configuration.
 #if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
-// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
-#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
+#elif defined(HAS_BUILTIN_PIO_SDIO)
+// See the Rp2040SdioSetup example for boards without a builtin SDIO socket.
+#define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
+// Definitions for my Pico debug tests when zero and // are removed.
+#elif 0  // defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO_2)
+// CLK: GPIO10, CMD: GPIO11, DAT[0,3]: GPIO[12, 15].
+#define SD_CONFIG SdioConfig(10u, 11u, 12u)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_TEENSY_SDIO
@@ -73,11 +73,14 @@ const uint8_t WRITE_COUNT = 2;
 
 // Read pass count.
 const uint8_t READ_COUNT = 2;
+
+//  Full read verify - will require twice as much buffer memory.
+#define FULL_READ_VERIFY false
 //==============================================================================
 // End of configuration constants.
 //------------------------------------------------------------------------------
 // File size in bytes.
-const uint32_t FILE_SIZE = 1000000UL * FILE_SIZE_MB;
+const uint64_t FILE_SIZE = 1000000ULL * FILE_SIZE_MB;
 
 // Insure 4-byte alignment.
 uint32_t buf32[(BUF_SIZE + 3) / 4];
@@ -149,8 +152,8 @@ void setup() {
   }
   if (!SD_HAS_CUSTOM_SPI && !USE_SPI_ARRAY_TRANSFER && isSpi(SD_CONFIG)) {
     cout << F(
-          "\nSetting USE_SPI_ARRAY_TRANSFER nonzero in\n"
-          "SdFatConfig.h may improve SPI performance.\n");
+        "\nSetting USE_SPI_ARRAY_TRANSFER nonzero in\n"
+        "SdFatConfig.h may improve SPI performance.\n");
   }
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
@@ -246,16 +249,23 @@ void loop() {
     }
     file.sync();
     t = millis() - t;
+    // Remove any unused space in the file.
+    file.truncate();
     s = file.fileSize();
     cout << s / t << ',' << maxLatency << ',' << minLatency;
     cout << ',' << totalLatency / n << endl;
   }
+
   cout << endl << F("Starting read test, please wait.") << endl;
   cout << endl << F("read speed and latency") << endl;
   cout << F("speed,max,min,avg") << endl;
   cout << F("KB/Sec,usec,usec,usec") << endl;
 
   // do read test
+#if FULL_READ_VERIFY
+  uint8_t cmp[BUF_SIZE];
+  memcpy(cmp, buf, BUF_SIZE);
+#endif  // FULL_READ_VERIFY
   for (uint8_t nTest = 0; nTest < READ_COUNT; nTest++) {
     file.rewind();
     maxLatency = 0;
@@ -272,7 +282,11 @@ void loop() {
       }
       m = micros() - m;
       totalLatency += m;
+#if FULL_READ_VERIFY
+      if (memcmp(buf, cmp, BUF_SIZE)) {
+#else  // FULL_READ_VERIFY
       if (buf[BUF_SIZE - 1] != '\n') {
+ #endif  // FULL_READ_VERIFY
         error("data check error");
       }
       if (skipLatency) {

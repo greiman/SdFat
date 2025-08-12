@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,12 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef iostream_h
-#define iostream_h
 /**
  * \file
  * \brief \ref iostream class
  */
+#pragma once
 #include "istream.h"
 #include "ostream.h"
 /** Skip white space
@@ -154,4 +153,3 @@ inline istream &operator>>(istream &is, const setw &arg) {
  * \brief Input/Output stream
  */
 class iostream : public istream, public ostream {};
-#endif  // iostream_h

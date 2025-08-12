@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -26,8 +26,7 @@
  * \file
  * \brief FsBlockDeviceInterface include file.
  */
-#ifndef FsBlockDeviceInterface_h
-#define FsBlockDeviceInterface_h
+#pragma once
 #include <stddef.h>
 #include <stdint.h>
 /**
@@ -53,7 +52,7 @@ class FsBlockDeviceInterface {
    * \param[out] dst Pointer to the location that will receive the data.
    * \return true for success or false for failure.
    */
-  virtual bool readSector(uint32_t sector, uint8_t* dst) = 0;
+  virtual bool readSector(Sector_t sector, uint8_t* dst) = 0;
 
   /**
    * Read multiple sectors.
@@ -63,10 +62,10 @@ class FsBlockDeviceInterface {
    * \param[out] dst Pointer to the location that will receive the data.
    * \return true for success or false for failure.
    */
-  virtual bool readSectors(uint32_t sector, uint8_t* dst, size_t ns) = 0;
+  virtual bool readSectors(Sector_t sector, uint8_t* dst, size_t ns) = 0;
 
   /** \return device size in sectors. */
-  virtual uint32_t sectorCount() = 0;
+  virtual Sector_t sectorCount() = 0;
 
   /** End multi-sector transfer and go to idle state.
    * \return true for success or false for failure.
@@ -80,7 +79,7 @@ class FsBlockDeviceInterface {
    * \param[in] src Pointer to the location of the data to be written.
    * \return true for success or false for failure.
    */
-  virtual bool writeSector(uint32_t sector, const uint8_t* src) = 0;
+  virtual bool writeSector(Sector_t sector, const uint8_t* src) = 0;
 
   /**
    * Write multiple sectors.
@@ -90,6 +89,5 @@ class FsBlockDeviceInterface {
    * \param[in] src Pointer to the location of the data to be written.
    * \return true for success or false for failure.
    */
-  virtual bool writeSectors(uint32_t sector, const uint8_t* src, size_t ns) = 0;
+  virtual bool writeSectors(Sector_t sector, const uint8_t* src, size_t ns) = 0;
 };
-#endif  // FsBlockDeviceInterface_h

@@ -1,16 +1,39 @@
 ### Warning: This version has major internal changes.
+SdFat version 2.3.1 corrects handling of the exFAT fields validLength
+and dataLength.
 
-SdFat version 2.3.0 has major changes to implement RP2040/RP2350 SDIO.
+In exFAT, validLength represents how far user data has been written and
+dataLength represents the total space allocated to the file.
 
-In addition there are number of bug fixes.
+These two fields are equal unless space has been preallocated. In the past, I
+returned EOF when a read hit validLength and didn't allow seek beyond 
+validLength.  This does not conform to the exFat specification here:
 
-Begin by running the Rp2040SdioSetup example  to try RP2040/RP2350 SDIO.
+https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification
+
+Now read will return zeroes beyond validLength and EOF at dataLength.  If a
+file is positioned beyond validLength, write will fill the area between
+validLength and the current position with zeroes and then write user data.
+
+If you are preallocating space with the preAllocate() call, you should remove
+unused space with the truncate() call so applications do not read zeroes
+beyond validLength.
+
+Support has been added for the SDIO on RP2350B QFN-80 with 48 GPIO pins.
+Each PIO block is still limited to 32 GPIOs at a time, but GPIOBASE
+selects which 32. 
+
+GPIOBASE can only have value of zero or 16 so all SDIO pins must be in the 
+range 0-31 or 16-47.
+
+Run the Rp2040SdioSetup example to try RP2040/RP2350 SDIO.
 
 This example requires a SDIO Card socket with the following six lines.
 
 * CLK - A clock signal sent to the card by the MCU.
 * CMD - A bidirectional line for for commands and responses.
 * DAT[0:3] - Four bidirectional lines for data transfer.
+
 CLK and CMD can be connected to any GPIO pins. DAT[0:3] can be connected
 to any four consecutive GPIO pins in the order DAT0, DAT1, DAT2, DAT3.
 

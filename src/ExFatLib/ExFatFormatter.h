@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -45,10 +45,10 @@ class ExFatFormatter {
 
  private:
   bool syncUpcase();
-  bool writeUpcase(uint32_t sector);
+  bool writeUpcase(Sector_t sector);
   bool writeUpcaseByte(uint8_t b);
   bool writeUpcaseUnicode(uint16_t unicode);
-  uint32_t m_upcaseSector;
+  Sector_t m_upcaseSector;
   uint32_t m_upcaseChecksum;
   uint32_t m_upcaseSize;
   FsBlockDevice* m_dev;

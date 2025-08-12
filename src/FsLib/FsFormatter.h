@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsFormatter_h
-#define FsFormatter_h
+#pragma once
 #include "ExFatLib/ExFatLib.h"
 #include "FatLib/FatLib.h"
 /**
@@ -44,7 +43,7 @@ class FsFormatter {
    * \return true for success or false for failure.
    */
   bool format(FsBlockDevice* dev, uint8_t* secBuffer, print_t* pr = nullptr) {
-    uint32_t sectorCount = dev->sectorCount();
+    Sector_t sectorCount = dev->sectorCount();
     if (sectorCount == 0) {
       return false;
     }
@@ -56,4 +55,3 @@ class FsFormatter {
   FatFormatter m_fFmt;
   ExFatFormatter m_xFmt;
 };
-#endif  // FsFormatter_h

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -168,13 +168,13 @@ class FsBaseFile {
    *
    * \return true for success or false for failure.
    */
-  bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector) {
+  bool contiguousRange(Sector_t* bgnSector, Sector_t* endSector) {
     return m_fFile   ? m_fFile->contiguousRange(bgnSector, endSector)
            : m_xFile ? m_xFile->contiguousRange(bgnSector, endSector)
                      : false;
   }
   /** \return The current cluster number for a file or directory. */
-  uint32_t curCluster() const {
+  Cluster_t curCluster() const {
     return m_fFile   ? m_fFile->curCluster()
            : m_xFile ? m_xFile->curCluster()
                      : 0;
@@ -246,8 +246,14 @@ class FsBaseFile {
   uint64_t fileSize() const {
     return m_fFile ? m_fFile->fileSize() : m_xFile ? m_xFile->fileSize() : 0;
   }
+  /** \return The first cluster number for a file or directory. */
+  Cluster_t firstCluster() const {
+    return m_fFile   ? m_fFile->firstCluster()
+           : m_xFile ? m_xFile->firstCluster()
+                     : 0;
+  }
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector() const {
+  Sector_t firstSector() const {
     return m_fFile   ? m_fFile->firstSector()
            : m_xFile ? m_xFile->firstSector()
                      : 0;
@@ -790,7 +796,8 @@ class FsBaseFile {
    * \return true for success or false for failure.
    */
   bool seekSet(uint64_t pos) {
-    return m_fFile   ? pos < (1ULL << 32) && m_fFile->seekSet((uint32_t)pos)
+    return m_fFile ? pos < (1ULL << 32) &&
+                         m_fFile->seekSet(static_cast<uint32_t>(pos))
            : m_xFile ? m_xFile->seekSet(pos)
                      : false;
   }
@@ -813,7 +820,7 @@ class FsBaseFile {
    *
    * T_WRITE - Set the file's last write/modification date and time.
    *
-   * \param[in] year Valid range 1980 - 2107 inclusive.
+   * \param[in] year Valid range 1980 - 2099 inclusive.
    *
    * \param[in] month Valid range 1 - 12 inclusive.
    *
@@ -863,6 +870,10 @@ class FsBaseFile {
            : m_xFile ? m_xFile->truncate(length)
                      : false;
   }
+  /** \return The valid number of bytes in a file. */
+  uint64_t validLength() const {
+    return m_fFile ? m_fFile->fileSize() : m_xFile ? m_xFile->validLength() : 0;
+  }
   /** Write a string to a file. Used by the Arduino Print class.
    * \param[in] str Pointer to the string.
    * Use getWriteError to check for errors.
@@ -904,6 +915,12 @@ class FsBaseFile {
  */
 class FsFile : public StreamFile<FsBaseFile, uint64_t> {
  public:
+  FsFile() {}
+  /** Create an open FsFile.
+   * \param[in] path path for file.
+   * \param[in] oflag open flags.
+   */
+  FsFile(const char* path, oflag_t oflag) { open(path, oflag); }
   /** Opens the next file or folder in a directory.
    *
    * \param[in] oflag open flags.

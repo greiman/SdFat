@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef istream_h
-#define istream_h
+#pragma once
 /**
  * \file
  * \brief \ref istream class
@@ -341,7 +340,7 @@ class istream : public virtual ios {
    */
   virtual bool seekoff(off_type off, seekdir way) = 0;
   virtual bool seekpos(pos_type pos) = 0;
-  virtual void setpos(pos_t* pos) = 0;
+  virtual void setpos(const pos_t* pos) = 0;
   virtual pos_type tellpos() = 0;
 
   /// @endcond
@@ -363,7 +362,7 @@ void istream::getNumber(T* value) {
   uint32_t tmp;
   if ((T)-1 < 0) {
     // number is signed, max positive value
-    uint32_t const m = ((uint32_t)-1) >> (33 - sizeof(T) * 8);
+    uint32_t const m = (static_cast<uint32_t>(-1)) >> (33 - sizeof(T) * 8);
     // max absolute value of negative number is m + 1.
     if (getNumber(m, m + 1, &tmp)) {
       *value = (T)tmp;
@@ -376,4 +375,3 @@ void istream::getNumber(T* value) {
     }
   }
 }
-#endif  // istream_h

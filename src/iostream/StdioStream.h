@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -503,7 +503,7 @@ class StdioStream : private StreamBaseFile {
    * \param[in] n number to be print.
    * \return The number of bytes written or -1 if an error occurs.
    */
-  int printDec(unsigned char n) { return printDec((uint16_t)n); }
+  int printDec(unsigned char n) { return printDec(static_cast<uint16_t>(n)); }
   //----------------------------------------------------------------------------
   /** Print a int16_t
    * \param[in] n number to be printed.

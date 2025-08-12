@@ -31,7 +31,7 @@ void writeTestFile() {
 //------------------------------------------------------------------------------
 void calcAverage() {
   uint16_t n = 0;  // count of input numbers
-  double num;      // current input number
+  double num = 0;      // current input number
   double sum = 0;  // sum of input numbers
 
   // open the input file

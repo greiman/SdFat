@@ -9,8 +9,8 @@
 const uint8_t SD_CS_PIN = SS;
 
 SdFat sd;
-SdFile file;
-SdFile dirFile;
+File file;
+File dirFile;
 
 // Number of files found.
 uint16_t n = 0;

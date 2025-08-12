@@ -100,7 +100,7 @@ void setup() {
   sd1.chvol();
 
   // create or open /Dir1/test.bin and truncate it to zero length
-  SdFile file1;
+  File file1;
   if (!file1.open("test.bin", O_RDWR | O_CREAT | O_TRUNC)) {
     sd1.errorExit("file1");
   }
@@ -116,7 +116,7 @@ void setup() {
   sd2.chvol();
 
   // create or open /Dir2/copy.bin and truncate it to zero length
-  SdFile file2;
+  File file2;
   if (!file2.open("copy.bin", O_WRONLY | O_CREAT | O_TRUNC)) {
     sd2.errorExit("file2");
   }

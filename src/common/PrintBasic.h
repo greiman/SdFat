@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef PrintBasic_h
-#define PrintBasic_h
+#pragma once
 /**
  * \file
  * \brief Stream/Print like replacement for non-Arduino systems.
@@ -33,7 +32,6 @@
 #include <string.h>
 
 #include "../SdFatConfig.h"
-
 #ifndef F
 #if defined(__AVR__)
 #include <avr/pgmspace.h>
@@ -44,7 +42,6 @@ class __FlashStringHelper;
 #define F(str) (str)
 #endif  // defined(__AVR__)
 #endif  // F
-
 #ifdef BIN
 #undef BIN
 #endif  // BIN
@@ -59,6 +56,7 @@ class PrintBasic {
 
   void clearWriteError() { setWriteError(0); }
   int getWriteError() { return m_error; }
+  virtual void flush() { /* Empty implementation for backward compatibility */ }
   size_t print(char c) { return write(c); }
   size_t print(const char *str) { return write(str); }
   size_t print(const __FlashStringHelper *str) {
@@ -145,4 +143,3 @@ class StreamBasic : public PrintBasic {
   virtual int peek() = 0;
   virtual int read() = 0;
 };
-#endif  // PrintBasic_h

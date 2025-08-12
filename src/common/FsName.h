@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsName_h
-#define FsName_h
+#pragma once
 #include <stdint.h>
 
 #include "SysCall.h"
@@ -62,4 +61,3 @@ class FsName {
   uint16_t get16();
 #endif  // !USE_UTF8_LONG_NAMES
 };
-#endif  // FsName_h

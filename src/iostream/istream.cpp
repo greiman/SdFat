@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -129,14 +129,14 @@ void istream::getChar(char* ch) {
 // http://www.exploringbinary.com/category/numbers-in-computers/
 //
 int16_t const EXP_LIMIT = 100;
-static const uint32_t uint32_max = (uint32_t)-1;
+static const uint32_t uint32_max = static_cast<uint32_t>(-1);
 bool istream::getDouble(double* value) {
   bool got_digit = false;
   bool got_dot = false;
   bool neg;
   int16_t c;
   bool expNeg = false;
-  int16_t exp = 0;
+  int16_t exponet = 0;
   int16_t fracExp = 0;
   uint32_t frac = 0;
   pos_t endPos;
@@ -182,22 +182,22 @@ bool istream::getDouble(double* value) {
       c = getch();
     }
     while (isdigit(c)) {
-      if (exp > EXP_LIMIT) {
+      if (exponet > EXP_LIMIT) {
         goto fail;
       }
-      exp = exp * 10 + (c - '0');
+      exponet = exponet * 10 + (c - '0');
       c = getch(&endPos);
     }
   }
   v = static_cast<double>(frac);
-  exp = expNeg ? fracExp - exp : fracExp + exp;
-  expNeg = exp < 0;
+  exponet = expNeg ? fracExp - exponet : fracExp + exponet;
+  expNeg = exponet < 0;
   if (expNeg) {
-    exp = -exp;
+    exponet = -exponet;
   }
   pow10 = 10.0;
-  while (exp) {
-    if (exp & 1) {
+  while (exponet) {
+    if (exponet & 1) {
       if (expNeg) {
         // check for underflow
         if (v < DBL_MIN * pow10 && frac != 0) {
@@ -213,7 +213,7 @@ bool istream::getDouble(double* value) {
       }
     }
     pow10 *= pow10;
-    exp >>= 1;
+    exponet >>= 1;
   }
   setpos(&endPos);
   *value = neg ? -v : v;

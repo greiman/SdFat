@@ -4,6 +4,9 @@
 // it has only been tested on Teensy 3.6 and 4.1.
 // You should modify it for serious use as a data logger.
 //
+#ifndef DISABLE_FS_H_WARNING
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#endif    
 #include "ADC.h"
 #include "DMAChannel.h"
 #include "SdFat.h"
@@ -163,7 +166,7 @@ void runTest(uint8_t pin) {
   if (overrun) {
     Serial.println("Overrun ERROR!!");
   }
-  Serial.print("dmsCount ");
+  Serial.print("dmaCount ");
   Serial.println(dmaCount);
   Serial.print("RingBufSize ");
   Serial.println(RING_BUF_SIZE);

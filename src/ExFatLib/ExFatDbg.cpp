@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -72,7 +72,7 @@ static void printDateTime(print_t* pr, uint32_t timeDate, uint8_t ms,
   pr->println();
 }
 //------------------------------------------------------------------------------
-static void printDirBitmap(print_t* pr, DirBitmap_t* dir) {
+static void printDirBitmap(print_t* pr, const DirBitmap_t* dir) {
   pr->print(F("dirBitmap: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("flags: 0x"));
@@ -83,7 +83,7 @@ static void printDirBitmap(print_t* pr, DirBitmap_t* dir) {
   println64(pr, getLe64(dir->size));
 }
 //------------------------------------------------------------------------------
-static void printDirFile(print_t* pr, DirFile_t* dir) {
+static void printDirFile(print_t* pr, const DirFile_t* dir) {
   pr->print(F("dirFile: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("setCount: "));
@@ -102,7 +102,7 @@ static void printDirFile(print_t* pr, DirFile_t* dir) {
   printDateTime(pr, getLe32(dir->accessTime), 0, dir->accessTimezone);
 }
 //------------------------------------------------------------------------------
-static void printDirLabel(print_t* pr, DirLabel_t* dir) {
+static void printDirLabel(print_t* pr, const DirLabel_t* dir) {
   pr->print(F("dirLabel: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("labelLength: "));
@@ -114,7 +114,7 @@ static void printDirLabel(print_t* pr, DirLabel_t* dir) {
   pr->println();
 }
 //------------------------------------------------------------------------------
-static void printDirName(print_t* pr, DirName_t* dir) {
+static void printDirName(print_t* pr, const DirName_t* dir) {
   pr->print(F("dirName: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("unicode: "));
@@ -132,7 +132,7 @@ static void printDirName(print_t* pr, DirName_t* dir) {
   pr->println();
 }
 //------------------------------------------------------------------------------
-static void printDirStream(print_t* pr, DirStream_t* dir) {
+static void printDirStream(print_t* pr, const DirStream_t* dir) {
   pr->print(F("dirStream: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("flags: 0x"));
@@ -149,7 +149,7 @@ static void printDirStream(print_t* pr, DirStream_t* dir) {
   println64(pr, getLe64(dir->dataLength));
 }
 //------------------------------------------------------------------------------
-static void printDirUpcase(print_t* pr, DirUpcase_t* dir) {
+static void printDirUpcase(print_t* pr, const DirUpcase_t* dir) {
   pr->print(F("dirUpcase: 0x"));
   pr->println(dir->type, HEX);
   pr->print(F("checksum: 0x"));
@@ -161,7 +161,7 @@ static void printDirUpcase(print_t* pr, DirUpcase_t* dir) {
 }
 //------------------------------------------------------------------------------
 static void printExFatBoot(print_t* pr, pbs_t* pbs) {
-  BpbExFat_t* ebs = reinterpret_cast<BpbExFat_t*>(pbs->bpb);
+  const BpbExFat_t* ebs = reinterpret_cast<BpbExFat_t*>(pbs->bpb);
   pr->print(F("bpbSig: 0x"));
   pr->println(getLe16(pbs->signature), HEX);
   pr->print(F("FileSystemName: "));
@@ -282,7 +282,7 @@ static void printMbr(print_t* pr, const MbrSector_t* mbr) {
       printHex(pr, mbr->part[i].endCHS[k]);
       pr->write(' ');
     }
-    pr->print(getLe32(mbr->part[i].relativeSectors), HEX);
+    pr->print(getLe32(mbr->part[i].startSector), HEX);
     pr->print(' ');
     pr->println(getLe32(mbr->part[i].totalSectors), HEX);
   }
@@ -293,7 +293,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
   uint16_t u = 0;
   uint8_t* upcase = nullptr;
   uint32_t size = 0;
-  uint32_t sector = clusterStartSector(m_rootDirectoryCluster);
+  Sector_t sector = clusterStartSector(m_rootDirectoryCluster);
   uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("read root failed"));
@@ -334,7 +334,7 @@ void ExFatPartition::checkUpcase(print_t* pr) {
       for (uint16_t k = 0; k < v; k++) {
         uint16_t x = toUpcase(u + k);
         if (x != (u + k)) {
-          printHex(pr, (uint16_t)(u + k));
+          printHex(pr, static_cast<uint16_t>(u + k));
           pr->write(',');
           printHex(pr, x);
           pr->println("<<<<<<<<<<<<<<<<<<<<");
@@ -363,9 +363,9 @@ void ExFatPartition::dmpBitmap(print_t* pr) {
   dmpSector(pr, m_clusterHeapStartSector);
 }
 //------------------------------------------------------------------------------
-void ExFatPartition::dmpCluster(print_t* pr, uint32_t cluster, uint32_t offset,
+void ExFatPartition::dmpCluster(print_t* pr, Cluster_t cluster, uint32_t offset,
                                 uint32_t count) {
-  uint32_t sector = clusterStartSector(cluster) + offset;
+  Sector_t sector = clusterStartSector(cluster) + offset;
   for (uint32_t i = 0; i < count; i++) {
     pr->print(F("\nSector: "));
     pr->println(sector + i, HEX);
@@ -374,8 +374,8 @@ void ExFatPartition::dmpCluster(print_t* pr, uint32_t cluster, uint32_t offset,
 }
 //------------------------------------------------------------------------------
 void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
-  uint32_t sector = m_fatStartSector + start;
-  uint32_t cluster = 128 * start;
+  Sector_t sector = m_fatStartSector + start;
+  Cluster_t cluster = 128 * start;
   pr->println(F("FAT:"));
   for (uint32_t i = 0; i < count; i++) {
     uint8_t* cache = dataCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
@@ -399,14 +399,14 @@ void ExFatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   }
 }
 //------------------------------------------------------------------------------
-void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
+void ExFatPartition::dmpSector(print_t* pr, Sector_t sector, uint8_t w) {
   const uint8_t* cache = dataCachePrepare(sector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("dmpSector failed"));
     return;
   }
   for (uint16_t i = 0; i < m_bytesPerSector; i++) {
-    if (i % 32 == 0) {
+    if (i % w == 0) {
       if (i) {
         pr->println();
       }
@@ -420,9 +420,9 @@ void ExFatPartition::dmpSector(print_t* pr, uint32_t sector) {
 //------------------------------------------------------------------------------
 bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
   DirGeneric_t* dir = nullptr;
-  DirFile_t* dirFile;
-  DirStream_t* dirStream;
-  DirName_t* dirName;
+  const DirFile_t* dirFile;
+  const DirStream_t* dirStream;
+  const DirName_t* dirName;
   uint16_t calcHash = 0;
   uint16_t nameHash = 0;
   uint16_t setChecksum = 0;
@@ -442,7 +442,7 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
 #else   // RAW_ROOT
   (void)file;
   uint32_t nDir = 1UL << (m_sectorsPerClusterShift + 4);
-  uint32_t sector = clusterStartSector(m_rootDirectoryCluster);
+  Sector_t sector = clusterStartSector(m_rootDirectoryCluster);
   for (uint32_t iDir = 0; iDir < nDir; iDir++) {
     size_t i = iDir % 16;
     if (i == 0) {
@@ -535,9 +535,9 @@ bool ExFatPartition::printDir(print_t* pr, ExFatFile* file) {
 }
 //------------------------------------------------------------------------------
 void ExFatPartition::printFat(print_t* pr) {
-  uint32_t next;
+  Cluster_t next;
   pr->println(F("FAT:"));
-  for (uint32_t cluster = 0; cluster < 16; cluster++) {
+  for (Cluster_t cluster = 0; cluster < 16; cluster++) {
     int8_t status = fatGet(cluster, &next);
     pr->print(cluster, HEX);
     pr->write(' ');
@@ -550,7 +550,7 @@ void ExFatPartition::printFat(print_t* pr) {
 //------------------------------------------------------------------------------
 void ExFatPartition::printUpcase(print_t* pr) {
   uint8_t* upcase = nullptr;
-  uint32_t sector;
+  Sector_t sector;
   uint32_t size = 0;
   uint32_t checksum = 0;
   const DirUpcase_t* dir;
@@ -603,13 +603,13 @@ bool ExFatPartition::printVolInfo(print_t* pr) {
   }
   const MbrSector_t* mbr = reinterpret_cast<MbrSector_t*>(cache);
   printMbr(pr, mbr);
-  uint32_t volStart = getLe32(mbr->part->relativeSectors);
-  uint32_t volSize = getLe32(mbr->part->totalSectors);
+  Sector_t startSector = getLe32(mbr->part->startSector);
+  Sector_t volSize = getLe32(mbr->part->totalSectors);
   if (volSize == 0) {
     pr->print(F("bad partition size"));
     return false;
   }
-  cache = dataCachePrepare(volStart, FsCache::CACHE_FOR_READ);
+  cache = dataCachePrepare(startSector, FsCache::CACHE_FOR_READ);
   if (!cache) {
     pr->println(F("read pbs failed"));
     return false;

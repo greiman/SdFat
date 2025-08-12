@@ -17,7 +17,7 @@ void demoFgets() {
   char line[25];
   int n;
   // open test file
-  SdFile rdfile("fgets.txt", O_RDONLY);
+  File rdfile("fgets.txt", O_RDONLY);
 
   // check for open error
   if (!rdfile.isOpen()) {
@@ -41,7 +41,7 @@ void demoFgets() {
 //------------------------------------------------------------------------------
 void makeTestFile() {
   // create or open test file
-  SdFile wrfile("fgets.txt", O_WRONLY | O_CREAT | O_TRUNC);
+  File wrfile("fgets.txt", O_WRONLY | O_CREAT | O_TRUNC);
 
   // check for open error
   if (!wrfile.isOpen()) {

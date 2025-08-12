@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -239,7 +239,7 @@ bool FatFile::makeUniqueSfn(FatLfn_t* fname) {
     fname->sfn[pos] = '~';
     rewind();
     while (1) {
-      dir = readDirCache(true);
+      dir = readDirCache();
       if (!dir) {
         if (!getError()) {
           // At EOF and name not found if no error.

@@ -124,6 +124,7 @@ void logData() {
   Serial.print("minSpareMicros: ");
   Serial.println(minSpareMicros);
   file.close();
+  sd.end();
 }
 void clearSerialInput() {
   for (uint32_t m = micros(); micros() - m < 10000;) {

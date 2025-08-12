@@ -1,4 +1,4 @@
-// RP2040 PIO SDIO setup and test.
+// RP2040/RP2350 PIO SDIO setup and test.
 /*
 This example requires a SDIO Card socket with the following six lines.
 
@@ -9,10 +9,17 @@ DAT[0:3] - Four bidirectional lines for data transfer.
 CLK and CMD can be connected to any GPIO pins. DAT[0:3] can be connected
 to any four consecutive GPIO pins in the order DAT0, DAT1, DAT2, DAT3.
 
-For testing, I use several RP2040/RP3350 boards.
-The Adafruit Metro RP2040 which has a builtin SDIO socket.
+For testing, I use several RP2040/RP2350 boards.
+
+These Adafruit boards have a builtin SDIO socket.
 
 https://learn.adafruit.com/adafruit-metro-rp2040
+
+https://learn.adafruit.com/adafruit-metro-rp2350
+
+https://learn.adafruit.com/adafruit-feather-rp2040-adalogger
+
+The Feather RP2350 Adalogger is coming soon.
 
 I use this SD socket breakout board for other boards.
 
@@ -20,31 +27,26 @@ https://learn.adafruit.com/adafruit-microsd-spi-sdio
 
 Wires should be short since signals can be as faster than 50 MHz.
 */
+#ifndef DISABLE_FS_H_WARNING
 #define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#endif                        // DISABLE_FS_H_WARNING
 #include "SdFat.h"
 //------------------------------------------------------------------------------
 // Example GPIO definitions I use for debug. Edit for your setup.
 // Run this example as is to print the symbol for your variant.
 //
-#if defined(ARDUINO_ADAFRUIT_METRO_RP2040)
-#define RP_CLK_GPIO 18
-#define RP_CMD_GPIO 19
-#define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
+#if defined(HAS_BUILTIN_PIO_SDIO)
+// Note: fourth paramter of SdioConfig is the PIO clkDiv with default 1.00.
+#define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
 #elif defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO_2)
-#define RP_CLK_GPIO 16
-#define RP_CMD_GPIO 17
-#define RP_DAT0_GPIO 18  // DAT1: GPIO19, DAT2: GPIO20, DAT3: GPIO21.
+// CLK: GPIO10, CMD: GPIO11, DAT[0,3]: GPIO[12, 15].
+#define SD_CONFIG SdioConfig(10u, 11u, 12u)
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2350_HSTX)
-#define RP_CLK_GPIO 11
-#define RP_CMD_GPIO 10
-#define RP_DAT0_GPIO 22  // DAT1: GPIO23, DAT2: GPIO24, DAT3: GPIO25.
-#endif // defined(ARDUINO_ADAFRUIT_METRO_RP2040))
-
-#if defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
-#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
-#else  // defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
+// CLK: GPIO10, CMD: GPIO11, DAT[0,3]: GPIO[22, 25].
+#define SD_CONFIG SdioConfig(10u, 11u, 22u)
+#else  // defined(ARDUINO_ARCH_RP2040)
 #warning "Undefined SD_CONFIG. Run this program for the Variant Symbol."
-#endif  // defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
+#endif  // defined(ARDUINO_ARCH_RP2040)
 //------------------------------------------------------------------------------
 // Class File is not defined by SdFat since the RP2040 system defines it.
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -72,11 +74,11 @@ void setup() {
   while (!Serial.available()) {
     yield();
   }
-  Serial.print("Variant Symbol: ");
-  Serial.print("ARDUINO_");
-  Serial.println(BOARD_NAME);
-  Serial.println();
+  Serial.printf("Variant Symbol: ARDUINO_%s\n\n", BOARD_NAME);
 #if defined(SD_CONFIG)
+  SdioConfig cfg = SD_CONFIG;
+  Serial.printf("clkPin: %d, cmdPin: %d, dat0Pin: %d, clkDiv: %4.2f\n",
+                cfg.clkPin(), cfg.cmdPin(), cfg.dat0Pin(), cfg.clkDiv());
   if (!sd.begin(SD_CONFIG)) {
     sd.initErrorHalt(&Serial);
   }
@@ -86,7 +88,7 @@ void setup() {
   Serial.println("\nDone! Try the bench example next.");
 #else  // #if defined(SD_CONFIG)
   Serial.println("Error: SD_CONFIG undefined for your board.");
-  Serial.println("Define RP_CLK_GPIO, RP_CMD_GPIO, and RP_DAT0_GPIO above.");
+  Serial.println("Define clkPin, cmdPin, and dat0Pin above.");
 #endif
 }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -27,8 +27,8 @@
 #include "../common/DebugMacros.h"
 #include "FatLib.h"
 //------------------------------------------------------------------------------
-bool FatPartition::allocateCluster(uint32_t current, uint32_t* next) {
-  uint32_t find;
+bool FatPartition::allocateCluster(Cluster_t current, Cluster_t* next) {
+  Cluster_t find;
   bool setStart;
   if (m_allocSearchStart < current) {
     // Try to keep file contiguous. Start just after current cluster.
@@ -89,13 +89,13 @@ fail:
 }
 //------------------------------------------------------------------------------
 // find a contiguous group of clusters
-bool FatPartition::allocContiguous(uint32_t count, uint32_t* firstCluster) {
+bool FatPartition::allocContiguous(uint32_t count, Cluster_t* firstCluster) {
   // flag to save place to start next search
   bool setStart = true;
   // start of group
-  uint32_t bgnCluster;
+  Cluster_t bgnCluster;
   // end of group
-  uint32_t endCluster;
+  Cluster_t endCluster;
   // Start at cluster after last allocated cluster.
   endCluster = bgnCluster = m_allocSearchStart + 1;
 
@@ -154,8 +154,8 @@ fail:
 }
 //------------------------------------------------------------------------------
 // Fetch a FAT entry - return -1 error, 0 EOC, else 1.
-int8_t FatPartition::fatGet(uint32_t cluster, uint32_t* value) {
-  uint32_t sector;
+int8_t FatPartition::fatGet(Cluster_t cluster, Cluster_t* value) {
+  Sector_t sector;
   uint32_t next;
   const uint8_t* pc;
 
@@ -221,8 +221,8 @@ fail:
 }
 //------------------------------------------------------------------------------
 // Store a FAT entry
-bool FatPartition::fatPut(uint32_t cluster, uint32_t value) {
-  uint32_t sector;
+bool FatPartition::fatPut(Cluster_t cluster, Cluster_t value) {
+  Sector_t sector;
   uint8_t* pc;
 
   // error if reserved cluster of beyond FAT
@@ -298,7 +298,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 // free a cluster chain
-bool FatPartition::freeChain(uint32_t cluster) {
+bool FatPartition::freeChain(Cluster_t cluster) {
   uint32_t next;
   int8_t fg;
   do {
@@ -333,7 +333,7 @@ int32_t FatPartition::freeClusterCount() {
   }
 #endif  // MAINTAIN_FREE_CLUSTER_COUNT
   uint32_t free = 0;
-  uint32_t sector;
+  Sector_t sector;
   uint32_t todo = m_lastCluster + 1;
   uint16_t n;
 
@@ -390,9 +390,10 @@ fail:
   return -1;
 }
 //------------------------------------------------------------------------------
-bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
-  uint32_t countOfClusters;
-  uint32_t totalSectors;
+bool FatPartition::init(FsBlockDevice* dev, uint8_t part,
+                        Sector_t startSector) {
+  Cluster_t countOfClusters;
+  Sector_t totalSectors;
   m_blockDev = dev;
   pbs_t* pbs;
   const BpbFat32_t* bpb;
@@ -422,19 +423,24 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
       DBG_FAIL_MACRO;
       goto fail;
     }
-    volStart = getLe32(mp->relativeSectors);
+    startSector = getLe32(mp->startSector);
   }
   pbs = reinterpret_cast<pbs_t*>(
-      dataCachePrepare(volStart, FsCache::CACHE_FOR_READ));
+      dataCachePrepare(startSector, FsCache::CACHE_FOR_READ));
   if (!pbs) {
     DBG_FAIL_MACRO;
     goto fail;
   }
   bpb = reinterpret_cast<BpbFat32_t*>(pbs->bpb);
-  if (bpb->fatCount != 2 || getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
+  if (getLe16(bpb->bytesPerSector) != m_bytesPerSector) {
     DBG_FAIL_MACRO;
     goto fail;
   }
+  if (bpb->fatCount != 1 && bpb->fatCount != 2) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  m_fatCount = bpb->fatCount;
   m_sectorsPerCluster = bpb->sectorsPerCluster;
   m_clusterSectorMask = m_sectorsPerCluster - 1;
   // determine shift that is same as multiply by m_sectorsPerCluster
@@ -450,13 +456,13 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
   if (m_sectorsPerFat == 0) {
     m_sectorsPerFat = getLe32(bpb->sectorsPerFat32);
   }
-  m_fatStartSector = volStart + getLe16(bpb->reservedSectorCount);
+  m_fatStartSector = startSector + getLe16(bpb->reservedSectorCount);
 
-  // count for FAT16 zero for FAT32
+  // count for FAT12/FAT16 zero for FAT32
   m_rootDirEntryCount = getLe16(bpb->rootDirEntryCount);
 
-  // directory start for FAT16 dataStart for FAT32
-  m_rootDirStart = m_fatStartSector + 2 * m_sectorsPerFat;
+  // directory start for FAT12/FAT16 dataStart for FAT32
+  m_rootDirStart = m_fatStartSector + m_fatCount * m_sectorsPerFat;
   // data start for FAT16 and FAT32
   m_dataStartSector =
       m_rootDirStart +
@@ -469,7 +475,7 @@ bool FatPartition::init(FsBlockDevice* dev, uint8_t part, uint32_t volStart) {
     totalSectors = getLe32(bpb->totalSectors32);
   }
   // total data sectors
-  countOfClusters = totalSectors - (m_dataStartSector - volStart);
+  countOfClusters = totalSectors - (m_dataStartSector - startSector);
 
   // divide by cluster size to get cluster count
   countOfClusters >>= m_sectorsPerClusterShift;

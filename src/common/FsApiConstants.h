@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsApiConstants_h
-#define FsApiConstants_h
+#pragma once
 #include "SysCall.h"
 #if USE_FCNTL_H
 #include <fcntl.h>
@@ -82,4 +81,3 @@ const uint8_t T_ACCESS = 1;
 const uint8_t T_CREATE = 2;
 /** Set the file's write date and time */
 const uint8_t T_WRITE = 4;
-#endif  // FsApiConstants_h

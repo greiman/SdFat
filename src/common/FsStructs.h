@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,16 +22,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsStructs_h
-#define FsStructs_h
+#pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 //------------------------------------------------------------------------------
 // See:
 // https://learn.microsoft.com/en-us/windows/win32/fileio/file-systems
 // https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification
 // https://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/fatgen103.doc
 // https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/FileIO/exfat-specification.md
+// https://uefi.org/specs/UEFI/2.10/05_GUID_Partition_Table_Format.html
+// https://en.wikipedia.org/wiki/File_Allocation_Table
+//------------------------------------------------------------------------------
+typedef uint32_t Cluster_t;
 //------------------------------------------------------------------------------
 void lbaToMbrChs(uint8_t* chs, uint32_t capacityMB, uint32_t lba);
 //------------------------------------------------------------------------------
@@ -57,17 +61,23 @@ inline void setLe64(uint8_t* dst, uint64_t src) {
 }
 #else   // USE_SIMPLE_LITTLE_ENDIAN
 inline uint16_t getLe16(const uint8_t* src) {
-  return (uint16_t)src[0] << 0 | (uint16_t)src[1] << 8;
+  return static_cast<uint16_t>(src[0]) << 0 | static_cast<uint16_t>(src[1])
+                                                  << 8;
 }
 inline uint32_t getLe32(const uint8_t* src) {
-  return (uint32_t)src[0] << 0 | (uint32_t)src[1] << 8 |
-         (uint32_t)src[2] << 16 | (uint32_t)src[3] << 24;
+  return static_cast<uint32_t>(src[0]) << 0 |
+         static_cast<uint32_t>(src[1]) << 8 |
+         static_cast<uint32_t>(src[2]) << 16 |
+         static_cast<uint32_t>(src[3]) << 24;
 }
 inline uint64_t getLe64(const uint8_t* src) {
-  return (uint64_t)src[0] << 0 | (uint64_t)src[1] << 8 |
-         (uint64_t)src[2] << 16 | (uint64_t)src[3] << 24 |
-         (uint64_t)src[4] << 32 | (uint64_t)src[5] << 40 |
-         (uint64_t)src[6] << 48 | (uint64_t)src[7] << 56;
+  return static_cast<uint64_t>(src[0]) << 0 |
+         static_cast<uint64_t>(src[1]) << 8 |
+         static_cast<uint64_t>(src[2]) << 16 |
+         static_cast<uint64_t>(src[3]) << 24 |
+         static_cast<uint64_t>(src[4]) << 32 |
+         static_cast<uint64_t>(src[5]) << 40 |
+         static_cast<uint64_t>(src[7]) << 56;
 }
 inline void setLe16(uint8_t* dst, uint16_t src) {
   dst[0] = src >> 0;
@@ -115,13 +125,18 @@ inline bool sfnReservedChar(uint8_t c) {
 //------------------------------------------------------------------------------
 const uint16_t MBR_SIGNATURE = 0xAA55;
 const uint16_t PBR_SIGNATURE = 0xAA55;
-
+const uint8_t MBR_TYPE_FAT12 = 0x01;   // FAT with 12-bit LBA.
+const uint8_t MBR_TYPE_FAT16 = 0x04;   // Original FAT16 with 16-bit LBA.
+const uint8_t MBR_TYPE_FAT16B = 0x06;  // Modern FAT16 with 32-bit LBA.
+const uint8_t MBR_TYPE_FAT32 = 0x0C;   // Modern FAT32 with 32-bit LBA.
+const uint8_t MBR_TYPE_EX_FAT = 0x07;  // NTFS or exFAT.
+const uint8_t MBR_TYPE_GPT = 0xEE;     // Protective MBR for GPT disk.
 typedef struct mbrPartition {
   uint8_t boot;
   uint8_t beginCHS[3];
   uint8_t type;
   uint8_t endCHS[3];
-  uint8_t relativeSectors[4];
+  uint8_t startSector[4];
   uint8_t totalSectors[4];
 } MbrPart_t;
 //------------------------------------------------------------------------------
@@ -130,6 +145,54 @@ typedef struct masterBootRecordSector {
   MbrPart_t part[4];
   uint8_t signature[2];
 } MbrSector_t;
+//------------------------------------------------------------------------------
+
+typedef struct GptHeader {
+  uint8_t signature[8];          // must contain the ASCII string “EFI PART”
+  uint8_t revision[4];           // The revision number for this header
+  uint8_t headerSize[4];         // Size in bytes of the GPT Header
+  uint8_t headerCRC32[4];        // CRC32 checksum for the GPT Header structure.
+  uint8_t reserved[4];           // Must be zero.
+  uint8_t myLBA[8];              // The LBA that contains this data structure.
+  uint8_t alternateLBA[8];       // LBA address of the alternate GPT Header.
+  uint8_t firstUsableLBA[8];     // The first usable LBA for a partition.
+  uint8_t lastUsableLBA[8];      // The last usable LBA for a partition.
+  uint8_t diskGUID[16];          // GUID that uniquely identify the disk.
+  uint8_t partitionEntryLBA[8];  // Starting LBA of Partition Entry array.
+  uint8_t numberOfPartitionEntries[4];  // The number of Partition Entries.
+  uint8_t sizeOfPartitionEntry[4];      // Size of GUID each Partition Entry.
+  uint8_t partitionEntryArrayCRC32;     // PartitionE ntryArrayCRC32.
+  // The rest of the block is reserved by UEFI and must be zero.
+  // Verify signature.
+  bool valid() { return memcmp(signature, "EFI PART", 8) == 0; }
+} GptHeader_t;
+//------------------------------------------------------------------------------
+// Microsoft basic data partition GUID: EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
+// partitionTypeGUID: A2 A0 D0 EB E5 B9 33 44 87 C0 68 B6 B7 26 99 C7
+static const uint8_t MS_TYPE_GUID[16] = {0xA2, 0xA0, 0xD0, 0xEB, 0xE5, 0xB9,
+                                         0x33, 0x44, 0x87, 0xC0, 0x68, 0xB6,
+                                         0xB7, 0x26, 0x99, 0xC7};
+typedef struct GptPart {
+  uint8_t partitionTypeGUID[16];    // Unique ID for partition, zero if unused.
+  uint8_t uniquePartitionGUID[16];  // GUID that is unique for every entry.
+  uint8_t startingLBA[8];           // Starting LBA for this entry.
+  uint8_t endingLBA[8];             //  Ending LBA for this entry.
+  uint8_t attributes[8];      // Attribute bits, all bits reserved by UEFI.
+  uint8_t partitionName[72];  // Null-terminated string.
+  // Entry is used.
+  bool used() {
+    for (int i = 0; i < 16; i++) {
+      if (partitionTypeGUID[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  // Verify GUID for Microsoft basic data partition.
+  bool isMsBasicPartition() {
+    return memcmp(partitionTypeGUID, MS_TYPE_GUID, 16) == 0;
+  }
+} GptPart_t;
 //------------------------------------------------------------------------------
 typedef struct partitionBootSector {
   uint8_t jmpInstruction[3];
@@ -412,4 +475,3 @@ typedef struct {
   uint8_t mustBeZero;
   uint8_t unicode[30];
 } DirName_t;
-#endif  // FsStructs_h

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -27,7 +27,7 @@
 
 #include "DebugMacros.h"
 //------------------------------------------------------------------------------
-uint8_t* FsCache::prepare(uint32_t sector, uint8_t option) {
+uint8_t* FsCache::prepare(Sector_t sector, uint8_t option) {
   if (!m_blockDev) {
     DBG_FAIL_MACRO;
     goto fail;

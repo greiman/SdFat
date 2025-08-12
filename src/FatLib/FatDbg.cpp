@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "FatLib.h"
+#if ENABLE_ARDUINO_FEATURES
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //------------------------------------------------------------------------------
 static uint16_t getLfnChar(const DirLfn_t* ldir, uint8_t i) {
@@ -92,7 +93,7 @@ static void printHexLn(print_t* pr, Uint val) {
 }
 //------------------------------------------------------------------------------
 static bool printFatDir(print_t* pr, DirFat_t* dir) {
-  DirLfn_t* ldir = reinterpret_cast<DirLfn_t*>(dir);
+  const DirLfn_t* ldir = reinterpret_cast<DirLfn_t*>(dir);
   if (!dir->name[0]) {
     pr->println(F("Unused"));
     return false;
@@ -111,8 +112,9 @@ static bool printFatDir(print_t* pr, DirFat_t* dir) {
     printHexLn(pr, dir->attributes);
     pr->print(F("caseFlags: 0X"));
     printHexLn(pr, dir->caseFlags);
-    uint32_t fc = ((uint32_t)getLe16(dir->firstClusterHigh) << 16) |
-                  getLe16(dir->firstClusterLow);
+    Cluster_t fc =
+        (static_cast<uint32_t>(getLe16(dir->firstClusterHigh)) << 16) |
+        getLe16(dir->firstClusterLow);
     pr->print(F("firstCluster: "));
     pr->println(fc, HEX);
     pr->print(F("fileSize: "));
@@ -181,7 +183,7 @@ void FatFile::dmpFile(print_t* pr, uint32_t pos, size_t n) {
   pr->write('\n');
 }
 //------------------------------------------------------------------------------
-bool FatPartition::dmpDirSector(print_t* pr, uint32_t sector) {
+bool FatPartition::dmpDirSector(print_t* pr, Sector_t sector) {
   DirFat_t dir[16];
   if (!cacheSafeRead(sector, reinterpret_cast<uint8_t*>(dir))) {
     pr->println(F("dmpDir failed"));
@@ -196,7 +198,7 @@ bool FatPartition::dmpDirSector(print_t* pr, uint32_t sector) {
 }
 //------------------------------------------------------------------------------
 bool FatPartition::dmpRootDir(print_t* pr, uint32_t n) {
-  uint32_t sector;
+  Sector_t sector;
   if (fatType() == 16) {
     sector = rootDirStart();
   } else if (fatType() == 32) {
@@ -208,7 +210,7 @@ bool FatPartition::dmpRootDir(print_t* pr, uint32_t n) {
   return dmpDirSector(pr, sector + n);
 }
 //------------------------------------------------------------------------------
-void FatPartition::dmpSector(print_t* pr, uint32_t sector, uint8_t bits) {
+void FatPartition::dmpSector(print_t* pr, Sector_t sector, uint8_t bits) {
   uint8_t data[FatPartition::m_bytesPerSector];
   if (!cacheSafeRead(sector, data)) {
     pr->println(F("dmpSector failed"));
@@ -242,8 +244,8 @@ void FatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
     return;
   }
   pr->println(F("FAT:"));
-  uint32_t sector = m_fatStartSector + start;
-  uint32_t cluster = nf * start;
+  Sector_t sector = m_fatStartSector + start;
+  Cluster_t cluster = nf * start;
   for (uint32_t i = 0; i < count; i++) {
     const uint8_t* pc = fatCachePrepare(sector + i, FsCache::CACHE_FOR_READ);
     if (!pc) {
@@ -266,3 +268,4 @@ void FatPartition::dmpFat(print_t* pr, uint32_t start, uint32_t count) {
   }
 }
 #endif  // DOXYGEN_SHOULD_SKIP_THIS
+#endif  // ENABLE_ARDUINO_FEATURES

@@ -16,7 +16,7 @@ const uint16_t N_PRINT = 20000;
 SdFat sd;
 
 // test file
-SdFile file;
+File file;
 
 // Serial output stream
 ArduinoOutStream cout(Serial);

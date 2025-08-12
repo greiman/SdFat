@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -43,6 +43,7 @@ class FatVolume : public FatPartition {
     File32 tmpFile;
     return tmpFile.open(this, path, O_RDONLY) ? tmpFile.attrib() : -1;
   }
+  //----------------------------------------------------------------------------
   /** Set file's user settable attributes.
    * \param[in] path path to file.
    * \param[in] bits bit-wise or of selected attributes: FS_ATTRIB_READ_ONLY,
@@ -54,17 +55,18 @@ class FatVolume : public FatPartition {
     File32 tmpFile;
     return tmpFile.open(this, path, O_RDONLY) ? tmpFile.attrib(bits) : false;
   }
+  //----------------------------------------------------------------------------
   /**
    * Initialize an FatVolume object.
    * \param[in] dev Device block driver.
    * \param[in] setCwv Set current working volume if true.
    * \param[in] part partition to initialize.
-   * \param[in] volStart Start sector of volume if part is zero.
+   * \param[in] startSector Start sector of volume if part is zero.
    * \return true for success or false for failure.
    */
   bool begin(FsBlockDevice* dev, bool setCwv = true, uint8_t part = 1,
-             uint32_t volStart = 0) {
-    if (!init(dev, part, volStart)) {
+             Sector_t startSector = 0) {
+    if (!init(dev, part, startSector)) {
       return false;
     }
     if (!chdir()) {
@@ -75,9 +77,10 @@ class FatVolume : public FatPartition {
     }
     return true;
   }
+  //----------------------------------------------------------------------------
   /** Change global current working volume to this volume. */
   void chvol() { m_cwv = this; }
-
+  //----------------------------------------------------------------------------
   /**
    * Set volume working directory to root.
    * \return true for success or false for failure.
@@ -86,6 +89,7 @@ class FatVolume : public FatPartition {
     m_vwd.close();
     return m_vwd.openRoot(this);
   }
+  //----------------------------------------------------------------------------
   /**
    * Set volume working directory.
    * \param[in] path Path for volume working directory.
@@ -223,6 +227,7 @@ class FatVolume : public FatPartition {
     return file.open(this, path, O_WRONLY) && file.truncate(length);
   }
 #if ENABLE_ARDUINO_SERIAL
+  //----------------------------------------------------------------------------
   /** List the directory contents of the root directory to Serial.
    *
    * \param[in] flags The inclusive OR of
@@ -236,6 +241,7 @@ class FatVolume : public FatPartition {
    * \return true for success or false for failure.
    */
   bool ls(uint8_t flags = 0) { return ls(&Serial, flags); }
+  //----------------------------------------------------------------------------
   /** List the directory contents of a directory to Serial.
    *
    * \param[in] path directory to list.
@@ -262,6 +268,7 @@ class FatVolume : public FatPartition {
    * \return true for success or false for failure.
    */
   bool chdir(const String& path) { return chdir(path.c_str()); }
+  //----------------------------------------------------------------------------
   /**
    * Test for the existence of a file.
    *
@@ -270,6 +277,7 @@ class FatVolume : public FatPartition {
    * \return true if the file exists else false.
    */
   bool exists(const String& path) { return exists(path.c_str()); }
+  //----------------------------------------------------------------------------
   /** Make a subdirectory in the volume root directory.
    *
    * \param[in] path A path with a valid name for the subdirectory.
@@ -281,6 +289,7 @@ class FatVolume : public FatPartition {
   bool mkdir(const String& path, bool pFlag = true) {
     return mkdir(path.c_str(), pFlag);
   }
+  //----------------------------------------------------------------------------
   /** open a file
    *
    * \param[in] path location of file to be opened.
@@ -290,6 +299,7 @@ class FatVolume : public FatPartition {
   File32 open(const String& path, oflag_t oflag = O_RDONLY) {
     return open(path.c_str(), oflag);
   }
+  //----------------------------------------------------------------------------
   /** Remove a file from the volume root directory.
    *
    * \param[in] path A path with a valid name for the file.
@@ -297,6 +307,7 @@ class FatVolume : public FatPartition {
    * \return true for success or false for failure.
    */
   bool remove(const String& path) { return remove(path.c_str()); }
+  //----------------------------------------------------------------------------
   /** Rename a file or subdirectory.
    *
    * \param[in] oldPath Path name to the file or subdirectory to be renamed.
@@ -314,6 +325,7 @@ class FatVolume : public FatPartition {
   bool rename(const String& oldPath, const String& newPath) {
     return rename(oldPath.c_str(), newPath.c_str());
   }
+  //----------------------------------------------------------------------------
   /** Remove a subdirectory from the volume's working directory.
    *
    * \param[in] path A path with a valid name for the subdirectory.

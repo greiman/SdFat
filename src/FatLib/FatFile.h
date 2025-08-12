@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -46,7 +46,7 @@ struct FatPos_t {
   /** stream position */
   uint32_t position;
   /** cluster for position */
-  uint32_t cluster;
+  Cluster_t cluster;
 };
 //------------------------------------------------------------------------------
 /** Expression for path name separator. */
@@ -247,7 +247,7 @@ class FatFile {
    * The parameters may be nullptr to only set the flag.
    * \return true for success or false for failure.
    */
-  bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector);
+  bool contiguousRange(Sector_t* bgnSector, Sector_t* endSector);
   /** Create and open a new contiguous file of a specified size.
    *
    * \param[in] dirFile The directory where the file will be created.
@@ -266,7 +266,7 @@ class FatFile {
    */
   bool createContiguous(const char* path, uint32_t size);
   /** \return The current cluster number for a file or directory. */
-  uint32_t curCluster() const { return m_curCluster; }
+  Cluster_t curCluster() const { return m_curCluster; }
 
   /** \return The current position for a file or directory. */
   uint32_t curPosition() const { return m_curPosition; }
@@ -330,12 +330,14 @@ class FatFile {
    * occurred.
    */
   int fgets(char* str, int num, const char* delim = nullptr);
+  /** \return The first cluster number for a file or directory. */
+  Cluster_t firstCluster() const { return m_firstCluster; }
   /** \return The total number of bytes in a file. */
   uint32_t fileSize() const { return m_fileSize; }
   /** \return first sector of file or zero for empty file. */
-  uint32_t firstBlock() const { return firstSector(); }
+  Sector_t firstBlock() const { return firstSector(); }
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector() const;
+  Sector_t firstSector() const;
   /** Arduino name for sync() */
   void flush() { sync(); }
   /** set position for streams
@@ -719,9 +721,9 @@ class FatFile {
       sign = '-';
     }
     if (sizeof(Type) < 4) {
-      str = fmtBase10(str, (uint16_t)value);
+      str = fmtBase10(str, static_cast<uint16_t>(value));
     } else {
-      str = fmtBase10(str, (uint32_t)value);
+      str = fmtBase10(str, static_cast<uint32_t>(value));
     }
     if (sign) {
       *--str = sign;
@@ -792,7 +794,7 @@ class FatFile {
    * if end of file is reached.
    * If an error occurs, read() returns -1.
    */
-  int read(void* buf, size_t count);
+  int read(void* buf, size_t count) { return readPrivate(buf, count, nullptr); }
   /** Read the next directory entry from a directory file.
    *
    * \param[out] dir The DirFat_t struct that will receive the data.
@@ -914,7 +916,7 @@ class FatFile {
    *
    * T_WRITE - Set the file's last write/modification date and time.
    *
-   * \param[in] year Valid range 1980 - 2107 inclusive.
+   * \param[in] year Valid range 1980 - 2099 inclusive.
    *
    * \param[in] month Valid range 1 - 12 inclusive.
    *
@@ -1048,8 +1050,8 @@ class FatFile {
   bool openSFN(const FatSfn_t* fname);
   bool openCachedEntry(FatFile* dirFile, uint16_t cacheIndex, oflag_t oflag,
                        uint8_t lfnOrd);
-  DirFat_t* readDirCache(bool skipReadOk = false);
-
+  DirFat_t* readDirCache();
+  int readPrivate(void* buf, size_t nbyte, DirFat_t** cache);
   // bits defined in m_flags
   static const uint8_t FILE_FLAG_READ = 0X01;
   static const uint8_t FILE_FLAG_WRITE = 0X02;
@@ -1071,12 +1073,12 @@ class FatFile {
   uint8_t m_lfnOrd;
   uint16_t m_dirIndex;  // index of directory entry in dir file
   FatVolume* m_vol;     // volume where file is located
-  uint32_t m_dirCluster;
-  uint32_t m_curCluster;    // cluster for current file position
-  uint32_t m_curPosition;   // current file position
-  uint32_t m_dirSector;     // sector for this files directory entry
-  uint32_t m_fileSize;      // file size in bytes
-  uint32_t m_firstCluster;  // first cluster of file
+  Cluster_t m_dirCluster;
+  Cluster_t m_curCluster;    // cluster for current file position
+  uint32_t m_curPosition;    // current file position
+  Sector_t m_dirSector;      // sector for this files directory entry
+  uint32_t m_fileSize;       // file size in bytes
+  Cluster_t m_firstCluster;  // first cluster of file
 };
 
 #include "../common/ArduinoFiles.h"
@@ -1086,6 +1088,12 @@ class FatFile {
  */
 class File32 : public StreamFile<FatFile, uint32_t> {
  public:
+  File32() {}
+  /** Create an open File32.
+   * \param[in] path path for file.
+   * \param[in] oflag open flags.
+   */
+  File32(const char* path, oflag_t oflag) { open(path, oflag); }
   /** Opens the next file or folder in a directory.
    *
    * \param[in] oflag open flags.

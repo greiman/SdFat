@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -45,7 +45,7 @@ class FatFormatter {
   bool format(FsBlockDevice* dev, uint8_t* secBuffer, print_t* pr = nullptr);
 
  private:
-  bool initFatDir(uint8_t fatType, uint32_t sectorCount);
+  bool initFatDir(uint8_t fatType, Sector_t sectorCount);
   void initPbs();
   bool makeFat16();
   bool makeFat32();
@@ -54,9 +54,9 @@ class FatFormatter {
   uint32_t m_dataStart;
   uint32_t m_fatSize;
   uint32_t m_fatStart;
-  uint32_t m_relativeSectors;
-  uint32_t m_sectorCount;
-  uint32_t m_totalSectors;
+  Sector_t m_startSector;
+  Sector_t m_sectorCount;
+  Sector_t m_totalSectors;
   FsBlockDevice* m_dev;
   print_t* m_pr;
   uint8_t* m_secBuf;

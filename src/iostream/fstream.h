@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -144,7 +144,7 @@ class fstream : public iostream, StreamBaseClass {
     return StreamBaseClass::seekoff(off, way);
   }
   bool seekpos(pos_type pos) override { return StreamBaseClass::seekpos(pos); }
-  void setpos(const pos_t* pos) { StreamBaseFile::fsetpos(pos); }
+  void setpos(const pos_t* pos) override { StreamBaseFile::fsetpos(pos); }
   bool sync() override { return StreamBaseClass::sync(); }
   pos_type tellpos() override { return StreamBaseFile::curPosition(); }
   /// @endcond
@@ -196,7 +196,7 @@ class ifstream : public istream, StreamBaseClass {
     return StreamBaseClass::seekoff(off, way);
   }
   bool seekpos(pos_type pos) override { return StreamBaseClass::seekpos(pos); }
-  void setpos(pos_t* pos) override { StreamBaseFile::fsetpos(pos); }
+  void setpos(const pos_t* pos) override { StreamBaseFile::fsetpos(pos); }
   pos_type tellpos() override { return StreamBaseFile::curPosition(); }
   /// @endcond
 };

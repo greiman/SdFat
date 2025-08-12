@@ -1,5 +1,5 @@
 /*
- * This program tests the dateTimeCallback() function
+ * This program tests the setCallback() function
  * and the timestamp() function.
  */
 #include <SPI.h>
@@ -7,7 +7,7 @@
 #include "sdios.h"
 SdFat sd;
 
-SdFile file;
+File file;
 
 // Default SD chip select is SS pin
 const uint8_t chipSelect = SS;
@@ -34,7 +34,7 @@ uint8_t second = 40;
 //------------------------------------------------------------------------------
 /*
  * User provided date time callback function.
- * See SdFile::dateTimeCallback() for usage.
+ * See FsDateTime::setCallback() for usage.
  */
 void dateTime(uint16_t* date, uint16_t* time) {
   // User gets date and time from GPS or real-time
@@ -50,7 +50,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 /*
  * Function to print all timestamps.
  */
-void printTimestamps(SdFile& f) {
+void printTimestamps(File& f) {
   cout << F("Creation: ");
   f.printCreateDateTime(&Serial);
   cout << endl << F("Modify: ");
@@ -93,16 +93,16 @@ void setup(void) {
   /*
    * Test the date time callback function.
    *
-   * dateTimeCallback() sets the function
+   * setCallback() sets the function
    * that is called when a file is created
    * or when a file's directory entry is
    * modified by sync().
    *
    * The callback can be disabled by the call
-   * SdFile::dateTimeCallbackCancel()
+   * FsDateTime::clearCallback()
    */
   // set date time callback function
-  SdFile::dateTimeCallback(dateTime);
+  FsDateTime::setCallback(dateTime);
 
   // create a new file with callback timestamps
   if (!file.open("callback.txt", O_WRONLY | O_CREAT)) {
@@ -134,7 +134,7 @@ void setup(void) {
    * Cancel callback so sync will not
    * change access/modify timestamp
    */
-  SdFile::dateTimeCallbackCancel();
+  FsDateTime::clearCallback();
 
   // create a new file with default timestamps
   if (!file.open("stamp.txt", O_WRONLY | O_CREAT)) {

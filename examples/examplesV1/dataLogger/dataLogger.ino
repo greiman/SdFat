@@ -20,7 +20,7 @@ const uint32_t SAMPLE_INTERVAL_MS = 1000;
 SdFat sd;
 
 // Log file.
-SdFile file;
+File file;
 
 // Time in micros for next data record.
 uint32_t logTime;

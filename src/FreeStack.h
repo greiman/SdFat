@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -43,11 +43,6 @@ inline int FreeStack() {
   const char* sp = reinterpret_cast<char*>(SP);
   return __brkval ? sp - __brkval : sp - &__bss_end;
 }
-#elif defined(ARDUINO_ARCH_APOLLO3)
-#define HAS_UNUSED_STACK 0
-#elif defined(PLATFORM_ID)  // Particle board
-#include "Arduino.h"
-inline int FreeStack() { return System.freeMemory(); }
 #elif defined(__IMXRT1062__)
 #define HAS_UNUSED_STACK 1
 extern uint8_t _ebss;

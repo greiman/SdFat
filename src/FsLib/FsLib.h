@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,13 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsLib_h
-#define FsLib_h
 /**
  * \file
  * \brief FsLib include file.
  */
+#pragma once
 #include "FsFile.h"
 #include "FsFormatter.h"
 #include "FsVolume.h"
-#endif  // FsLib_h

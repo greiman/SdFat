@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -46,12 +46,7 @@ class PrintFile : public print_t, public BaseFile {
   using BaseFile::write;
 
   /** Ensure that any bytes written to the file are saved to the SD card. */
-#if defined(ARDUINO_SAM_DUE) && !defined(ARDUINO_API_VERSION)
-  void flush() { BaseFile::sync(); }
-#else
-  void flush() override { BaseFile::sync(); }
-#endif
-
+  void flush() { BaseFile::sync(); }  // No override - not always in Print.h
   /** Write a single byte.
    * \param[in] b byte to write.
    * \return one for success.
@@ -80,7 +75,6 @@ class StreamFile : public stream_t, public BaseFile {
   using BaseFile::read;
   using BaseFile::write;
   StreamFile() {}
-
   /** \return number of bytes available from the current position to EOF
    *   or INT_MAX if more than INT_MAX bytes are available.
    */

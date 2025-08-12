@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,12 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef FsBlockDevice_h
-#define FsBlockDevice_h
+#pragma once
 #include "SdCard/SdCard.h"
+//------------------------------------------------------------------------------
 #if HAS_SDIO_CLASS || USE_BLOCK_DEVICE_INTERFACE
 typedef FsBlockDeviceInterface FsBlockDevice;
 #else
 typedef SdCard FsBlockDevice;
 #endif
-#endif  // FsBlockDevice_h

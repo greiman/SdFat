@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -204,7 +204,7 @@ int StdioStream::fseek(int32_t offset, int origin) {
       if (offset < 0) {
         goto fail;
       }
-      if (!StreamBaseFile::seekSet((uint32_t)offset)) {
+      if (!StreamBaseFile::seekSet(static_cast<uint32_t>(offset))) {
         goto fail;
       }
       break;
@@ -308,7 +308,7 @@ int StdioStream::printDec(int16_t n) {
     n = -n;
     rtn++;
   }
-  if ((s = printDec((uint16_t)n)) < 0) {
+  if ((s = printDec(static_cast<uint16_t>(n))) < 0) {
     return s;
   }
   return rtn;
@@ -330,7 +330,7 @@ int StdioStream::printDec(int32_t n) {
     n = -n;
     s = 1;
   }
-  int rtn = printDec((uint32_t)n);
+  int rtn = printDec(static_cast<uint32_t>(n));
   return rtn > 0 ? rtn + s : -1;
 }
 //------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -67,7 +67,7 @@ void StreamBaseClass::open(const char* path, ios::openmode mode) {
       break;
 
     case in | out:
-      oflag = O_RDWR | O_CREAT;
+      oflag = O_RDWR;
       break;
 
     case in | out | trunc:

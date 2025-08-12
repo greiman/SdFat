@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -31,8 +31,6 @@
 #ifdef __AVR__
 #include <avr/io.h>
 #endif  // __AVR__
-
-// #include "SdFatDebugConfig.h"
 // To try UTF-8 encoded filenames.
 //  #define USE_UTF8_LONG_NAMES 1
 //
@@ -90,22 +88,18 @@
 /** For Debug - must be one on Arduino */
 #ifndef ENABLE_ARDUINO_FEATURES
 #define ENABLE_ARDUINO_FEATURES 1
-#endif  //ENABLE_ARDUINO_FEATURES
+#endif  // ENABLE_ARDUINO_FEATURES
 /** For Debug - must be one on Arduino */
 #ifndef ENABLE_ARDUINO_SERIAL
 #define ENABLE_ARDUINO_SERIAL 1
-#endif  //ENABLE_ARDUINO_SERIAL
+#endif  // ENABLE_ARDUINO_SERIAL
 /** For Debug - must be one on Arduino */
 #ifndef ENABLE_ARDUINO_STRING
 #define ENABLE_ARDUINO_STRING 1
-#endif  //ENABLE_ARDUINO_STRING
+#endif  // ENABLE_ARDUINO_STRING
 //------------------------------------------------------------------------------
 #if ENABLE_ARDUINO_FEATURES
-#include "Arduino.h"
-#ifdef PLATFORM_ID
-// Only defined if a Particle device.
-#include "application.h"
-#endif  // PLATFORM_ID
+#include <Arduino.h>
 #endif  // ENABLE_ARDUINO_FEATURES
 //------------------------------------------------------------------------------
 /**
@@ -190,6 +184,8 @@
 #ifndef USE_SPI_ARRAY_TRANSFER
 #if defined(ARDUINO_ARCH_RP2040)
 #define USE_SPI_ARRAY_TRANSFER 2
+#elif defined(ARDUINO_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
+#define USE_SPI_ARRAY_TRANSFER 1
 #else  // defined(ARDUINO_ARCH_RP2040)
 #define USE_SPI_ARRAY_TRANSFER 0
 #endif  // defined(ARDUINO_ARCH_RP2040)
@@ -349,9 +345,6 @@ typedef uint8_t SdCsPin_t;
 #if defined(__AVR__)
 // AVR fcntl.h does not define open flags.
 #define USE_FCNTL_H 0
-#elif defined(PLATFORM_ID)
-// Particle boards - use fcntl.h.
-#define USE_FCNTL_H 1
 #elif defined(__arm__)
 // ARM gcc defines open flags.
 #define USE_FCNTL_H 1
@@ -445,9 +438,8 @@ typedef uint8_t SdCsPin_t;
 //------------------------------------------------------------------------------
 /** Enable SDIO driver if available. */
 #if defined(ARDUINO_ARCH_RP2040)
-#define HAS_RP2040_SDIO 1
+#define HAS_PIO_SDIO 1
 #define HAS_SDIO_CLASS 1
-#define SDIO_CONFIG_INCLUDE "Rp2040Sdio/Rp2040SdioConfig.h"
 #endif  // defined(ARDUINO_ARCH_RP2040)
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
@@ -467,17 +459,14 @@ typedef uint8_t SdCsPin_t;
 #if defined(__IMXRT1062__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #define HAS_SDIO_CLASS 1
 #define HAS_TEENSY_SDIO 1
-#define SDIO_CONFIG_INCLUDE "TeensySdio/TeensySdioConfig.h"
 #endif  // defined(__IMXRT1062__)
 //------------------------------------------------------------------------------
 /**
  * Determine the default SPI configuration.
  */
-#if defined(ARDUINO_ARCH_APOLLO3) ||                                         \
-    (defined(__AVR__) && defined(SPDR) && defined(SPSR) && defined(SPIF)) || \
+#if (defined(__AVR__) && defined(SPDR) && defined(SPSR) && defined(SPIF)) || \
     (defined(__AVR__) && defined(SPI0) && defined(SPI_RXCIF_bm)) ||          \
     defined(ARDUINO_SAM_DUE) || defined(STM32_CORE_VERSION) ||               \
-    defined(__STM32F1__) || defined(__STM32F4__) || defined(PLATFORM_ID) ||  \
     (defined(CORE_TEENSY) && defined(__arm__))
 #define SD_HAS_CUSTOM_SPI 1
 #else  // SD_HAS_CUSTOM_SPI

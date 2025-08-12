@@ -1,7 +1,8 @@
 // Quick hardware test for SPI card access.
 //
-#include <SPI.h>
-
+#ifndef DISABLE_FS_H_WARNING
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined. 
+#endif  // DISABLE_FS_H_WARNING 
 #include "SdFat.h"
 #include "sdios.h"
 

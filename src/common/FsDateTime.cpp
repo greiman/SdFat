@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -143,9 +143,9 @@ size_t fsPrintDateTime(print_t* pr, uint32_t dateTime, uint8_t s100,
     str = fsFmtTimeZone(str, tz);
     *--str = ' ';
   }
-  str = fsFmtTime(str, (uint16_t)dateTime, s100);
+  str = fsFmtTime(str, static_cast<uint16_t>(dateTime), s100);
   *--str = ' ';
-  str = fsFmtDate(str, (uint16_t)(dateTime >> 16));
+  str = fsFmtDate(str, static_cast<uint16_t>(dateTime >> 16));
   return pr->write(reinterpret_cast<uint8_t*>(str), buf + sizeof(buf) - str);
 }
 //------------------------------------------------------------------------------

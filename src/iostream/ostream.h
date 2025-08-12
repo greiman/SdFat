@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ostream_h
-#define ostream_h
+#pragma once
 /**
  * \file
  * \brief \ref ostream class
@@ -138,7 +137,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(short arg) {  // NOLINT
-    putNum((int32_t)arg);
+    putNum(static_cast<int32_t>(arg));
     return *this;
   }
   /** Output unsigned short
@@ -146,7 +145,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(unsigned short arg) {  // NOLINT
-    putNum((uint32_t)arg);
+    putNum(static_cast<uint32_t>(arg));
     return *this;
   }
   /** Output signed int
@@ -154,7 +153,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(int arg) {
-    putNum((int32_t)arg);
+    putNum(static_cast<int32_t>(arg));
     return *this;
   }
   /** Output unsigned int
@@ -162,7 +161,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(unsigned int arg) {
-    putNum((uint32_t)arg);
+    putNum(static_cast<uint32_t>(arg));
     return *this;
   }
   /** Output signed long
@@ -170,7 +169,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(long arg) {  // NOLINT
-    putNum((int32_t)arg);
+    putNum(static_cast<int32_t>(arg));
     return *this;
   }
   /** Output unsigned long
@@ -178,7 +177,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(unsigned long arg) {  // NOLINT
-    putNum((uint32_t)arg);
+    putNum(static_cast<uint32_t>(arg));
     return *this;
   }
   /** Output signed long long
@@ -186,7 +185,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(long long arg) {  // NOLINT
-    putNum((int64_t)arg);
+    putNum(static_cast<int64_t>(arg));
     return *this;
   }
   /** Output unsigned long long
@@ -194,7 +193,7 @@ class ostream : public virtual ios {
    * \return the stream
    */
   ostream &operator<<(unsigned long long arg) {  // NOLINT
-    putNum((uint64_t)arg);
+    putNum(static_cast<uint64_t>(arg));
     return *this;
   }
   /** Output pointer
@@ -341,4 +340,3 @@ class ostream : public virtual ios {
     do_fill(len);
   }
 };
-#endif  // ostream_h

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -26,8 +26,7 @@
  * \file
  * \brief Abstract interface for an SD card.
  */
-#ifndef SdCardInterface_h
-#define SdCardInterface_h
+#pragma once
 #include "../common/FsBlockDeviceInterface.h"
 #include "SdCardInfo.h"
 /**
@@ -50,7 +49,7 @@ class SdCardInterface : public FsBlockDeviceInterface {
    *
    * \return true for success or false for failure.
    */
-  virtual bool erase(uint32_t firstSector, uint32_t lastSector) = 0;
+  virtual bool erase(Sector_t firstSector, Sector_t lastSector) = 0;
   /** \return error code. */
   virtual uint8_t errorCode() const = 0;
   /** \return error data. */
@@ -58,9 +57,9 @@ class SdCardInterface : public FsBlockDeviceInterface {
   /** \return false by default */
   virtual bool hasDedicatedSpi() { return false; }
   /** \return false by default */
-  bool virtual isDedicatedSpi() { return false; }
+  virtual bool isDedicatedSpi() { return false; }
   /** \return false by default */
-  bool virtual isSpi() { return false; }
+  virtual bool isSpi() { return false; }
   /** Set SPI sharing state
    * \param[in] value desired state.
    * \return false by default.
@@ -108,22 +107,4 @@ class SdCardInterface : public FsBlockDeviceInterface {
    * \return 0 - SD V1, 1 - SD V2, or 3 - SDHC/SDXC.
    */
   virtual uint8_t type() const = 0;
-  /** Write one data sector in a multiple sector write sequence.
-   * \param[in] src Pointer to the location of the data to be written.
-   * \return true for success or false for failure.
-   */
-
-  virtual bool writeData(const uint8_t* src) = 0;
-  /** Start a write multiple sectors sequence.
-   *
-   * \param[in] sector Address of first sector in sequence.
-   *
-   * \return true for success or false for failure.
-   */
-  virtual bool writeStart(uint32_t sector) = 0;
-  /** End a write multiple sectors sequence.
-   * \return true for success or false for failure.
-   */
-  virtual bool writeStop() = 0;
 };
-#endif  // SdCardInterface_h

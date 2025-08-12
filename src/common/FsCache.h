@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -52,7 +52,7 @@ class FsCache {
   static const uint8_t CACHE_RESERVE_FOR_WRITE =
       CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
   //----------------------------------------------------------------------------
-  /** Cobstructor. */
+  /** Constructor. */
   FsCache() { init(nullptr); }  // cppcheck-suppress uninitMemberVar
   /** \return Cache buffer address. */
   uint8_t* cacheBuffer() { return m_buffer; }
@@ -63,7 +63,7 @@ class FsCache {
    * \param[out] dst Pointer to the location that will receive the data.
    * \return true for success or false for failure.
    */
-  bool cacheSafeRead(uint32_t sector, uint8_t* dst) {
+  bool cacheSafeRead(Sector_t sector, uint8_t* dst) {
     if (isCached(sector)) {
       memcpy(dst, m_buffer, 512);
       return true;
@@ -78,7 +78,7 @@ class FsCache {
    * \param[out] dst Pointer to the location that will receive the data.
    * \return true for success or false for failure.
    */
-  bool cacheSafeRead(uint32_t sector, uint8_t* dst, size_t count) {
+  bool cacheSafeRead(Sector_t sector, uint8_t* dst, size_t count) {
     if (isCached(sector, count) && !sync()) {
       return false;
     }
@@ -91,7 +91,7 @@ class FsCache {
    * \param[in] src Pointer to the location of the data to be written.
    * \return true for success or false for failure.
    */
-  bool cacheSafeWrite(uint32_t sector, const uint8_t* src) {
+  bool cacheSafeWrite(Sector_t sector, const uint8_t* src) {
     if (isCached(sector)) {
       invalidate();
     }
@@ -105,7 +105,7 @@ class FsCache {
    * \param[in] count Number of sectors to be written.
    * \return true for success or false for failure.
    */
-  bool cacheSafeWrite(uint32_t sector, const uint8_t* src, size_t count) {
+  bool cacheSafeWrite(Sector_t sector, const uint8_t* src, size_t count) {
     if (isCached(sector, count)) {
       invalidate();
     }
@@ -137,13 +137,13 @@ class FsCache {
    * \param[in] sector Sector to checked.
    * \return true if the sector is cached.
    */
-  bool isCached(uint32_t sector) const { return sector == m_sector; }
+  bool isCached(Sector_t sector) const { return sector == m_sector; }
   /** Check if the cache contains a sector from a range.
    * \param[in] sector Start sector of the range.
    * \param[in] count Number of sectors in the range.
    * \return true if a sector in the range is cached.
    */
-  bool isCached(uint32_t sector, size_t count) {
+  bool isCached(Sector_t sector, size_t count) {
     return sector <= m_sector && m_sector < (sector + count);
   }
   /** \return dirty status */
@@ -153,9 +153,9 @@ class FsCache {
    * \param[in] option mode for cached sector.
    * \return Address of cached sector.
    */
-  uint8_t* prepare(uint32_t sector, uint8_t option);
+  uint8_t* prepare(Sector_t sector, uint8_t option);
   /** \return Logical sector number for cached sector. */
-  uint32_t sector() { return m_sector; }
+  Sector_t sector() { return m_sector; }
   /** Set the offset to the second FAT for mirroring.
    * \param[in] offset Sector offset to second FAT.
    */
@@ -168,7 +168,7 @@ class FsCache {
  private:
   uint8_t m_status;
   FsBlockDevice* m_blockDev;
-  uint32_t m_sector;
+  Sector_t m_sector;
   uint32_t m_mirrorOffset;
-  uint8_t m_buffer[512];
+  uint8_t m_buffer[512] __attribute__((aligned(4)));
 };

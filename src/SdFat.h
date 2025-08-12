@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -37,9 +37,9 @@
 #endif  // INCLUDE_SDIOS
 //------------------------------------------------------------------------------
 /** SdFat version for cpp use. */
-#define SD_FAT_VERSION 20300
+#define SD_FAT_VERSION 20301
 /** SdFat version as string. */
-#define SD_FAT_VERSION_STR "2.3.0"
+#define SD_FAT_VERSION_STR "2.3.1"
 //==============================================================================
 /**
  * \class SdBase
@@ -55,7 +55,7 @@ class SdBase : public Vol {
    * \return true for success or false for failure.
    */
   bool begin(SdCsPin_t csPin = SS) {
-#ifdef BUILTIN_SDCARD
+#ifdef BUILTIN_SDCARD  // Fake pin for Teensy SDIO.
     if (csPin == BUILTIN_SDCARD) {
       return begin(SdioConfig(FIFO_SDIO));
     }

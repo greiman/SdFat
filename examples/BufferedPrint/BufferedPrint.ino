@@ -1,7 +1,9 @@
 // Test and benchmark of the fast bufferedPrint class.
 //
 // Mainly for AVR but may improve print performance with other CPUs.
-#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#ifndef DISABLE_FS_H_WARNING
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined. 
+#endif  // DISABLE_FS_H_WARNING
 #include "SdFat.h"
 #include "BufferedPrint.h"
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
@@ -30,9 +32,9 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
-// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
-#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
+#elif defined(HAS_BUILTIN_PIO_SDIO)
+// See the Rp2040SdioSetup example for boards without a builtin SDIO socket.
+#define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_TEENSY_SDIO

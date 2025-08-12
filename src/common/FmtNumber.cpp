@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -207,7 +207,7 @@ char* fmtBase10(char* str, uint32_t n) {
 #endif  // USE_STIMMER
     *--str = r + '0';
   }
-  return fmtBase10(str, (uint16_t)n);
+  return fmtBase10(str, static_cast<uint16_t>(n));
 }
 //------------------------------------------------------------------------------
 char* fmtHex(char* str, uint32_t n) {
@@ -233,7 +233,7 @@ char* fmtSigned(char* str, int32_t num, uint8_t base, bool caps) {
 //-----------------------------------------------------------------------------
 char* fmtUnsigned(char* str, uint32_t num, uint8_t base, bool caps) {
 #if USE_FMT_BASE10
-  if (base == 10) return fmtBase10(str, (uint32_t)num);
+  if (base == 10) return fmtBase10(str, static_cast<uint32_t>(num));
 #endif  // USE_FMT_BASE10
   do {
     int c = num % base;
@@ -335,48 +335,48 @@ char* fmtDouble(char* str, double value, uint8_t prec, bool altFmt,
     prec = 9;
   }
   if (expChar) {
-    int8_t exp = 0;
+    int8_t exponet = 0;
     bool expNeg = false;
     if (value) {
       if (value > 10.0L) {
         while (value > 1e16L) {
           value *= 1e-16L;
-          exp += 16;
+          exponet += 16;
         }
         while (value > 1e4L) {
           value *= 1e-4L;
-          exp += 4;
+          exponet += 4;
         }
         while (value > 10.0L) {
           value *= 0.1L;
-          exp++;
+          exponet++;
         }
       } else if (value < 1.0L) {
         while (value < 1e-16L) {
           value *= 1e16L;
-          exp -= 16;
+          exponet -= 16;
         }
         while (value < 1e-4L) {
           value *= 1e4L;
-          exp -= 4;
+          exponet -= 4;
         }
         while (value < 1.0L) {
           value *= 10.0L;
-          exp--;
+          exponet--;
         }
       }
       value += rnd[prec];
       if (value >= 10.0L) {
         value *= 0.1L;
-        exp++;
+        exponet++;
       }
-      expNeg = exp < 0;
+      expNeg = exponet < 0;
       if (expNeg) {
-        exp = -exp;
+        exponet = -exponet;
       }
     }
-    str = fmtBase10(str, (uint16_t)exp);
-    if (exp < 10) {
+    str = fmtBase10(str, static_cast<uint16_t>(exponet));
+    if (exponet < 10) {
       *--str = '0';
     }
     *--str = expNeg ? '-' : '+';
@@ -494,21 +494,21 @@ float scanFloat(const char* str, const char** ptr) {
     c = *str++;
   }
   if (c == 'e' || c == 'E') {
-    int exp = 0;
+    int exponet = 0;
     c = *str++;
     bool expNeg = c == '-';
     if (c == '-' || c == '+') {
       c = *str++;
     }
     while (isDigit(c)) {
-      if (exp > EXP_LIMIT) {
+      if (exponet > EXP_LIMIT) {
         goto fail;
       }
-      exp = 10 * exp + c - '0';
+      exponet = 10 * exponet + c - '0';
       successPtr = str;
       c = *str++;
     }
-    fracExp += expNeg ? -exp : exp;
+    fracExp += expNeg ? -exponet : exponet;
   }
   if (ptr) {
     *ptr = successPtr;

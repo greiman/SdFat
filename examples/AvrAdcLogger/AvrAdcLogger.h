@@ -1,5 +1,4 @@
-#ifndef AnalogBinLogger_h
-#define AnalogBinLogger_h
+#pragma once
 const size_t BLOCK_SIZE = 64;
 //------------------------------------------------------------------------------
 // First block of file.
@@ -30,4 +29,3 @@ struct block16_t {
   unsigned short overrun;  // count of overruns since last block
   unsigned short data[DATA_DIM16];
 };
-#endif  // AnalogBinLogger_h

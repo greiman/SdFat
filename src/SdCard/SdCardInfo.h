@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -26,8 +26,7 @@
  * \file
  * \brief Definitions for SD cards.
  */
-#ifndef SdCardInfo_h
-#define SdCardInfo_h
+#pragma once
 #include <stdint.h>
 
 #include "../common/SysCall.h"
@@ -93,6 +92,7 @@
   SD_CARD_ERROR(ERASE_SINGLE_SECTOR, "Card does not support erase") \
   SD_CARD_ERROR(ERASE_TIMEOUT, "Erase command timeout")             \
   SD_CARD_ERROR(INIT_NOT_CALLED, "Card has not been initialized")   \
+  SD_CARD_ERROR(ADD_PIO_PROGRAM, "Add PIO program")                 \
   SD_CARD_ERROR(INVALID_CARD_CONFIG, "Invalid card config")         \
   SD_CARD_ERROR(FUNCTION_NOT_SUPPORTED, "Unsupported SDIO command")
 
@@ -309,8 +309,9 @@ struct cid_t {
   int mdtMonth() const { return mdt[1] & 0XF; }
   /** \return Product Serial Number. */
   uint32_t psn() const {
-    return (uint32_t)psn8[0] << 24 | (uint32_t)psn8[1] << 16 |
-           (uint32_t)psn8[2] << 8 | (uint32_t)psn8[3];
+    return static_cast<uint32_t>(psn8[0]) << 24 |
+           static_cast<uint32_t>(psn8[1]) << 16 |
+           static_cast<uint32_t>(psn8[2]) << 8 | static_cast<uint32_t>(psn8[3]);
   }
 } __attribute__((packed));
 //==============================================================================
@@ -327,14 +328,14 @@ struct csd_t {
     uint32_t c_size;
     uint8_t ver = csd[0] >> 6;
     if (ver == 0) {
-      c_size = (uint32_t)(csd[6] & 3) << 10;
-      c_size |= (uint32_t)csd[7] << 2 | csd[8] >> 6;
+      c_size = static_cast<uint32_t>(csd[6] & 3) << 10;
+      c_size |= static_cast<uint32_t>(csd[7]) << 2 | csd[8] >> 6;
       uint8_t c_size_mult = (csd[9] & 3) << 1 | csd[10] >> 7;
       uint8_t read_bl_len = csd[5] & 15;
       return (c_size + 1) << (c_size_mult + read_bl_len + 2 - 9);
     } else if (ver == 1) {
-      c_size = (uint32_t)(csd[7] & 63) << 16;
-      c_size |= (uint32_t)csd[8] << 8;
+      c_size = static_cast<uint32_t>(csd[7] & 63) << 16;
+      c_size |= static_cast<uint32_t>(csd[8]) << 8;
       c_size |= csd[9];
       return (c_size + 1) << 10;
     } else {
@@ -455,7 +456,8 @@ struct sds_t {
   bool discard() const { return discardFule & 2; }
   /** \return eraseSize in AUs. */
   uint16_t eraseSizeAU() const {
-    return (uint16_t)eraseSize[0] << 8 | (uint16_t)eraseSize[1];
+    return static_cast<uint16_t>(eraseSize[0]) << 8 |
+           static_cast<uint16_t>(eraseSize[1]);
   }
   /** \return eraseTimeout seconds. */
   uint8_t eraseTimeout() const { return eraseTimeoutOffset >> 2; }
@@ -474,4 +476,3 @@ struct sds_t {
   /** \return Video Speed */
   int videoClass() { return videoSpeedClass; }
 };
-#endif  // SdCardInfo_h

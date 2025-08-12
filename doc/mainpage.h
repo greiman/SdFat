@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -149,7 +149,9 @@ will open "/music/BigBand.wav" on sd2.
 
 \section Install Installation
 
-You must manually install %SdFat by renaming the download folder %SdFat
+You can use the Arduino Library Manager to install release versions.
+
+You must manually install %SdFat beta by renaming the download folder %SdFat
 and copy the %SdFat folder to the Arduino libraries folder in your
 sketchbook folder.
 
@@ -247,9 +249,10 @@ debug folder - Some of my debug programs - will be remove in the future.
 
 DirectoryFunctions - Use of chdir(), ls(), mkdir(), and rmdir().
 
-examplesV1 folder - Examples from SdFat V1 for compatibility tests.
+examplesV1 folder - Examples from SdFat V1 soon to be removed.
 
 ExFatLogger - A data-logger optimized for exFAT features.
+
 
 MinimumSizeSdReader - Example of small file reader for FAT16/FAT32.
 
@@ -261,6 +264,10 @@ ReadCsvFile - Function to read a CSV text file one field at a time.
 
 rename - demonstrates use of rename().
 
+RingBufLogger - Use of RingBuf class for fast data logging.
+
+Rp2040SdioSetup - Setup test for fast PIO SDIO.
+
 RtcTimestampTest - Demonstration of timestamps with RTClib.
 
 SdErrorCodes - Produce a list of error codes.
@@ -271,7 +278,7 @@ SdInfo - Initialize an SD card and analyze its structure for trouble shooting.
 
 SoftwareSpi - Demo of limited Software SPI support in SdFat V2.
 
-STM32Test - Example use of two SPI ports on an STM32 board.
+SpiLoopBackTest - Loop-back test of SPI pins.
 
 TeensyDmaAdcLogger - Fast logger using DMA ADC.
 

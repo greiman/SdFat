@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef bufstream_h
-#define bufstream_h
+#pragma once
 /**
  * \file
  * \brief \ref ibufstream and \ref obufstream classes
@@ -78,7 +77,7 @@ class ibufstream : public istream {
     }
     return false;
   }
-  void setpos(pos_t* pos) { m_pos = pos->position; }
+  void setpos(const pos_t* pos) { m_pos = pos->position; }
   pos_type tellpos() { return m_pos; }
   /// @endcond
  private:
@@ -151,4 +150,3 @@ class obufstream : public ostream {
   size_t m_size = 0;
   size_t m_in = 0;
 };
-#endif  // bufstream_h

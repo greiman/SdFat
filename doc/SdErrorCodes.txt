@@ -46,6 +46,7 @@ Code,Symbol - failed operation
 0X28,SD_CARD_ERROR_ERASE_SINGLE_SECTOR - Card does not support erase
 0X29,SD_CARD_ERROR_ERASE_TIMEOUT - Erase command timeout
 0X2A,SD_CARD_ERROR_INIT_NOT_CALLED - Card has not been initialized
-0X2B,SD_CARD_ERROR_INVALID_CARD_CONFIG - Invalid card config
-0X2C,SD_CARD_ERROR_FUNCTION_NOT_SUPPORTED - Unsupported SDIO command
-0X2D,SD_CARD_ERROR_UNKNOWN - Unknown error
+0X2B,SD_CARD_ERROR_ADD_PIO_PROGRAM - Add PIO program
+0X2C,SD_CARD_ERROR_INVALID_CARD_CONFIG - Invalid card config
+0X2D,SD_CARD_ERROR_FUNCTION_NOT_SUPPORTED - Unsupported SDIO command
+0X2E,SD_CARD_ERROR_UNKNOWN - Unknown error

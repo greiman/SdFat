@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -24,7 +24,7 @@
  */
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
 #include "../SdCardInfo.h"
-#include "../SdioCard.h"
+#include "TeensySdioCard.h"
 #include "TeensySdioDefs.h"
 //==============================================================================
 // limit of K66 due to errata KINETIS_K_0N65N.
@@ -446,7 +446,7 @@ static bool cardACMD13(sds_t* scr) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
   enableDmaIrs();
-  SDHC_DSADDR = (uint32_t)scr;
+  SDHC_DSADDR = reinterpret_cast<uintptr_t>(scr);
   SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(64);
   SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
   if (!cardAcmd(m_rca, ACMD13_XFERTYP, 0)) {
@@ -464,7 +464,7 @@ static bool cardACMD51(scr_t* scr) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
   enableDmaIrs();
-  SDHC_DSADDR = (uint32_t)scr;
+  SDHC_DSADDR = reinterpret_cast<uintptr_t>(scr);
   SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(8);
   SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
   if (!cardAcmd(m_rca, ACMD51_XFERTYP, 0)) {
@@ -529,7 +529,7 @@ static bool isBusyCommandComplete() {
 //------------------------------------------------------------------------------
 static bool isBusyCommandInhibit() { return SDHC_PRSSTAT & SDHC_PRSSTAT_CIHB; }
 //------------------------------------------------------------------------------
-static bool isBusyDat() { return SDHC_PRSSTAT & (1 << 24) ? false : true; }
+static bool isBusyDat() { return (SDHC_PRSSTAT & (1 << 24)) ? false : true; }
 //------------------------------------------------------------------------------
 static bool isBusyDMA() { return m_dmaBusy; }
 //------------------------------------------------------------------------------
@@ -541,16 +541,16 @@ static bool isBusyTransferComplete() {
   return !(SDHC_IRQSTAT & (SDHC_IRQSTAT_TC | SDHC_IRQSTAT_ERROR));
 }
 //------------------------------------------------------------------------------
-static bool rdWrSectors(uint32_t xfertyp, uint32_t sector, uint8_t* buf,
+static bool rdWrSectors(uint32_t xfertyp, Sector_t sector, uint8_t* buf,
                         size_t n) {
-  if ((3 & (uint32_t)buf) || n == 0) {
+  if ((3 & reinterpret_cast<uintptr_t>(buf)) || n == 0) {
     return sdError(SD_CARD_ERROR_DMA);
   }
   if (yieldTimeout(isBusyCMD13)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
   enableDmaIrs();
-  SDHC_DSADDR = (uint32_t)buf;
+  SDHC_DSADDR = reinterpret_cast<uintptr_t>(buf);
   SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(n) | SDHC_BLKATTR_BLKSIZE(512);
   SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
   if (!cardCommand(xfertyp, m_highCapacity ? sector : 512 * sector)) {
@@ -565,7 +565,8 @@ static bool readReg16(uint32_t xfertyp, void* data) {
   if (!cardCommand(xfertyp, m_rca)) {
     return false;  // Caller will set errorCode.
   }
-  uint32_t sr[] = {SDHC_CMDRSP0, SDHC_CMDRSP1, SDHC_CMDRSP2, SDHC_CMDRSP3};
+  uint32_t const sr[] = {SDHC_CMDRSP0, SDHC_CMDRSP1, SDHC_CMDRSP2,
+                         SDHC_CMDRSP3};
   for (int i = 0; i < 15; i++) {
     d[14 - i] = sr[i / 4] >> 8 * (i % 4);
   }
@@ -684,10 +685,10 @@ static bool waitTransferComplete() {
   return true;
 }
 //==============================================================================
-// Start of SdioCard member functions.
+// Start of TeensySdioCard member functions.
 //==============================================================================
-bool SdioCard::begin(SdioConfig sdioConfig) {
-  uint32_t kHzSdClk;
+bool TeensySdioCard::begin(TeensySdioConfig sdioConfig) {
+  uint32_t kHzClk;
   uint32_t arg;
   m_useDma = sdioConfig.useDma();
   m_curState = IDLE_STATE;
@@ -763,20 +764,20 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   }
   // Determine if High Speed mode is supported and set frequency.
   // Check status[16] for error 0XF or status[16] for new mode 0X1.
-  uint8_t status[64];
-  kHzSdClk = 25000;
+  uint8_t stat[64];
+  kHzClk = 25000;
   if (m_scr.sdSpec() > 0) {
     // card is 1.10 or greater - must support CMD6
-    if (!cardCMD6(0X00FFFFFF, status)) {
+    if (!cardCMD6(0X00FFFFFF, stat)) {
       return false;
     }
-    if (2 & status[13]) {
+    if (2 & stat[13]) {
       // Card supports High Speed mode - switch mode.
-      if (!cardCMD6(0X80FFFFF1, status)) {
+      if (!cardCMD6(0X80FFFFF1, stat)) {
         return false;
       }
-      if ((status[16] & 0XF) == 1) {
-        kHzSdClk = 50000;
+      if ((stat[16] & 0XF) == 1) {
+        kHzClk = 50000;
       } else {
         return sdError(SD_CARD_ERROR_CMD6);
       }
@@ -786,7 +787,7 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   enableGPIO(false);
 
   // Set the SDHC SCK frequency.
-  setSdclk(kHzSdClk);
+  setSdclk(kHzClk);
 
   // Enable GPIO.
   enableGPIO(true);
@@ -794,13 +795,13 @@ bool SdioCard::begin(SdioConfig sdioConfig) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::cardCMD6(uint32_t arg, uint8_t* status) {
+bool TeensySdioCard::cardCMD6(uint32_t arg, uint8_t* status) {
   // CMD6 returns 64 bytes.
   if (waitTimeout(isBusyCMD13)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
   enableDmaIrs();
-  SDHC_DSADDR = (uint32_t)status;
+  SDHC_DSADDR = reinterpret_cast<uintptr_t>(status);
   SDHC_BLKATTR = SDHC_BLKATTR_BLKCNT(1) | SDHC_BLKATTR_BLKSIZE(64);
   SDHC_IRQSIGEN = SDHC_IRQSIGEN_MASK;
   if (!cardCommand(CMD6_XFERTYP, arg)) {
@@ -812,11 +813,11 @@ bool SdioCard::cardCMD6(uint32_t arg, uint8_t* status) {
   return true;
 }
 //------------------------------------------------------------------------------
-void SdioCard::end() {
+void TeensySdioCard::end() {
   // to do
 }
 //------------------------------------------------------------------------------
-bool SdioCard::erase(uint32_t firstSector, uint32_t lastSector) {
+bool TeensySdioCard::erase(Sector_t firstSector, Sector_t lastSector) {
   if (m_curState != IDLE_STATE && !syncDevice()) {
     return false;
   }
@@ -848,13 +849,13 @@ bool SdioCard::erase(uint32_t firstSector, uint32_t lastSector) {
   return true;
 }
 //------------------------------------------------------------------------------
-uint8_t SdioCard::errorCode() const { return m_errorCode; }
+uint8_t TeensySdioCard::errorCode() const { return m_errorCode; }
 //------------------------------------------------------------------------------
-uint32_t SdioCard::errorData() const { return m_irqstat; }
+uint32_t TeensySdioCard::errorData() const { return m_irqstat; }
 //------------------------------------------------------------------------------
-uint32_t SdioCard::errorLine() const { return m_errorLine; }
+uint32_t TeensySdioCard::errorLine() const { return m_errorLine; }
 //------------------------------------------------------------------------------
-bool SdioCard::isBusy() {
+bool TeensySdioCard::isBusy() {
   if (m_useDma) {
     return m_busyFcn ? m_busyFcn() : m_initDone && isBusyCMD13();
   } else {
@@ -874,23 +875,23 @@ bool SdioCard::isBusy() {
 #endif  // defined(__MK64FX512__) || defined(__MK66FX1M0__)
     }
     // Use DAT0 low as busy.
-    return SDHC_PRSSTAT & (1 << 24) ? false : true;
+    return (SDHC_PRSSTAT & (1 << 24)) ? false : true;
   }
 }
 //------------------------------------------------------------------------------
-uint32_t SdioCard::kHzSdClk() { return m_sdClkKhz; }
+uint32_t TeensySdioCard::kHzSdClk() { return m_sdClkKhz; }
 //------------------------------------------------------------------------------
-bool SdioCard::readCID(cid_t* cid) {
+bool TeensySdioCard::readCID(cid_t* cid) {
   memcpy(cid, &m_cid, sizeof(cid_t));
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readCSD(csd_t* csd) {
+bool TeensySdioCard::readCSD(csd_t* csd) {
   memcpy(csd, &m_csd, sizeof(csd_t));
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readData(uint8_t* dst) {
+bool TeensySdioCard::readData(uint8_t* dst) {
   DBG_IRQSTAT();
   uint32_t* p32 = reinterpret_cast<uint32_t*>(dst);
 
@@ -920,32 +921,34 @@ bool SdioCard::readData(uint8_t* dst) {
   return (m_irqstat & SDHC_IRQSTAT_TC) && !(m_irqstat & SDHC_IRQSTAT_ERROR);
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readOCR(uint32_t* ocr) {
+bool TeensySdioCard::readOCR(uint32_t* ocr) {
   *ocr = m_ocr;
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readSCR(scr_t* scr) {
+bool TeensySdioCard::readSCR(scr_t* scr) {
   memcpy(scr, &m_scr, sizeof(scr_t));
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readSDS(sds_t* sds) {
+bool TeensySdioCard::readSDS(sds_t* sds) {
   memcpy(sds, &m_sds, sizeof(sds_t));
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readSector(uint32_t sector, uint8_t* dst) {
+bool TeensySdioCard::readSector(Sector_t sector, uint8_t* dst) {
   if (m_useDma) {
-    uint8_t aligned[512];
-
-    uint8_t* ptr = (uint32_t)dst & 3 ? aligned : dst;
-
-    if (!rdWrSectors(CMD17_DMA_XFERTYP, sector, ptr, 1)) {
-      return sdError(SD_CARD_ERROR_CMD17);
-    }
-    if (ptr != dst) {
-      memcpy(dst, aligned, 512);
+    if (reinterpret_cast<uintptr_t>(dst) & 3) {
+      // Not aligned.
+      uint8_t tmp[512];
+      if (!rdWrSectors(CMD17_DMA_XFERTYP, sector, tmp, 1)) {
+        return sdError(SD_CARD_ERROR_CMD17);
+      }
+      memcpy(dst, tmp, 512);
+    } else {
+      if (!rdWrSectors(CMD17_DMA_XFERTYP, sector, dst, 1)) {
+        return sdError(SD_CARD_ERROR_CMD17);
+      }
     }
   } else {
     if (!waitTransferComplete()) {
@@ -976,9 +979,9 @@ bool SdioCard::readSector(uint32_t sector, uint8_t* dst) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readSectors(uint32_t sector, uint8_t* dst, size_t n) {
+bool TeensySdioCard::readSectors(Sector_t sector, uint8_t* dst, size_t n) {
   if (m_useDma) {
-    if ((uint32_t)dst & 3) {
+    if (reinterpret_cast<uintptr_t>(dst) & 3) {
       for (size_t i = 0; i < n; i++, sector++, dst += 512) {
         if (!readSector(sector, dst)) {
           return false;  // readSector will set errorCode.
@@ -1000,7 +1003,7 @@ bool SdioCard::readSectors(uint32_t sector, uint8_t* dst, size_t n) {
 }
 //------------------------------------------------------------------------------
 // SDHC will do Auto CMD12 after count sectors.
-bool SdioCard::readStart(uint32_t sector) {
+bool TeensySdioCard::readStart(Sector_t sector) {
   DBG_IRQSTAT();
   if (yieldTimeout(isBusyCMD13)) {
     return sdError(SD_CARD_ERROR_CMD13);
@@ -1020,13 +1023,13 @@ bool SdioCard::readStart(uint32_t sector) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::readStop() { return transferStop(); }
+bool TeensySdioCard::readStop() { return transferStop(); }
 //------------------------------------------------------------------------------
-uint32_t SdioCard::sectorCount() { return m_csd.capacity(); }
+uint32_t TeensySdioCard::sectorCount() { return m_csd.capacity(); }
 //------------------------------------------------------------------------------
-uint32_t SdioCard::status() { return statusCMD13(); }
+uint32_t TeensySdioCard::status() { return statusCMD13(); }
 //------------------------------------------------------------------------------
-bool SdioCard::stopTransmission(bool blocking) {
+bool TeensySdioCard::stopTransmission(bool blocking) {
   m_curState = IDLE_STATE;
   // This fix allows CDIHB to be cleared in Tennsy 3.x without a reset.
   SDHC_PROCTL &= ~SDHC_PROCTL_SABGREQ;
@@ -1041,7 +1044,7 @@ bool SdioCard::stopTransmission(bool blocking) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::syncDevice() {
+bool TeensySdioCard::syncDevice() {
   if (!waitTransferComplete()) {
     return false;
   }
@@ -1051,14 +1054,14 @@ bool SdioCard::syncDevice() {
   return true;
 }
 //------------------------------------------------------------------------------
-uint8_t SdioCard::type() const {
+uint8_t TeensySdioCard::type() const {
   return !m_initDone       ? 0
          : !m_version2     ? SD_CARD_TYPE_SD1
          : !m_highCapacity ? SD_CARD_TYPE_SD2
                            : SD_CARD_TYPE_SDHC;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::writeData(const uint8_t* src) {
+bool TeensySdioCard::writeData(const uint8_t* src) {
   DBG_IRQSTAT();
   if (!waitTransferComplete()) {
     return false;
@@ -1084,11 +1087,11 @@ bool SdioCard::writeData(const uint8_t* src) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
+bool TeensySdioCard::writeSector(Sector_t sector, const uint8_t* src) {
   if (m_useDma) {
     uint8_t* ptr;
     uint8_t aligned[512];
-    if (3 & (uint32_t)src) {
+    if (3 & reinterpret_cast<uintptr_t>(src)) {
       ptr = aligned;
       memcpy(aligned, src, 512);
     } else {
@@ -1127,10 +1130,11 @@ bool SdioCard::writeSector(uint32_t sector, const uint8_t* src) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::writeSectors(uint32_t sector, const uint8_t* src, size_t n) {
+bool TeensySdioCard::writeSectors(Sector_t sector, const uint8_t* src,
+                                  size_t n) {
   if (m_useDma) {
     uint8_t* ptr = const_cast<uint8_t*>(src);
-    if (3 & (uint32_t)ptr) {
+    if (3 & reinterpret_cast<uintptr_t>(ptr)) {
       for (size_t i = 0; i < n; i++, sector++, ptr += 512) {
         if (!writeSector(sector, ptr)) {
           return false;  // writeSector will set errorCode.
@@ -1151,7 +1155,7 @@ bool SdioCard::writeSectors(uint32_t sector, const uint8_t* src, size_t n) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::writeStart(uint32_t sector) {
+bool TeensySdioCard::writeStart(Sector_t sector) {
   if (yieldTimeout(isBusyCMD13)) {
     return sdError(SD_CARD_ERROR_CMD13);
   }
@@ -1170,5 +1174,5 @@ bool SdioCard::writeStart(uint32_t sector) {
   return true;
 }
 //------------------------------------------------------------------------------
-bool SdioCard::writeStop() { return transferStop(); }
+bool TeensySdioCard::writeStop() { return transferStop(); }
 #endif  // defined(__MK64FX512__)  defined(__MK66FX1M0__) defined(__IMXRT1062__)

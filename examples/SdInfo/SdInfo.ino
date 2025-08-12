@@ -6,7 +6,9 @@
  * https://gurumeditation.org/1342/sd-memory-card-register-decoder/
  * https://archive.goughlui.com/static/multicid.htm
  */
-#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#ifndef DISABLE_FS_H_WARNING
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined. 
+#endif  // DISABLE_FS_H_WARNING 
 #include "SdFat.h"
 #include "sdios.h"
 /*
@@ -33,9 +35,9 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
-// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
-#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
+#elif defined(HAS_BUILTIN_PIO_SDIO)
+// See the Rp2040SdioSetup example for boards without a builtin SDIO socket.
+#define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SD_SCK_MHZ(16))
 #else  // HAS_TEENSY_SDIO
@@ -130,7 +132,7 @@ bool mbrDmp() {
   for (uint8_t ip = 1; ip < 5; ip++) {
     MbrPart_t* pt = &mbr.part[ip - 1];
     if ((pt->boot != 0 && pt->boot != 0X80) ||
-        getLe32(pt->relativeSectors) > csd.capacity()) {
+        getLe32(pt->startSector) > csd.capacity()) {
       valid = false;
     }
     cout << int(ip) << ',' << uppercase << showbase << hex;
@@ -142,7 +144,7 @@ bool mbrDmp() {
     for (int i = 0; i < 3; i++) {
       cout << int(pt->endCHS[i]) << ',';
     }
-    cout << dec << getLe32(pt->relativeSectors) << ',';
+    cout << dec << getLe32(pt->startSector) << ',';
     cout << getLe32(pt->totalSectors) << endl;
   }
   if (!valid) {
@@ -159,6 +161,7 @@ void dmpVol() {
   } else {
     cout << F("\nVolume is exFAT\n");
   }
+  cout << F("fatCount:          ") << int(sd.fatCount()) << endl;
   cout << F("sectorsPerCluster: ") << sd.sectorsPerCluster() << endl;
   cout << F("fatStartSector:    ") << sd.fatStartSector() << endl;
   cout << F("dataStartSector:   ") << sd.dataStartSector() << endl;

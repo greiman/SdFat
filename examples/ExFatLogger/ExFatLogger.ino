@@ -1,12 +1,18 @@
+// Note: This is an old example.  See the RingBufLogger example for use of
+// the RingBuf class.  The RingBuf class can be used for text and binary data.
+// RingBuf can be use to log from a ISR - see the TeensyDmaAdcLogger example.
+//
 // Example to demonstrate write latency for preallocated exFAT files.
 // I suggest you write a PC program to convert very large bin files.
 //
 // The maximum data rate will depend on the quality of your SD,
 // the size of the FIFO, and using dedicated SPI.
-#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
+#ifndef DISABLE_FS_H_WARNING
+#define DISABLE_FS_H_WARNING  // Disable warning for type File not defined. 
+#endif  // DISABLE_FS_H_WARNING 
 #include "SdFat.h"
-#include "ExFatLogger.h"
 #include "FreeStack.h"
+#include "ExFatLogger.h"
 //------------------------------------------------------------------------------
 // This example was designed for exFAT but will support FAT16/FAT32.
 // Note: Uno will not support SD_FAT_TYPE = 3.
@@ -72,9 +78,9 @@ const uint32_t PREALLOCATE_SIZE_MiB = 1024UL;
 // Try to select the best SD card configuration.
 #if defined(HAS_TEENSY_SDIO)
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif defined(RP_CLK_GPIO) && defined(RP_CMD_GPIO) && defined(RP_DAT0_GPIO)
-// See the Rp2040SdioSetup example for RP2040/RP2350 boards.
-#define SD_CONFIG SdioConfig(RP_CLK_GPIO, RP_CMD_GPIO, RP_DAT0_GPIO)
+#elif defined(HAS_BUILTIN_PIO_SDIO)
+// See the Rp2040SdioSetup example for boards without a builtin SDIO socket.
+#define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
 #elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_TEENSY_SDIO

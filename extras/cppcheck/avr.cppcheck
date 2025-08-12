@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <builddir>sdfat-cppcheck-build-dir</builddir>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <check-unused-templates>true</check-unused-templates>
+    <inline-suppression>true</inline-suppression>
+    <max-ctu-depth>2</max-ctu-depth>
+    <max-template-recursion>100</max-template-recursion>
+    <includedir>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/common/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/ExFatLib/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/FatLib/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/iostream/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/SdCard/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/SdCard/SdSpiCard/"/>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src/SdCard/SdSpiCard/SpiDriver/"/>
+        <dir name="api/"/>
+        <dir name="avr_include/"/>
+    </includedir>
+    <defines>
+        <define name="__AVR__"/>
+        <define name="ARDUINO"/>
+        <define name="PROGMEM="/>
+    </defines>
+    <paths>
+        <dir name="D:/Bill/ArduinoSdFat/libraries/SdFat/src"/>
+    </paths>
+    <libraries>
+        <library>avr</library>
+    </libraries>
+    <suppressions>
+        <suppression>unusedFunction</suppression>
+        <suppression>missingIncludeSystem</suppression>
+    </suppressions>
+    <check-level-exhaustive/>
+    <project-name>sdfat</project-name>
+</project>

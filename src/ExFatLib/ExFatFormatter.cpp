@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -33,9 +33,9 @@ const uint16_t BYTES_PER_SECTOR = 512;
 const uint16_t SECTOR_MASK = BYTES_PER_SECTOR - 1;
 const uint8_t BYTES_PER_SECTOR_SHIFT = 9;
 const uint16_t MINIMUM_UPCASE_SKIP = 512;
-const uint32_t BITMAP_CLUSTER = 2;
-const uint32_t UPCASE_CLUSTER = 3;
-const uint32_t ROOT_CLUSTER = 4;
+const Cluster_t BITMAP_CLUSTER = 2;
+const Cluster_t UPCASE_CLUSTER = 3;
+const Cluster_t ROOT_CLUSTER = 4;
 //------------------------------------------------------------------------------
 #define PRINT_FORMAT_PROGRESS 1
 #if !PRINT_FORMAT_PROGRESS
@@ -59,17 +59,17 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   DirLabel_t* label;
   uint32_t bitmapSize;
   uint32_t checksum = 0;
-  uint32_t clusterCount;
-  uint32_t clusterHeapOffset;
+  Cluster_t clusterCount;
+  Cluster_t clusterHeapOffset;
   uint32_t fatLength;
   uint32_t fatOffset;
   uint32_t m;
   uint32_t ns;
   uint32_t partitionOffset;
-  uint32_t sector;
-  uint32_t sectorsPerCluster;
+  Sector_t sector;
+  Sector_t sectorsPerCluster;
   uint32_t volumeLength;
-  uint32_t sectorCount;
+  Sector_t sectorCount;
   uint8_t sectorsPerClusterShift;
   uint8_t vs;
 
@@ -104,7 +104,7 @@ bool ExFatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   mbr->part->endCHS[0] = 0XFE;
   mbr->part->endCHS[1] = 0XFF;
   mbr->part->endCHS[2] = 0XFF;
-  setLe32(mbr->part->relativeSectors, partitionOffset);
+  setLe32(mbr->part->startSector, partitionOffset);
   setLe32(mbr->part->totalSectors, volumeLength);
   setLe16(mbr->signature, MBR_SIGNATURE);
   if (!dev->writeSector(0, secBuf)) {
@@ -318,7 +318,7 @@ bool ExFatFormatter::writeUpcaseUnicode(uint16_t unicode) {
   return writeUpcaseByte(unicode) && writeUpcaseByte(unicode >> 8);
 }
 //------------------------------------------------------------------------------
-bool ExFatFormatter::writeUpcase(uint32_t sector) {
+bool ExFatFormatter::writeUpcase(Sector_t sector) {
   uint32_t n;
   uint32_t ns;
   uint32_t ch = 0;

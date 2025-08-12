@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef CompileDateTime_h
-#define CompileDateTime_h
+#pragma once
 #include <stdint.h>
 // Note - these functions will compile to a few bytes
 //        since they are evaluated at compile time.
@@ -66,4 +65,3 @@ constexpr uint8_t compileMinute() {
 constexpr uint8_t compileSecond() {
   return 10 * (__TIME__[6] - '0') + __TIME__[7] - '0';
 }
-#endif  // CompileDateTime_h

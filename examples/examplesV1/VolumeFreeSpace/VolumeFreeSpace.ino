@@ -19,7 +19,7 @@ const uint8_t chipSelect = SS;
 SdFat sd;
 
 // test file
-SdFile file;
+File file;
 
 // Serial output stream
 ArduinoOutStream cout(Serial);
@@ -30,7 +30,7 @@ void printFreeSpace() {
   uint32_t volFree = sd.vol()->freeClusterCount();
   cout << micros() - m << F(" micros\n");
   cout << F("freeClusters: ") <<  volFree << setprecision(3) << endl;
-  float fs = 0.000512*volFree*sd.vol()->blocksPerCluster();
+  float fs = 0.000512*volFree*sd.vol()->sectorsPerCluster();
   cout << F("freeSpace: ") << fs << F(" MB (MB = 1,000,000 bytes)\n\n");
 }
 //------------------------------------------------------------------------------

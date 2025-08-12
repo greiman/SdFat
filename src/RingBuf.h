@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef RingBuf_h
-#define RingBuf_h
+#pragma once
 /**
  * \file
  * \brief Ring buffer for data loggers.
@@ -168,9 +167,9 @@ class RingBuf : public Print {
       sign = '-';
     }
     if (sizeof(Type) < 4) {
-      str = fmtBase10(str, (uint16_t)value);
+      str = fmtBase10(str, static_cast<uint16_t>(value));
     } else {
-      str = fmtBase10(str, (uint32_t)value);
+      str = fmtBase10(str, static_cast<uint32_t>(value));
     }
     if (sign) {
       *--str = sign;
@@ -397,4 +396,3 @@ class RingBuf : public Print {
   // avoid macro MIN
   size_t minSize(size_t a, size_t b) { return a < b ? a : b; }
 };
-#endif  // RingBuf_h

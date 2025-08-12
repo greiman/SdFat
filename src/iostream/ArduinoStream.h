@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2022 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,8 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef ArduinoStream_h
-#define ArduinoStream_h
+#pragma once
 /**
  * \file
  * \brief ArduinoInStream and ArduinoOutStream classes
@@ -141,4 +140,3 @@ class ArduinoOutStream : public ostream {
   ArduinoOutStream() {}
   print_t* m_pr;
 };
-#endif  // ArduinoStream_h

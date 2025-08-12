@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -27,8 +27,15 @@
  * \brief Top level include for SPI and SDIO cards.
  */
 #pragma once
-#include "SdSpiCard.h"
-#include "SdioCard.h"
+#include "SdSpiCard/SdSpiCard.h"
+#if defined(HAS_PIO_SDIO)
+#include "PioSdio/PioSdioCard.h"
+#elif defined(HAS_TEENSY_SDIO)
+#include "TeensySdio/TeensySdioCard.h"
+#else
+class SdioConfig {};
+#endif  //
+
 #if HAS_SDIO_CLASS
 /** Type for both SPI and SDIO cards. */
 typedef SdCardInterface SdCard;

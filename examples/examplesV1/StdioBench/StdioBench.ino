@@ -1,4 +1,4 @@
-// Benchmark comparing SdFile and StdioStream.
+// Benchmark comparing File and StdioStream.
 #include <SPI.h>
 #include "SdFat.h"
 #include "sdios.h"
@@ -13,7 +13,7 @@
 const uint8_t SD_CS_PIN = SS;
 SdFat sd;
 
-SdFile printFile;
+File printFile;
 StdioStream stdioFile;
 
 float f[100];

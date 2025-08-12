@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2024 Bill Greiman
+ * Copyright (c) 2011-2025 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -197,15 +197,17 @@ class ExFatFile {
    *
    * \return true for success or false for failure.
    */
-  bool contiguousRange(uint32_t* bgnSector, uint32_t* endSector);
+  bool contiguousRange(Sector_t* bgnSector, Sector_t* endSector);
   /** \return The current cluster number for a file or directory. */
-  uint32_t curCluster() const { return m_curCluster; }
+  Cluster_t curCluster() const { return m_curCluster; }
   /** \return The current position for a file or directory. */
   uint64_t curPosition() const { return m_curPosition; }
   /** \return Total data length for file. */
   uint64_t dataLength() const { return m_dataLength; }
   /** \return Directory entry index. */
   uint32_t dirIndex() const { return m_dirPos.position / FS_DIR_SIZE; }
+  /** \return The first cluster number for a file or directory. */
+  Cluster_t firstCluster() const { return m_firstCluster; }
   /** Test for the existence of a file in a directory
    *
    * \param[in] path Path of the file to be tested for.
@@ -248,9 +250,9 @@ class ExFatFile {
    */
   int fgets(char* str, int num, const char* delim = nullptr);
   /** \return The total number of bytes in a file. */
-  uint64_t fileSize() const { return m_validLength; }
+  uint64_t fileSize() const { return m_dataLength; }
   /** \return Address of first sector or zero for empty file. */
-  uint32_t firstSector() const;
+  Sector_t firstSector() const;
   /** Set position for streams
    * \param[in] pos struct with value for new position
    */
@@ -576,9 +578,9 @@ class ExFatFile {
       sign = '-';
     }
     if (sizeof(Type) < 4) {
-      str = fmtBase10(str, (uint16_t)value);
+      str = fmtBase10(str, static_cast<uint16_t>(value));
     } else {
-      str = fmtBase10(str, (uint32_t)value);
+      str = fmtBase10(str, static_cast<uint32_t>(value));
     }
     if (sign) {
       *--str = sign;
@@ -712,7 +714,7 @@ class ExFatFile {
    * \return true for success or false for failure.
    */
   bool seekEnd(int64_t offset = 0) {
-    return isFile() ? seekSet(m_validLength + offset) : false;
+    return isFile() ? seekSet(m_dataLength + offset) : false;
   }
   /** Sets a file's position.
    *
@@ -744,7 +746,7 @@ class ExFatFile {
    *
    * T_WRITE - Set the file's last write/modification date and time.
    *
-   * \param[in] year Valid range 1980 - 2107 inclusive.
+   * \param[in] year Valid range 1980 - 2099 inclusive.
    *
    * \param[in] month Valid range 1 - 12 inclusive.
    *
@@ -869,8 +871,8 @@ class ExFatFile {
   uint64_t m_curPosition;
   uint64_t m_dataLength;
   uint64_t m_validLength;
-  uint32_t m_curCluster;
-  uint32_t m_firstCluster;
+  Cluster_t m_curCluster;
+  Cluster_t m_firstCluster;
   ExFatVolume* m_vol;
   DirPos_t m_dirPos;
   uint8_t m_setCount;
@@ -878,7 +880,6 @@ class ExFatFile {
   uint8_t m_error = 0;
   uint8_t m_flags = 0;
 };
-
 #include "../common/ArduinoFiles.h"
 /**
  * \class ExFile
@@ -886,6 +887,12 @@ class ExFatFile {
  */
 class ExFile : public StreamFile<ExFatFile, uint64_t> {
  public:
+  ExFile() {}
+  /** Create an open ExFile.
+   * \param[in] path path for file.
+   * \param[in] oflag open flags.
+   */
+  ExFile(const char* path, oflag_t oflag) { open(path, oflag); }
   /** Opens the next file or folder in a directory.
    *
    * \param[in] oflag open flags.
