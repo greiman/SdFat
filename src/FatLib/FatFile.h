@@ -375,6 +375,15 @@ class FatFile {
    * \return true for success or false for failure.
    */
   bool getCreateDateTime(uint16_t* pdate, uint16_t* ptime);
+  /** Get a file's create date and time (with seconds).
+   *
+   * \param[out] pdate Packed date for directory entry.
+   * \param[out] ptime Packed time for directory entry.
+   * \param[out] pseconds Packed time for directory entry.
+   *
+   * \return true for success or false for failure.
+   */
+  bool getCreateDateTimeSeconds(uint16_t* pdate, uint16_t* ptime, uint8_t* pseconds);
   /** \return All error bits. */
   uint8_t getError() const { return m_error; }
   /** Get a file's modify date and time.
@@ -656,6 +665,13 @@ class FatFile {
    * \return The number of bytes printed.
    */
   size_t printCreateDateTime(print_t* pr);
+  /** Print a file's creation date and time (with seconds)
+   *
+   * \param[in] pr Print stream for output.
+   *
+   * \return The number of bytes printed.
+   */
+  size_t printCreateDateTimeSeconds(print_t* pr);
   /** %Print a directory date field.
    *
    *  Format is yyyy-mm-dd.

@@ -307,6 +307,21 @@ fail:
   return false;
 }
 //------------------------------------------------------------------------------
+bool FatFile::getCreateDateTimeSeconds(uint16_t* pdate, uint16_t* ptime, uint8_t* pseconds) {
+  DirFat_t dir;
+  if (!dirEntry(&dir)) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  *pdate = getLe16(dir.createDate);
+  *ptime = getLe16(dir.createTime);
+  *pseconds = dir.createTimeMs;
+  return true;
+
+fail:
+  return false;
+}
+//------------------------------------------------------------------------------
 bool FatFile::getModifyDateTime(uint16_t* pdate, uint16_t* ptime) {
   DirFat_t dir;
   if (!dirEntry(&dir)) {

@@ -159,9 +159,10 @@ size_t fsPrintTime(print_t* pr, uint16_t time) {
 //------------------------------------------------------------------------------
 size_t fsPrintTime(print_t* pr, uint16_t time, uint8_t sec100) {
   // Allow hh:mm:ss
-  char buf[sizeof("hh:mm:ss") - 1];
+  char buf[sizeof(" hh:mm:ss") - 1];
   char* str = buf + sizeof(buf);
   str = fsFmtTime(str, time, sec100);
+  *--str = ' ';
   return pr->write(reinterpret_cast<uint8_t*>(str), buf + sizeof(buf) - str);
 }
 //------------------------------------------------------------------------------
