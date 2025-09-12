@@ -89,7 +89,7 @@ void ostream::putDouble(double n) {
     roundDbl *= 0.1;
   }
   n += roundDbl;
-  uint32_t intPart = n;
+  uint32_t intPart = (uint32_t)n;
   double fractionPart = n - intPart;
 
   // format intPart and decimal point
