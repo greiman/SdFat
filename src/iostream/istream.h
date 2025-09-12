@@ -191,7 +191,7 @@ class istream : public virtual ios {
   istream& operator>>(float& arg) {
     double v;
     getDouble(&v);
-    arg = v;
+    arg = (float)v;
     return *this;
   }
   /**
