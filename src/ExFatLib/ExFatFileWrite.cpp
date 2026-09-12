@@ -299,6 +299,8 @@ bool ExFatFile::rename(ExFatFile* dirFile, const char* newPath) {
   ExFatFile file;
   ExFatFile oldFile;
 
+
+  
   // Must be an open file or subdirectory.
   if (!(isFile() || isSubDir())) {
     DBG_FAIL_MACRO;
@@ -321,6 +323,36 @@ bool ExFatFile::rename(ExFatFile* dirFile, const char* newPath) {
     DBG_FAIL_MACRO;
     goto fail;
   }
+  
+  // get original file modify time and date  
+  uint16_t oldModifyTime, oldModifyDate;
+  uint8_t flags;
+  uint16_t year;
+  uint8_t  month;
+  uint8_t  day;
+  uint8_t  hour; 
+  uint8_t  minute; 
+  uint8_t  second;
+  oldFile.getModifyDateTime(&oldModifyDate, &oldModifyTime);
+
+  // Update the new file to have the original time and date
+  // This behaviour appears to be optional in POSIX systems
+  // but I beleive keeping the original create and modify times
+  // is the right thing to do, its what Linux does and is needed
+  // for example where log files are rotated so we can see the 
+  // logfile's last modified date/time
+  // This could also be done at the application level using the 
+  // ExFat file objects.
+  flags = T_ACCESS | T_CREATE | T_WRITE;
+  year = FS_YEAR(oldModifyDate);
+  month = FS_MONTH(oldModifyDate);
+  day = FS_DAY(oldModifyDate);
+  hour = FS_HOUR(oldModifyTime);
+  minute = FS_MINUTE(oldModifyTime);
+  second = FS_SECOND(oldModifyTime);
+
+  file.timestamp(flags, year, month, day, hour, minute, second);
+  
   // Remove old directory entry;
   oldFile.m_firstCluster = 0;
   oldFile.m_flags = FILE_FLAG_WRITE;
