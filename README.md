@@ -1,3 +1,14 @@
+Fork of original greiman
+Update the new file to have the original time and date
+This behaviour appears to be optional in POSIX systems
+but I beleive keeping the original create and modify times
+is the right thing to do, its what Linux does and is needed
+for example where log files are rotated so we can see the 
+logfile's last modified date/time
+This could also be done at the application level using the 
+ExFat file objects.
+
+
 ### Warning: This version has major internal changes.
 SdFat version 2.3.1 corrects handling of the exFAT fields validLength
 and dataLength.
