@@ -616,6 +616,15 @@ bool SdSpiCard::waitReady(uint16_t ms) {
     if (timeout.timedOut()) {
       return false;
     }
+#if SD_RELEASE_SPI_WHILE_BUSY
+    if (m_spiActive && !m_dedicatedSpi) {
+      // Busy: deselect the card so other devices can use the bus.
+      // interrupt handler held off runs as soon as spiStop() ends it.
+      // this is allowed by the SD Physical Layer Simplified Specification 6.00, 7.2.4
+      spiStop();
+      spiStart();
+    }
+#endif  // SD_RELEASE_SPI_WHILE_BUSY
   }
   return true;
 }

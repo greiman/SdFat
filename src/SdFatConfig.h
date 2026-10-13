@@ -325,6 +325,17 @@ typedef uint8_t SdCsPin_t;
 #endif  // CHECK_FLASH_PROGRAMMING
 //------------------------------------------------------------------------------
 /**
+ * If SD_RELEASE_SPI_WHILE_BUSY is non-zero, a shared SPI card deselects the
+ * card and ends the SPI transaction between polls while the card is busy
+ * programming, so other devices on the bus are not held off for the whole
+ * busy time. The card keeps programming with CS high and releases MISO
+ * (SD Physical Layer Simplified Specification 6.00, 7.2.4).
+ */
+#ifndef SD_RELEASE_SPI_WHILE_BUSY
+#define SD_RELEASE_SPI_WHILE_BUSY 1
+#endif  // SD_RELEASE_SPI_WHILE_BUSY
+//------------------------------------------------------------------------------
+/**
  * To enable SD card CRC checking for SPI, set USE_SD_CRC nonzero.
  *
  * Set USE_SD_CRC to 1 to use a smaller CRC-CCITT function.  This function
