@@ -286,6 +286,23 @@ uint8_t SdSpiCard::cardCommand(uint8_t cmd, uint32_t arg) {
 
   // there are 1-8 fill bytes before response.  fill bytes should be 0XFF.
   uint8_t n = 0;
+  if (cmd == CMD12) {
+    // Some cards abort the data stream mid-byte and send a bit-shifted R1 for
+    // STOP_TRANSMISSION (e.g. E0 1F for R1 = 0). Realign it the way Linux
+    // mmc_spi does: take the first non-0XFF byte plus the next byte and shift
+    // out the leading one bits.
+    do {
+      m_status = spiReceive();
+    } while (m_status == 0XFF && ++n < 10);
+    if (m_status != 0XFF && (m_status & 0X80)) {
+      uint16_t rotator = (uint16_t)(m_status << 8) | spiReceive();
+      while (rotator & 0X8000) {
+        rotator <<= 1;
+      }
+      m_status = rotator >> 8;
+    }
+    return m_status;
+  }
   do {
     m_status = spiReceive();
   } while (m_status & 0X80 && ++n < 10);
